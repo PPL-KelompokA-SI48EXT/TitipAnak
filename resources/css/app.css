@@ -4,8 +4,26 @@
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
 @source '../**/*.js';
+@source '../../config/*.php';
+
+[x-cloak] {
+    display: none !important;
+}
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Token brand TitipAnak (lihat docs/frontend-guideline.html) */
+    --color-ink: #1B1B1B;
+    --color-muted: #6B6B6B;
+    --color-paper: #FFFFFF;
+    --color-cream: #FFF6D6;
+    --color-yellow: #FFD43B;
+    --color-blue: #A8D4FF;
+    --color-mint: #A8E6CF;
+    --color-lavender: #CDBDFF;
+    --color-coral: #FF9E80;
+
+    --radius-ta: 10px;
 }

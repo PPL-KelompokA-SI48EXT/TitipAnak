@@ -18,7 +18,7 @@ composer install
 npm install
 copy .env.example .env       # macOS/Linux: cp .env.example .env
 php artisan key:generate
-php artisan migrate
+php artisan migrate --seed
 npm run dev
 php artisan serve
 ```
@@ -63,9 +63,25 @@ Perintah ini menghapus seluruh data lokal.
 - Migration yang punya foreign key harus lebih baru daripada migration tabel yang dirujuk.
 - Jangan mengubah migration yang sudah ada di `main`. Buat migration baru untuk perubahan skema.
 
+## Seeder (data awal)
+
+`php artisan migrate --seed` mengisi semua tabel dengan data contoh (minimal 5 baris per tabel), supaya tidak perlu menunggu data dari anggota lain. Seeder aman dijalankan ulang (`php artisan db:seed`), data yang sudah ada tidak digandakan. Untuk mengulang dari nol: `php artisan migrate:fresh --seed`.
+
+Semua akun memakai kata sandi `password`:
+
+| Peran | Email |
+|---|---|
+| Admin | `admin@titipanak.test` |
+| Pengasuh | `pengasuh1@titipanak.test` sampai `pengasuh5@titipanak.test` |
+| Orang Tua | `ortu1@titipanak.test` sampai `ortu6@titipanak.test` |
+
+Cerita datanya: pengasuh ke-N memegang kelompok usia ke-N. Orang tua 1-5 punya satu anak aktif (anak 1-5) dengan tagihan, kehadiran, dan laporan. Orang tua 6 punya pendaftaran yang menunggu verifikasi. Pendaftaran berstatus draft dan ditolak juga tersedia untuk uji alur Admin.
+
+Kolom foto (`path_foto_identitas`, `path_bukti`, `path_file`) di data contoh berisi URL gambar karakter Kimetsu no Yaiba dari CDN AniList (lihat `database/seeders/Concerns/FotoContoh.php`), jadi perlu internet agar gambarnya tampil. Di aplikasi sebenarnya kolom ini berisi path file di disk private. Saat menampilkan foto, tangani dua kasus: nilai yang diawali `http` dipakai apa adanya, selain itu diambil dari storage.
+
 ## Role dan permission
 
-Peran memakai Spatie Permission: `admin`, `pengasuh`, `orang_tua`. Model `User` sudah memakai trait `HasRoles`. Seeder role dan akun admin awal belum tersedia.
+Peran memakai Spatie Permission: `admin`, `pengasuh`, `orang_tua`. Model `User` sudah memakai trait `HasRoles`. Role dan permission dibuat oleh `RolePermissionSeeder`. Middleware alias Spatie (`role`, `permission`) belum didaftarkan di `bootstrap/app.php`.
 
 ## Perintah berguna
 

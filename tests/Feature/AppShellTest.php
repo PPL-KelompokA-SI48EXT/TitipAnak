@@ -85,6 +85,14 @@ class AppShellTest extends TestCase
             ->assertDontSee('Akun Pengguna');
     }
 
+    public function test_sidebar_punya_tombol_ciutkan_menu(): void
+    {
+        $this->actingAs($this->akun('admin'))
+            ->get(route('dashboard'))
+            ->assertSee('Ciutkan menu')
+            ->assertSee('collapsed', false);
+    }
+
     public function test_ganti_akun_lewat_switcher(): void
     {
         $admin = $this->akun('admin');

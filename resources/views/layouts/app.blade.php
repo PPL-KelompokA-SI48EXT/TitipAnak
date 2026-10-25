@@ -12,7 +12,13 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 {{-- Shell aplikasi setelah login: navbar atas, sidebar kiri, konten, footer. --}}
-<body class="min-h-screen bg-paper font-sans text-ink antialiased" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
+<body class="min-h-screen bg-paper font-sans text-ink antialiased"
+    x-data="{
+        sidebarOpen: false,
+        collapsed: (() => { try { return localStorage.getItem('sidebar-collapsed') === '1' } catch (e) { return false } })(),
+    }"
+    x-init="$watch('collapsed', v => { try { localStorage.setItem('sidebar-collapsed', v ? '1' : '0') } catch (e) {} })"
+    @keydown.escape.window="sidebarOpen = false">
     <x-navbar />
 
     <div class="flex">

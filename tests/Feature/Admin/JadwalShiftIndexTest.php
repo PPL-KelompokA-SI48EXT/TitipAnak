@@ -7,6 +7,7 @@ use App\Models\JadwalShift;
 use App\Models\KelompokUsia;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -79,7 +80,7 @@ class JadwalShiftIndexTest extends TestCase
         $this->shift($this->siti, $this->batita, 1, '07:00', '09:00');
 
         $this->actingAs($this->admin)
-            ->get(route('admin.jadwal-shift.index'))
+            ->get(route('admin.jadwal-shift.index', ['mode' => 'daftar']))
             ->assertSeeInOrder(['Senin', '07:00 – 09:00', 'Senin', '09:00 – 12:00', 'Rabu']);
     }
 
@@ -107,6 +108,7 @@ class JadwalShiftIndexTest extends TestCase
             ->assertSee('Dewi Lestari')
             ->assertDontSee('Siti Rahmawati')
             ->set('kelompok', '')
+            ->call('setMode', 'daftar')
             ->set('hari', '1')
             ->assertSee('Siti Rahmawati')
             ->assertDontSee('Dewi Lestari');
@@ -123,6 +125,83 @@ class JadwalShiftIndexTest extends TestCase
             ->call('resetFilter')
             ->assertSet('q', '')
             ->assertSee('Siti Rahmawati');
+    }
+
+    public function test_kalender_minggu_menampilkan_tanggal_dan_shift_per_hari(): void
+    {
+        Carbon::setTestNow('2026-10-28 09:00:00'); // Rabu
+        $this->shift($this->siti, $this->batita, 1);
+        $this->shift($this->dewi, $this->balita, 3, '08:00', '16:00');
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->assertSee('26 Okt – 1 Nov 2026')
+            ->assertSee('Siti Rahmawati')
+            ->assertSee('Dewi Lestari')
+            ->assertSee('08:00 – 16:00')
+            ->assertSee('Tidak ada shift'); // hari lain yang kosong
+    }
+
+    public function test_navigasi_minggu_dan_kembali_ke_hari_ini(): void
+    {
+        Carbon::setTestNow('2026-10-28 09:00:00');
+        $this->shift($this->siti, $this->batita, 1);
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('pindah', 1)
+            ->assertSee('2 – 8 Nov 2026')
+            ->call('pindah', -1)
+            ->call('pindah', -1)
+            ->assertSee('19 – 25 Okt 2026')
+            ->call('hariIni')
+            ->assertSee('26 Okt – 1 Nov 2026');
+    }
+
+    public function test_kalender_bulan_dan_navigasinya(): void
+    {
+        Carbon::setTestNow('2026-10-28 09:00:00');
+        $this->shift($this->siti, $this->batita, 1);
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('setMode', 'bulan')
+            ->assertSee('Oktober 2026')
+            ->assertSee('07:00 Siti')
+            ->call('pindah', 1)
+            ->assertSee('November 2026')
+            ->call('pindah', -1)
+            ->call('pindah', -1)
+            ->assertSee('September 2026');
+    }
+
+    public function test_klik_tanggal_di_bulan_membuka_minggu_tersebut(): void
+    {
+        Carbon::setTestNow('2026-10-28 09:00:00');
+        $this->shift($this->siti, $this->batita, 1);
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('setMode', 'bulan')
+            ->call('pilihTanggal', '2026-11-12')
+            ->assertSet('mode', 'minggu')
+            ->assertSet('tanggal', '2026-11-12')
+            ->assertSee('9 – 15 Nov 2026');
+    }
+
+    public function test_mode_tidak_valid_jatuh_ke_minggu(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('setMode', 'ngawur')
+            ->assertSet('mode', 'minggu');
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     public function test_keadaan_belum_ada_jadwal(): void

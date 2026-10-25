@@ -32,11 +32,52 @@
                 <ul class="grid grid-cols-[minmax(0,1fr)] gap-1">
                     @foreach ($g['items'] as $item)
                         @php
-                            $ada = $item['route'] && Route::has($item['route']);
-                            $aktif = $ada && request()->routeIs($item['route']);
+                            $children = collect($item['children'] ?? [])
+                                ->filter(fn ($c) => ($c['permission'] ?? $item['permission']) === null || $user->can($c['permission'] ?? $item['permission']))
+                                ->values();
+                            $route = $item['route'] ?? null;
+                            $ada = $route && Route::has($route);
+                            $aktif = $ada && request()->routeIs($route);
+                            $anakAktif = $children->contains(fn ($c) => ($c['route'] ?? null) && Route::has($c['route']) && request()->routeIs($c['route']));
                         @endphp
                         <li>
-                            @if ($ada)
+                            @if ($children->isNotEmpty())
+                                {{-- Item dengan submenu: klik untuk buka/tutup. Saat sidebar diciutkan, klik melebarkan sidebar dulu. --}}
+                                <div x-data="{ open: {{ $anakAktif ? 'true' : 'false' }} }">
+                                    <button type="button" @click="collapsed ? (collapsed = false, open = true) : open = !open"
+                                        :aria-expanded="open" title="{{ $item['label'] }}"
+                                        class="flex w-full items-center gap-3 rounded-lg border-[1.5px] px-3 py-2 text-left text-sm font-medium transition
+                                            {{ $anakAktif ? 'border-ink bg-yellow font-bold' : 'border-transparent hover:border-ink hover:bg-paper' }}">
+                                        <span class="w-6 shrink-0 text-center text-lg" aria-hidden="true">{{ $item['icon'] }}</span>
+                                        <span class="flex-1 truncate" :class="collapsed && 'md:hidden'">{{ $item['label'] }}</span>
+                                        <span class="shrink-0 text-xs transition-transform" :class="[open && 'rotate-180', collapsed && 'md:hidden']" aria-hidden="true">▾</span>
+                                    </button>
+
+                                    <ul x-show="open" x-cloak :class="collapsed && 'md:hidden'"
+                                        class="ml-5 mt-1 grid grid-cols-[minmax(0,1fr)] gap-1 border-l-[1.5px] border-ink/30 pl-2">
+                                        @foreach ($children as $child)
+                                            @php
+                                                $childAda = ($child['route'] ?? null) && Route::has($child['route']);
+                                                $childAktif = $childAda && request()->routeIs($child['route']);
+                                            @endphp
+                                            <li>
+                                                @if ($childAda)
+                                                    <a href="{{ route($child['route']) }}" @if ($childAktif) aria-current="page" @endif
+                                                        class="flex items-center rounded-lg border-[1.5px] px-2 py-1.5 text-sm transition
+                                                            {{ $childAktif ? 'border-ink bg-yellow font-bold' : 'border-transparent font-medium hover:border-ink hover:bg-paper' }}">
+                                                        <span class="truncate">{{ $child['label'] }}</span>
+                                                    </a>
+                                                @else
+                                                    <span aria-disabled="true" class="flex cursor-not-allowed items-center gap-2 rounded-lg border-[1.5px] border-transparent px-2 py-1.5 text-sm text-muted">
+                                                        <span class="flex-1 truncate">{{ $child['label'] }}</span>
+                                                        <span class="rounded-full border border-muted px-2 py-0.5 text-[10px] font-semibold">Segera</span>
+                                                    </span>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @elseif ($ada)
                                 <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}" @if ($aktif) aria-current="page" @endif
                                     class="flex items-center gap-3 rounded-lg border-[1.5px] px-3 py-2 text-sm font-medium transition
                                         {{ $aktif ? 'border-ink bg-yellow font-bold' : 'border-transparent hover:border-ink hover:bg-paper' }}">

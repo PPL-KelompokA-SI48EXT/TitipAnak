@@ -85,6 +85,21 @@ class AppShellTest extends TestCase
             ->assertDontSee('Akun Pengguna');
     }
 
+    public function test_jadwal_shift_punya_submenu_kelola_dan_lihat(): void
+    {
+        $this->actingAs($this->akun('admin'))
+            ->get(route('admin.jadwal-shift.buat'))
+            ->assertSee('Kelola Jadwal Shift')
+            ->assertSee('Lihat Jadwal Shift')
+            ->assertSee('open: true', false);
+
+        // Pengasuh tidak melihat submenu admin.
+        $this->actingAs($this->akun('pengasuh'))
+            ->get(route('dashboard'))
+            ->assertDontSee('Kelola Jadwal Shift')
+            ->assertDontSee('Lihat Jadwal Shift');
+    }
+
     public function test_sidebar_punya_tombol_ciutkan_menu(): void
     {
         $this->actingAs($this->akun('admin'))

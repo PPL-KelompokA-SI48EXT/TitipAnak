@@ -10,6 +10,10 @@
 | route yang belum ada tampil nonaktif dengan label "Segera".
 | Saat sebuah PBI selesai, cukup isi nama route-nya di sini.
 |
+| Submenu: ganti 'route' pada item dengan 'children' => [['label' => ..., 'route' => ...], ...].
+| Item induk hanya membuka/menutup submenu dan mengikuti 'permission' miliknya;
+| tiap anak boleh punya 'permission' sendiri (bawaan: ikut induk).
+|
 */
 
 return [
@@ -26,7 +30,13 @@ return [
             ['label' => 'Master Data', 'icon' => '🗂️', 'route' => null, 'permission' => 'kelola master data'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
             ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => null, 'permission' => 'verifikasi pembayaran'],
-            ['label' => 'Jadwal Shift', 'icon' => '🗓️', 'route' => 'admin.jadwal-shift.buat', 'permission' => 'kelola jadwal'],
+            [
+                'label' => 'Jadwal Shift', 'icon' => '🗓️', 'permission' => 'kelola jadwal',
+                'children' => [
+                    ['label' => 'Kelola Jadwal Shift', 'route' => 'admin.jadwal-shift.buat'],
+                    ['label' => 'Lihat Jadwal Shift', 'route' => null],
+                ],
+            ],
             ['label' => 'Pengumuman', 'icon' => '📣', 'route' => null, 'permission' => 'kelola pengumuman'],
         ],
     ],

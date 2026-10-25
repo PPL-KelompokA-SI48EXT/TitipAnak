@@ -1,9 +1,17 @@
 <?php
 
+use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('dashboard', Dashboard::class)->name('dashboard');
+
+    Route::middleware('permission:kelola jadwal')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('jadwal-shift/buat', JadwalShiftBuat::class)->name('jadwal-shift.buat');
+        });
 });

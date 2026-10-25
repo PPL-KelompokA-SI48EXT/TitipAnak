@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TitipAnak Frontend Guideline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   TitipAnak design tokens — diambil dari TitipAnak_Presentasi_PBI.pptx
+   (theme "TitipAnak": Poppins, accent pastel, border hitam 1.5px, flat)
+   ===================================================================== */
+:root {
+  --ta-ink:        #1B1B1B;   /* dk1  – teks utama, border, tombol gelap */
+  --ta-ink-soft:   #2B2B2B;   /* dk2 */
+  --ta-muted:      #6B6B6B;   /* accent6 – teks sekunder */
+  --ta-paper:      #FFFFFF;   /* lt1  – background halaman & kartu putih */
+  --ta-cream:      #FFF6D6;   /* lt2  – panel lembut / zebra */
+  --ta-yellow:     #FFD43B;   /* accent1 – brand / Admin */
+  --ta-blue:       #A8D4FF;   /* accent2 – Pengasuh */
+  --ta-mint:       #A8E6CF;   /* accent3 – Orang Tua / sukses */
+  --ta-lavender:   #CDBDFF;   /* accent4 – jadwal */
+  --ta-coral:      #FF9E80;   /* accent5 – operasional / perhatian */
+  --ta-link:       #1B6FD1;   /* hlink */
+
+  --ta-border:     1.5px solid var(--ta-ink);
+  --ta-border-thin:1px solid var(--ta-ink);
+  --ta-radius:     10px;
+  --ta-radius-pill:999px;
+
+  --ta-font: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  --ta-s1: 4px;  --ta-s2: 8px;  --ta-s3: 12px; --ta-s4: 16px;
+  --ta-s5: 24px; --ta-s6: 32px; --ta-s7: 48px; --ta-s8: 64px;
+
+  --ta-max: 1120px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; }
+body {
+  margin: 0; background: var(--ta-paper); color: var(--ta-ink);
+  font-family: var(--ta-font); font-size: 16px; line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--ta-link); }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--ta-link); outline-offset: 2px; }
+code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .85em; }
+:not(pre) > code { background: var(--ta-cream); border: 1px solid var(--ta-ink); border-radius: 6px; padding: 1px 6px; }
+pre {
+  background: var(--ta-ink); color: #F4F4F4; border-radius: var(--ta-radius);
+  padding: var(--ta-s4); overflow-x: auto; line-height: 1.55; margin: var(--ta-s4) 0 0;
+}
+pre .c { color: #9A9A9A; } pre .k { color: var(--ta-yellow); } pre .s { color: var(--ta-mint); }
+
+/* ------------------------------ Typography ------------------------------ */
+.t-display { font-size: clamp(2.5rem, 7vw, 4rem); line-height: 1.05; font-weight: 700; letter-spacing: -.02em; }
+.t-h1      { font-size: clamp(1.75rem, 4vw, 2.25rem); line-height: 1.2; font-weight: 700; }
+.t-h2      { font-size: 1.625rem; line-height: 1.25; font-weight: 700; }
+.t-h3      { font-size: 1.25rem;  line-height: 1.3;  font-weight: 700; }
+.t-lead    { font-size: 1.25rem;  line-height: 1.5; }
+.t-body    { font-size: 1rem; }
+.t-small   { font-size: .875rem; }
+.t-caption { font-size: .75rem; color: var(--ta-muted); }
+.t-muted   { color: var(--ta-muted); }
+
+/* ------------------------------ Components ------------------------------ */
+/* Card — dasar semua panel */
+.card {
+  background: var(--ta-paper); border: var(--ta-border); border-radius: var(--ta-radius);
+  padding: var(--ta-s5);
+}
+.card--yellow   { background: var(--ta-yellow); }
+.card--blue     { background: var(--ta-blue); }
+.card--mint     { background: var(--ta-mint); }
+.card--lavender { background: var(--ta-lavender); }
+.card--coral    { background: var(--ta-coral); }
+.card--cream    { background: var(--ta-cream); }
+.card--ink      { background: var(--ta-ink); color: var(--ta-paper); }
+
+/* Icon bubble — lingkaran putih berborder untuk ikon/nomor */
+.bubble {
+  display: inline-grid; place-items: center; flex: none;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: var(--ta-paper); border: var(--ta-border); font-size: 1.5rem;
+}
+.bubble--sm { width: 40px; height: 40px; font-size: 1.1rem; }
+
+/* Button */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--ta-s2);
+  font: 600 .95rem/1 var(--ta-font); padding: 12px 20px; cursor: pointer;
+  color: var(--ta-ink); background: var(--ta-yellow);
+  border: var(--ta-border); border-radius: var(--ta-radius); text-decoration: none;
+  transition: transform .12s ease, background-color .12s ease;
+}
+.btn:hover  { transform: translateY(-2px); }
+.btn:active { transform: translateY(0); }
+.btn--dark  { background: var(--ta-ink); color: var(--ta-paper); }
+.btn--ghost { background: var(--ta-paper); }
+.btn--danger{ background: var(--ta-coral); }
+.btn--sm    { padding: 8px 14px; font-size: .85rem; }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* Badge / chip */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 .75rem/1 var(--ta-font); padding: 6px 12px;
+  border: var(--ta-border-thin); border-radius: var(--ta-radius-pill);
+  background: var(--ta-paper); color: var(--ta-ink); white-space: nowrap;
+}
+.badge--yellow { background: var(--ta-yellow); } .badge--blue { background: var(--ta-blue); }
+.badge--mint { background: var(--ta-mint); }     .badge--lavender { background: var(--ta-lavender); }
+.badge--coral { background: var(--ta-coral); }   .badge--ink { background: var(--ta-ink); color: var(--ta-paper); }
+
+/* Form */
+.field { display: grid; gap: 6px; }
+.field > label { font-weight: 600; font-size: .875rem; }
+.input, .select, .textarea {
+  font: 400 1rem var(--ta-font); color: var(--ta-ink); width: 100%;
+  background: var(--ta-paper); border: var(--ta-border); border-radius: var(--ta-radius);
+  padding: 11px 14px;
+}
+.input::placeholder, .textarea::placeholder { color: var(--ta-muted); }
+.input:focus-visible, .select:focus-visible, .textarea:focus-visible { outline: 3px solid var(--ta-yellow); outline-offset: 0; background: var(--ta-cream); }
+.field--error .input { border-color: #C2371A; background: #FFF1EC; }
+.field__hint  { font-size: .75rem; color: var(--ta-muted); }
+.field__error { font-size: .75rem; color: #B02E12; font-weight: 600; }
+
+/* PBI / list row — baris putih berborder 1px dengan kode di kiri */
+.row-item {
+  display: flex; align-items: center; gap: var(--ta-s4);
+  background: var(--ta-paper); border: var(--ta-border-thin); border-radius: var(--ta-radius);
+  padding: 12px var(--ta-s4);
+}
+.row-item__code { font-weight: 700; font-size: .8rem; min-width: 72px; }
+.row-item__text { flex: 1; font-size: .9rem; }
+.row-item--head { background: var(--ta-yellow); border: var(--ta-border); font-weight: 700; }
+
+/* Banner gelap (pill hitam seperti "Satu login untuk semua.") */
+.banner {
+  display: flex; align-items: center; gap: var(--ta-s4);
+  background: var(--ta-ink); color: var(--ta-paper);
+  border: var(--ta-border); border-radius: var(--ta-radius); padding: var(--ta-s4) var(--ta-s5);
+  font-weight: 600;
+}
+
+/* Alert */
+.alert { display: flex; gap: var(--ta-s3); padding: 14px var(--ta-s4); border: var(--ta-border); border-radius: var(--ta-radius); font-size: .9rem; }
+.alert--info { background: var(--ta-blue); } .alert--ok { background: var(--ta-mint); }
+.alert--warn { background: var(--ta-yellow); } .alert--bad { background: var(--ta-coral); }
+
+/* Stat */
+.stat__num   { font-size: 3.5rem; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat__label { font-weight: 700; font-size: 1.1rem; margin-top: 6px; }
+
+/* Outline-accent card (kartu "Harapan kami": putih + border kuning) */
+.card--accent-outline { border-color: var(--ta-yellow); border-width: 2px; background: var(--ta-paper); }
+
+/* Table */
+.table-wrap { border: var(--ta-border); border-radius: var(--ta-radius); overflow: hidden; background: var(--ta-paper); }
+table.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.table th { background: var(--ta-yellow); text-align: left; font-weight: 700; padding: 12px var(--ta-s4); border-bottom: var(--ta-border); }
+.table td { padding: 12px var(--ta-s4); border-bottom: var(--ta-border-thin); }
+.table tbody tr:nth-child(even) td { background: var(--ta-cream); }
+.table tbody tr:last-child td { border-bottom: 0; }
+
+/* Tabs */
+.tabs { display: flex; gap: var(--ta-s2); flex-wrap: wrap; }
+.tab { font: 600 .875rem var(--ta-font); padding: 8px 16px; border: var(--ta-border); border-radius: var(--ta-radius-pill); background: var(--ta-paper); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--ta-ink); color: var(--ta-paper); }
+
+/* Search bar */
+.search { position: relative; display: flex; align-items: center; min-width: 220px; flex: 1; }
+.search__icon { position: absolute; left: 14px; pointer-events: none; font-size: 1rem; }
+.search .input { padding-left: 42px; padding-right: 42px; }
+.search__clear {
+  position: absolute; right: 8px; width: 28px; height: 28px; display: none; place-items: center;
+  border: var(--ta-border-thin); border-radius: 50%; background: var(--ta-paper); cursor: pointer; font: 700 .8rem var(--ta-font);
+}
+.search.has-value .search__clear { display: grid; }
+
+/* Filter bar */
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--ta-s3); align-items: center; }
+.toolbar .select { width: auto; min-width: 160px; }
+.chip {
+  font: 600 .8rem var(--ta-font); padding: 8px 14px; cursor: pointer;
+  border: var(--ta-border-thin); border-radius: var(--ta-radius-pill); background: var(--ta-paper); color: var(--ta-ink);
+}
+.chip:hover { background: var(--ta-cream); }
+.chip[aria-pressed="true"] { background: var(--ta-yellow); border: var(--ta-border); }
+.chip--removable::after { content: " ✕"; font-size: .7rem; }
+.filter-active { display: flex; flex-wrap: wrap; gap: var(--ta-s2); align-items: center; min-height: 32px; }
+.empty { text-align: center; padding: var(--ta-s6) var(--ta-s4); }
+.empty .bubble { background: var(--ta-cream); margin-bottom: var(--ta-s3); }
+
+/* Filter popover (details) */
+.popover { position: relative; }
+.popover > summary { list-style: none; }
+.popover > summary::-webkit-details-marker { display: none; }
+.popover__panel {
+  position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; width: 280px;
+  background: var(--ta-paper); border: var(--ta-border); border-radius: var(--ta-radius); padding: var(--ta-s4);
+  display: grid; gap: var(--ta-s3);
+}
+
+/* Modal (<dialog>) */
+.modal {
+  padding: 0; border: var(--ta-border); border-radius: var(--ta-radius); background: var(--ta-paper); color: var(--ta-ink);
+  width: min(520px, calc(100vw - 32px)); max-height: calc(100vh - 48px); overflow: hidden;
+}
+.modal::backdrop { background: rgba(27, 27, 27, .55); }
+.modal[open] { display: flex; flex-direction: column; animation: ta-pop .15s ease-out; }
+@keyframes ta-pop { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal__head { display: flex; align-items: center; justify-content: space-between; gap: var(--ta-s3); padding: var(--ta-s4) var(--ta-s5); background: var(--ta-yellow); border-bottom: var(--ta-border); }
+.modal__head--danger { background: var(--ta-coral); }
+.modal__title { margin: 0; font-size: 1.25rem; font-weight: 700; }
+.modal__close { width: 36px; height: 36px; display: grid; place-items: center; border: var(--ta-border); border-radius: 50%; background: var(--ta-paper); cursor: pointer; font: 700 .9rem var(--ta-font); }
+.modal__body { padding: var(--ta-s5); overflow-y: auto; display: grid; gap: var(--ta-s4); }
+.modal__foot { display: flex; justify-content: flex-end; gap: var(--ta-s3); flex-wrap: wrap; padding: var(--ta-s4) var(--ta-s5); background: var(--ta-cream); border-top: var(--ta-border); }
+.modal--lg { width: min(720px, calc(100vw - 32px)); }
+
+/* ------------------------------ Docs layout ------------------------------ */
+.docs { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 100vh; }
+.docs__nav {
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: var(--ta-s5);
+  border-right: var(--ta-border); background: var(--ta-cream);
+}
+.docs__brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; margin-bottom: var(--ta-s5); text-decoration: none; color: var(--ta-ink); }
+.docs__brand .bubble { background: var(--ta-yellow); width: 44px; height: 44px; font-size: 1rem; font-weight: 700; border-radius: 10px; }
+.docs__nav a.link { display: block; padding: 8px 12px; border-radius: 8px; color: var(--ta-ink); text-decoration: none; font-size: .9rem; font-weight: 500; border: 1.5px solid transparent; }
+.docs__nav a.link:hover { background: var(--ta-paper); border-color: var(--ta-ink); }
+.docs__nav a.link.is-active { background: var(--ta-yellow); border-color: var(--ta-ink); font-weight: 700; }
+.docs__main { padding: var(--ta-s7) var(--ta-s6) var(--ta-s8); max-width: calc(var(--ta-max) + 64px); }
+.sec { margin-top: var(--ta-s8); }
+.sec:first-child { margin-top: 0; }
+.sec__kicker { display: inline-block; margin-bottom: var(--ta-s3); }
+.sec h2 { margin: 0 0 var(--ta-s2); }
+.sec > p.t-lead { margin: 0 0 var(--ta-s5); max-width: 62ch; }
+.sub { margin: var(--ta-s6) 0 var(--ta-s3); }
+
+.grid { display: grid; gap: var(--ta-s4); }
+.grid--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.stack { display: grid; gap: var(--ta-s3); }
+.cluster { display: flex; flex-wrap: wrap; gap: var(--ta-s3); align-items: center; }
+
+.swatch { border: var(--ta-border); border-radius: var(--ta-radius); overflow: hidden; background: var(--ta-paper); cursor: pointer; text-align: left; padding: 0; font: inherit; color: inherit; }
+.swatch__chip { height: 84px; border-bottom: var(--ta-border); }
+.swatch__meta { padding: 10px 12px; font-size: .8rem; line-height: 1.4; }
+.swatch__meta b { display: block; font-size: .9rem; }
+.swatch:hover { transform: translateY(-2px); }
+.swatch { transition: transform .12s ease; }
+
+.demo { border: var(--ta-border); border-radius: var(--ta-radius); padding: var(--ta-s5); background: var(--ta-paper); }
+.demo__label { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--ta-muted); margin-bottom: var(--ta-s3); }
+
+.rule { display: flex; gap: var(--ta-s3); padding: var(--ta-s4); border: var(--ta-border); border-radius: var(--ta-radius); }
+.rule--do   { background: var(--ta-mint); }
+.rule--dont { background: var(--ta-coral); }
+.rule ul { margin: 6px 0 0; padding-left: 1.1em; font-size: .9rem; }
+
+/* App-shell mockup */
+.shell { display: grid; grid-template-columns: 200px 1fr; border: var(--ta-border); border-radius: var(--ta-radius); overflow: hidden; background: var(--ta-paper); min-height: 420px; }
+.shell__side { background: var(--ta-cream); border-right: var(--ta-border); padding: var(--ta-s4); display: grid; gap: 6px; align-content: start; }
+.shell__side .item { padding: 9px 12px; border-radius: 8px; font-size: .85rem; font-weight: 500; border: 1.5px solid transparent; }
+.shell__side .item.on { background: var(--ta-yellow); border-color: var(--ta-ink); font-weight: 700; }
+.shell__body { padding: var(--ta-s5); display: grid; gap: var(--ta-s4); align-content: start; }
+.shell__top { display: flex; justify-content: space-between; align-items: center; gap: var(--ta-s3); flex-wrap: wrap; }
+
+@media (max-width: 960px) {
+  .docs { grid-template-columns: 1fr; }
+  .docs__nav { position: static; height: auto; border-right: 0; border-bottom: var(--ta-border); }
+  .docs__main { padding: var(--ta-s6) var(--ta-s4) var(--ta-s7); }
+  .grid--3, .grid--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .grid--2, .grid--3, .grid--5 { grid-template-columns: 1fr; }
+  .shell { grid-template-columns: 1fr; }
+  .shell__side { border-right: 0; border-bottom: var(--ta-border); grid-auto-flow: column; overflow-x: auto; }
+  .row-item { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="docs">
+
+<!-- ============================ SIDEBAR ============================ -->
+<nav class="docs__nav" aria-label="Daftar isi">
+  <a class="docs__brand" href="#top"><span class="bubble">TA</span> TitipAnak</a>
+  <a class="link" href="#prinsip">1. Prinsip desain</a>
+  <a class="link" href="#warna">2. Warna</a>
+  <a class="link" href="#tipografi">3. Tipografi</a>
+  <a class="link" href="#bentuk">4. Bentuk &amp; spasi</a>
+  <a class="link" href="#komponen">5. Komponen</a>
+  <a class="link" href="#layout">6. Layout &amp; role</a>
+  <a class="link" href="#implementasi">7. Implementasi Laravel</a>
+  <a class="link" href="#aturan">8. Do &amp; Don't</a>
+</nav>
+
+<main class="docs__main" id="top">
+
+<!-- ============================ HEADER ============================ -->
+<header class="sec">
+  <span class="badge badge--yellow sec__kicker">Frontend Guideline v1.0</span>
+  <h1 class="t-display" style="margin:0 0 var(--ta-s4)">TitipAnak<br>Design System</h1>
+  <p class="t-lead" style="max-width:60ch;margin:0 0 var(--ta-s5)">
+    Panduan tampilan untuk seluruh halaman aplikasi manajemen daycare TitipAnak, mengikuti gaya
+    presentasi PBI kita: flat, ramah, berwarna pastel, dengan garis tepi hitam tegas.
+    Anggap file ini sebagai template: semua komponen di bawah bisa langsung disalin.
+  </p>
+  <div class="cluster">
+    <span class="badge badge--yellow">Admin</span>
+    <span class="badge badge--blue">Pengasuh</span>
+    <span class="badge badge--mint">Orang Tua</span>
+    <span class="badge">Laravel 13 · Livewire 4 · Spatie Permission</span>
+  </div>
+</header>
+
+<!-- ============================ 1. PRINSIP ============================ -->
+<section class="sec" id="prinsip">
+  <h2 class="t-h1">1. Prinsip desain</h2>
+  <p class="t-lead">Orang tua yang cemas harus merasa tenang. Pengasuh yang sibuk harus bisa input cepat. Jadi tampilannya hangat, jelas, dan tidak ramai.</p>
+  <div class="grid grid--3">
+    <div class="card card--yellow stack">
+      <span class="bubble">🎨</span>
+      <div class="t-h3">Flat &amp; tegas</div>
+      <div class="t-small">Tanpa shadow, tanpa gradient. Pemisah antar elemen cukup border hitam 1.5px.</div>
+    </div>
+    <div class="card card--blue stack">
+      <span class="bubble">🧩</span>
+      <div class="t-h3">Satu warna, satu makna</div>
+      <div class="t-small">Setiap aktor dan modul punya warna pastel sendiri. Konsisten di seluruh halaman.</div>
+    </div>
+    <div class="card card--mint stack">
+      <span class="bubble">🫶</span>
+      <div class="t-h3">Ramah &amp; lega</div>
+      <div class="t-small">Sudut membulat 10px, spasi lega, teks besar. Satu halaman satu tujuan.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 2. WARNA ============================ -->
+<section class="sec" id="warna">
+  <h2 class="t-h1">2. Warna</h2>
+  <p class="t-lead">Latar selalu putih. Pastel dipakai sebagai warna blok (kartu, header tabel, badge). Teks dan border selalu hitam <code>--ta-ink</code>. Klik swatch untuk menyalin hex.</p>
+
+  <h3 class="t-h3 sub">Palet utama</h3>
+  <div class="grid grid--5">
+    <button class="swatch" data-hex="#FFD43B"><div class="swatch__chip" style="background:#FFD43B"></div><div class="swatch__meta"><b>Yellow</b>#FFD43B<br><span class="t-caption">--ta-yellow · brand, Admin, aksi utama</span></div></button>
+    <button class="swatch" data-hex="#A8D4FF"><div class="swatch__chip" style="background:#A8D4FF"></div><div class="swatch__meta"><b>Blue</b>#A8D4FF<br><span class="t-caption">--ta-blue · Pengasuh, info</span></div></button>
+    <button class="swatch" data-hex="#A8E6CF"><div class="swatch__chip" style="background:#A8E6CF"></div><div class="swatch__meta"><b>Mint</b>#A8E6CF<br><span class="t-caption">--ta-mint · Orang Tua, sukses</span></div></button>
+    <button class="swatch" data-hex="#CDBDFF"><div class="swatch__chip" style="background:#CDBDFF"></div><div class="swatch__meta"><b>Lavender</b>#CDBDFF<br><span class="t-caption">--ta-lavender · jadwal</span></div></button>
+    <button class="swatch" data-hex="#FF9E80"><div class="swatch__chip" style="background:#FF9E80"></div><div class="swatch__meta"><b>Coral</b>#FF9E80<br><span class="t-caption">--ta-coral · operasional, error</span></div></button>
+  </div>
+
+  <h3 class="t-h3 sub">Netral</h3>
+  <div class="grid grid--5">
+    <button class="swatch" data-hex="#1B1B1B"><div class="swatch__chip" style="background:#1B1B1B"></div><div class="swatch__meta"><b>Ink</b>#1B1B1B<br><span class="t-caption">--ta-ink · teks, border</span></div></button>
+    <button class="swatch" data-hex="#2B2B2B"><div class="swatch__chip" style="background:#2B2B2B"></div><div class="swatch__meta"><b>Ink soft</b>#2B2B2B<br><span class="t-caption">--ta-ink-soft</span></div></button>
+    <button class="swatch" data-hex="#6B6B6B"><div class="swatch__chip" style="background:#6B6B6B"></div><div class="swatch__meta"><b>Muted</b>#6B6B6B<br><span class="t-caption">--ta-muted · teks sekunder</span></div></button>
+    <button class="swatch" data-hex="#FFF6D6"><div class="swatch__chip" style="background:#FFF6D6"></div><div class="swatch__meta"><b>Cream</b>#FFF6D6<br><span class="t-caption">--ta-cream · panel, zebra</span></div></button>
+    <button class="swatch" data-hex="#FFFFFF"><div class="swatch__chip" style="background:#FFFFFF"></div><div class="swatch__meta"><b>Paper</b>#FFFFFF<br><span class="t-caption">--ta-paper · latar halaman</span></div></button>
+  </div>
+
+  <h3 class="t-h3 sub">Pemetaan warna ke peran &amp; modul</h3>
+  <div class="grid grid--2">
+    <div class="demo stack">
+      <div class="demo__label">Per aktor (RBAC)</div>
+      <div class="cluster"><span class="badge badge--yellow">Admin</span><span class="t-small">kelola &amp; verifikasi</span></div>
+      <div class="cluster"><span class="badge badge--blue">Pengasuh</span><span class="t-small">operasional harian</span></div>
+      <div class="cluster"><span class="badge badge--mint">Orang Tua</span><span class="t-small">pantau &amp; bayar</span></div>
+    </div>
+    <div class="demo stack">
+      <div class="demo__label">Per modul fitur</div>
+      <div class="cluster"><span class="badge badge--yellow">01 Akun &amp; Akses</span><span class="badge badge--blue">02 Master Data</span><span class="badge badge--mint">03 Pendaftaran &amp; Keuangan</span></div>
+      <div class="cluster"><span class="badge badge--lavender">04 Pengaturan Jadwal</span><span class="badge badge--coral">05 Operasional Harian</span><span class="badge badge--yellow">06 Laporan &amp; Dashboard</span></div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Status</h3>
+  <div class="cluster">
+    <span class="badge badge--ink">Draft</span>
+    <span class="badge badge--yellow">Menunggu Verifikasi</span>
+    <span class="badge badge--mint">Disetujui / Lunas</span>
+    <span class="badge badge--coral">Belum Lunas / Ditolak</span>
+    <span class="badge badge--blue">Check-in</span>
+    <span class="badge badge--lavender">Terjadwal</span>
+  </div>
+  <p class="t-small t-muted" style="margin-top:var(--ta-s3)">Kontras: teks ink di atas semua pastel di atas ≥ 10:1. <code>--ta-muted</code> di atas putih ≈ 5.3:1, jangan dipakai di atas warna pastel gelap.</p>
+</section>
+
+<!-- ============================ 3. TIPOGRAFI ============================ -->
+<section class="sec" id="tipografi">
+  <h2 class="t-h1">3. Tipografi</h2>
+  <p class="t-lead">Satu keluarga font: <b>Poppins</b> (400 regular, 500, 600, 700 bold). Judul selalu bold, isi regular.</p>
+  <div class="demo stack" style="gap:var(--ta-s5)">
+    <div><div class="t-caption">Display · 64px / 700 — cover &amp; hero</div><div class="t-display">TitipAnak</div></div>
+    <div><div class="t-caption">H1 · 36px / 700 — judul halaman</div><div class="t-h1">Daftar Pendaftaran Anak</div></div>
+    <div><div class="t-caption">H2 · 26px / 700 — judul section, nama aktor</div><div class="t-h2">Orang Tua</div></div>
+    <div><div class="t-caption">H3 · 20px / 700 — judul kartu</div><div class="t-h3">Akun dan Akses</div></div>
+    <div><div class="t-caption">Lead · 20px / 400 — subjudul</div><div class="t-lead">Presentasi Product Backlog Item</div></div>
+    <div><div class="t-caption">Body · 16px / 400 — isi, input</div><div class="t-body">Sebagai Orang Tua, saya ingin membaca laporan harian anak saya.</div></div>
+    <div><div class="t-caption">Small · 14px / 400 — tabel, daftar, deskripsi kartu</div><div class="t-small">Login satu pintu, peran, dan profil.</div></div>
+    <div><div class="t-caption">Caption · 12px / 400 — hint, nomor halaman, meta</div><div class="t-caption">5 sub-PBI · Rahman</div></div>
+  </div>
+</section>
+
+<!-- ============================ 4. BENTUK ============================ -->
+<section class="sec" id="bentuk">
+  <h2 class="t-h1">4. Bentuk, border &amp; spasi</h2>
+  <p class="t-lead">Semua elemen interaktif dan kartu memakai bahasa bentuk yang sama.</p>
+  <div class="grid grid--3">
+    <div class="card card--cream stack">
+      <div class="t-h3">Border</div>
+      <div class="t-small"><code>1.5px solid ink</code> untuk kartu, tombol, input. <code>1px</code> untuk baris di dalam daftar &amp; sel tabel.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Radius</div>
+      <div class="t-small"><code>10px</code> untuk hampir semua elemen. <code>50%</code> untuk bubble ikon. Pill (<code>999px</code>) hanya untuk badge &amp; tab.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Elevasi</div>
+      <div class="t-small">Tidak ada shadow. Efek hover cukup naik 2px (<code>translateY(-2px)</code>).</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Skala spasi (kelipatan 4)</h3>
+  <div class="demo stack">
+    <div class="cluster" style="gap:var(--ta-s5);align-items:flex-end">
+      <div><div style="width:4px;height:4px;background:var(--ta-ink)"></div><div class="t-caption">4</div></div>
+      <div><div style="width:8px;height:8px;background:var(--ta-ink)"></div><div class="t-caption">8</div></div>
+      <div><div style="width:12px;height:12px;background:var(--ta-ink)"></div><div class="t-caption">12</div></div>
+      <div><div style="width:16px;height:16px;background:var(--ta-ink)"></div><div class="t-caption">16</div></div>
+      <div><div style="width:24px;height:24px;background:var(--ta-ink)"></div><div class="t-caption">24</div></div>
+      <div><div style="width:32px;height:32px;background:var(--ta-ink)"></div><div class="t-caption">32</div></div>
+      <div><div style="width:48px;height:48px;background:var(--ta-ink)"></div><div class="t-caption">48</div></div>
+      <div><div style="width:64px;height:64px;background:var(--ta-ink)"></div><div class="t-caption">64</div></div>
+    </div>
+    <div class="t-small t-muted">Padding kartu 24px · jarak antar kartu 16px · jarak antar section 64px · konten maksimal 1120px.</div>
+  </div>
+</section>
+
+<!-- ============================ 5. KOMPONEN ============================ -->
+<section class="sec" id="komponen">
+  <h2 class="t-h1">5. Komponen</h2>
+  <p class="t-lead">Semua contoh di bawah hidup dan class-nya bisa disalin langsung ke Blade / Livewire.</p>
+
+  <h3 class="t-h3 sub">Tombol</h3>
+  <div class="demo">
+    <div class="cluster">
+      <button class="btn">Simpan</button>
+      <button class="btn btn--dark">Daftar Sekarang</button>
+      <button class="btn btn--ghost">Batal</button>
+      <button class="btn btn--danger">Hapus</button>
+      <button class="btn btn--sm">Kecil</button>
+      <button class="btn" disabled>Nonaktif</button>
+    </div>
+    <p class="t-small t-muted" style="margin-bottom:0">Satu tombol utama (kuning) per area. Aksi gelap untuk CTA besar, ghost untuk batal, coral hanya untuk aksi merusak.</p>
+  </div>
+
+  <h3 class="t-h3 sub">Kartu aktor &amp; kartu modul</h3>
+  <div class="grid grid--3">
+    <div class="card card--yellow stack">
+      <div class="cluster" style="flex-wrap:nowrap"><span class="bubble">🛠️</span><div class="t-h2">Admin</div></div>
+      <ul class="t-small" style="margin:0;padding-left:1.1em">
+        <li>Kelola akun pengguna</li><li>Kelola master data</li><li>Verifikasi pendaftaran</li>
+      </ul>
+    </div>
+    <div class="card card--blue stack">
+      <div class="cluster" style="flex-wrap:nowrap"><span class="bubble">🧸</span><div class="t-h2">Pengasuh</div></div>
+      <ul class="t-small" style="margin:0;padding-left:1.1em">
+        <li>Check-in &amp; check-out</li><li>Laporan harian</li><li>Foto kegiatan</li>
+      </ul>
+    </div>
+    <div class="card card--mint stack">
+      <div class="cluster" style="flex-wrap:nowrap"><span class="bubble">👨‍👩‍👧</span><div class="t-h2">Orang Tua</div></div>
+      <ul class="t-small" style="margin:0;padding-left:1.1em">
+        <li>Daftar &amp; isi data anak</li><li>Bayar tagihan</li><li>Pantau perkembangan</li>
+      </ul>
+    </div>
+  </div>
+  <div class="grid grid--3" style="margin-top:var(--ta-s4)">
+    <div class="card card--lavender">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="bubble">🗓️</span><span class="t-h1" style="font-size:2rem">04</span></div>
+      <div class="t-h3" style="margin-top:var(--ta-s4)">Pengaturan Jadwal</div>
+      <div class="t-small">Jadwal shift pengasuh dan jadwal kegiatan.</div>
+    </div>
+    <div class="card card--coral">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="bubble">📋</span><span class="t-h1" style="font-size:2rem">05</span></div>
+      <div class="t-h3" style="margin-top:var(--ta-s4)">Operasional Harian</div>
+      <div class="t-small">Check-in, check-out, laporan harian, insiden.</div>
+    </div>
+    <div class="card card--yellow">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="bubble">📊</span><span class="t-h1" style="font-size:2rem">06</span></div>
+      <div class="t-h3" style="margin-top:var(--ta-s4)">Laporan &amp; Dashboard</div>
+      <div class="t-small">Penilaian bulanan dan ringkasan per role.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Stat &amp; kartu harapan</h3>
+  <div class="grid grid--3">
+    <div class="card card--yellow" style="text-align:center"><div class="stat__num">24</div><div class="stat__label">Anak aktif</div></div>
+    <div class="card card--blue" style="text-align:center"><div class="stat__num">3</div><div class="stat__label">Menunggu verifikasi</div></div>
+    <div class="card card--mint" style="text-align:center"><div class="stat__num">18</div><div class="stat__label">Tagihan lunas</div></div>
+  </div>
+  <div class="grid grid--3" style="margin-top:var(--ta-s4)">
+    <div class="card card--accent-outline" style="text-align:center;font-weight:700">Orang tua lebih tenang</div>
+    <div class="card card--accent-outline" style="text-align:center;font-weight:700">Daycare lebih tertata</div>
+    <div class="card card--accent-outline" style="text-align:center;font-weight:700">Mendukung SDG 5.4</div>
+  </div>
+
+  <h3 class="t-h3 sub">Banner &amp; alert</h3>
+  <div class="stack">
+    <div class="banner"><span class="bubble bubble--sm" style="color:var(--ta-ink)">🔑</span><span>Satu login untuk semua. Sistem baca role lalu arahkan ke halaman sesuai (RBAC).</span></div>
+    <div class="alert alert--info"><span>ℹ️</span><span><b>Info.</b> Jadwal kegiatan hari ini sudah diperbarui.</span></div>
+    <div class="alert alert--ok"><span>✅</span><span><b>Berhasil.</b> Pembayaran telah diverifikasi admin.</span></div>
+    <div class="alert alert--warn"><span>⏳</span><span><b>Menunggu.</b> Pendaftaran Anda sedang diverifikasi.</span></div>
+    <div class="alert alert--bad"><span>⚠️</span><span><b>Gagal.</b> Penjemput tidak ada di daftar yang sah.</span></div>
+  </div>
+
+  <h3 class="t-h3 sub">Daftar (baris PBI / item)</h3>
+  <div class="stack">
+    <div class="row-item row-item--head"><span class="row-item__code">PBI-10</span><span class="row-item__text">Tagihan dan Pembayaran</span><span class="badge badge--ink">Sprint 1</span></div>
+    <div class="row-item"><span class="row-item__code">PBI-10a</span><span class="row-item__text">Sebagai Admin, saya ingin menerbitkan tagihan dari pendaftaran yang disetujui agar orang tua tahu biaya yang harus dibayar.</span></div>
+    <div class="row-item"><span class="row-item__code">PBI-10b</span><span class="row-item__text">Sebagai Admin, saya ingin melihat daftar tagihan beserta statusnya.</span><span class="badge badge--mint">Lunas</span></div>
+  </div>
+
+  <h3 class="t-h3 sub">Form</h3>
+  <div class="demo">
+    <div class="grid grid--2">
+      <div class="field"><label for="d-nama">Nama anak</label><input id="d-nama" class="input" placeholder="Contoh: Aisyah Putri"><span class="field__hint">Sesuai akta kelahiran.</span></div>
+      <div class="field"><label for="d-lahir">Tanggal lahir</label><input id="d-lahir" class="input" type="date"></div>
+      <div class="field"><label for="d-paket">Paket layanan</label><select id="d-paket" class="select"><option>Full Day</option><option>Half Day</option></select></div>
+      <div class="field field--error"><label for="d-hp">No. HP kontak darurat</label><input id="d-hp" class="input" value="0812" aria-invalid="true"><span class="field__error">Nomor HP minimal 10 digit.</span></div>
+      <div class="field" style="grid-column:1/-1"><label for="d-alergi">Catatan alergi</label><textarea id="d-alergi" class="textarea" rows="3" placeholder="Tuliskan alergi atau pantangan"></textarea></div>
+    </div>
+    <div class="cluster" style="margin-top:var(--ta-s4)"><button class="btn">Simpan</button><button class="btn btn--ghost">Batal</button></div>
+  </div>
+
+  <h3 class="t-h3 sub">Tabel &amp; tab</h3>
+  <div class="tabs" role="tablist" style="margin-bottom:var(--ta-s3)">
+    <button class="tab" role="tab" aria-selected="true">Semua</button>
+    <button class="tab" role="tab" aria-selected="false">Menunggu</button>
+    <button class="tab" role="tab" aria-selected="false">Disetujui</button>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Anak</th><th>Paket</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        <tr><td>Aisyah Putri</td><td>Full Day</td><td><span class="badge badge--mint">Disetujui</span></td><td><button class="btn btn--sm btn--ghost">Detail</button></td></tr>
+        <tr><td>Rafi Ahmad</td><td>Half Day</td><td><span class="badge badge--yellow">Menunggu Verifikasi</span></td><td><button class="btn btn--sm">Verifikasi</button></td></tr>
+        <tr><td>Nayla Zahra</td><td>Full Day</td><td><span class="badge badge--ink">Draft</span></td><td><button class="btn btn--sm btn--ghost">Detail</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="t-h3 sub">Search bar &amp; filter</h3>
+  <p class="t-small t-muted" style="margin-top:0">Satu baris toolbar di atas tabel: search paling lebar, lalu dropdown, chip cepat, dan tombol Filter untuk opsi lanjutan. Demo di bawah bisa dicoba.</p>
+  <div class="demo stack" id="filter-demo">
+    <div class="toolbar">
+      <label class="search" for="f-q">
+        <span class="search__icon" aria-hidden="true">🔍</span>
+        <input id="f-q" class="input" type="search" placeholder="Cari nama anak…" autocomplete="off">
+        <button type="button" class="search__clear" aria-label="Hapus pencarian">✕</button>
+      </label>
+      <select id="f-paket" class="select" aria-label="Paket layanan">
+        <option value="">Semua paket</option><option>Full Day</option><option>Half Day</option>
+      </select>
+      <details class="popover">
+        <summary class="btn btn--ghost">⚙️ Filter lanjutan <span class="badge badge--yellow" id="f-count" hidden>0</span></summary>
+        <div class="popover__panel">
+          <div class="field"><label for="f-kel">Kelompok usia</label>
+            <select id="f-kel" class="select" style="width:100%"><option value="">Semua</option><option>Batita</option><option>Balita</option><option>Prasekolah</option></select></div>
+          <div class="cluster"><button type="button" class="btn btn--sm" id="f-apply">Terapkan</button><button type="button" class="btn btn--sm btn--ghost" id="f-reset-adv">Reset</button></div>
+        </div>
+      </details>
+    </div>
+    <div class="cluster" role="group" aria-label="Filter status">
+      <button class="chip" aria-pressed="true" data-status="">Semua</button>
+      <button class="chip" aria-pressed="false" data-status="Disetujui">Disetujui</button>
+      <button class="chip" aria-pressed="false" data-status="Menunggu">Menunggu</button>
+      <button class="chip" aria-pressed="false" data-status="Draft">Draft</button>
+    </div>
+    <div class="filter-active" id="f-active" aria-live="polite"></div>
+    <div class="table-wrap">
+      <table class="table" id="f-table">
+        <thead><tr><th>Anak</th><th>Paket</th><th>Kelompok</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Aisyah Putri</td><td>Full Day</td><td>Balita</td><td><span class="badge badge--mint">Disetujui</span></td></tr>
+          <tr><td>Rafi Ahmad</td><td>Half Day</td><td>Batita</td><td><span class="badge badge--yellow">Menunggu</span></td></tr>
+          <tr><td>Nayla Zahra</td><td>Full Day</td><td>Prasekolah</td><td><span class="badge badge--ink">Draft</span></td></tr>
+          <tr><td>Dimas Pratama</td><td>Half Day</td><td>Balita</td><td><span class="badge badge--mint">Disetujui</span></td></tr>
+          <tr><td>Keisha Amelia</td><td>Full Day</td><td>Batita</td><td><span class="badge badge--yellow">Menunggu</span></td></tr>
+        </tbody>
+      </table>
+      <div class="empty" id="f-empty" hidden>
+        <span class="bubble">🔎</span>
+        <div class="t-h3">Tidak ada hasil</div>
+        <div class="t-small t-muted">Coba kata kunci lain atau reset filter.</div>
+        <button type="button" class="btn btn--sm" id="f-reset" style="margin-top:var(--ta-s3)">Reset filter</button>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Modal</h3>
+  <p class="t-small t-muted" style="margin-top:0">Pakai elemen <code>&lt;dialog&gt;</code> (focus trap, <kbd>Esc</kbd>, dan backdrop sudah bawaan browser). Header kuning untuk form, coral untuk aksi merusak, footer krem berisi tombol aksi di kanan.</p>
+  <div class="demo">
+    <div class="cluster">
+      <button class="btn" data-open="m-form">Buka modal form</button>
+      <button class="btn btn--danger" data-open="m-confirm">Buka konfirmasi hapus</button>
+      <button class="btn btn--ghost" data-open="m-info">Buka modal info</button>
+    </div>
+  </div>
+
+  <dialog class="modal" id="m-form" aria-labelledby="m-form-t">
+    <form method="dialog" style="display:contents">
+      <div class="modal__head"><h4 class="modal__title" id="m-form-t">Tambah Kelompok Usia</h4><button class="modal__close" value="cancel" aria-label="Tutup">✕</button></div>
+      <div class="modal__body">
+        <div class="field"><label for="m-nama">Nama kelompok</label><input id="m-nama" class="input" placeholder="Contoh: Batita"></div>
+        <div class="grid grid--2">
+          <div class="field"><label for="m-min">Usia min (bulan)</label><input id="m-min" class="input" type="number" value="12"></div>
+          <div class="field"><label for="m-max">Usia maks (bulan)</label><input id="m-max" class="input" type="number" value="36"></div>
+        </div>
+      </div>
+      <div class="modal__foot"><button class="btn btn--ghost" value="cancel">Batal</button><button class="btn" value="ok">Simpan</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="m-confirm" aria-labelledby="m-confirm-t">
+    <form method="dialog" style="display:contents">
+      <div class="modal__head modal__head--danger"><h4 class="modal__title" id="m-confirm-t">Hapus data?</h4><button class="modal__close" value="cancel" aria-label="Tutup">✕</button></div>
+      <div class="modal__body"><p style="margin:0">Menu makan tanggal <b>12 Mei</b> akan dihapus permanen dan tidak bisa dikembalikan.</p></div>
+      <div class="modal__foot"><button class="btn btn--ghost" value="cancel">Batal</button><button class="btn btn--danger" value="ok">Ya, hapus</button></div>
+    </form>
+  </dialog>
+
+  <dialog class="modal" id="m-info" aria-labelledby="m-info-t">
+    <form method="dialog" style="display:contents">
+      <div class="modal__head" style="background:var(--ta-blue)"><h4 class="modal__title" id="m-info-t">Pembayaran berhasil</h4><button class="modal__close" value="cancel" aria-label="Tutup">✕</button></div>
+      <div class="modal__body"><div class="alert alert--ok"><span>✅</span><span>Tagihan Mei sudah lunas. Bukti pembayaran dikirim ke email Anda.</span></div></div>
+      <div class="modal__foot"><button class="btn btn--dark" value="ok">Mengerti</button></div>
+    </form>
+  </dialog>
+
+  <h3 class="t-h3 sub">Di Livewire</h3>
+<pre><span class="c">{{-- Search + filter: debounce supaya tidak query tiap ketikan --}}</span>
+&lt;input class="input" type="search" wire:model.live.debounce.300ms="q" placeholder="Cari nama anak…"&gt;
+&lt;select class="select" wire:model.live="paket"&gt;…&lt;/select&gt;
+
+<span class="c">{{-- Modal: state di komponen, tampilkan dengan @if --}}</span>
+&lt;button class="btn" wire:click="$set('showForm', true)"&gt;Tambah&lt;/button&gt;
+@if ($showForm)
+  &lt;x-modal wire:model="showForm" title="Tambah Kelompok Usia"&gt; … &lt;/x-modal&gt;
+@endif
+
+<span class="c">// Komponen: reset halaman saat filter berubah</span>
+public function updated($name) { if (in_array($name, ['q','paket','status'])) $this->resetPage(); }</pre>
+  <p class="t-small t-muted">Tips: simpan filter di URL dengan <code>#[Url]</code> supaya bisa di-bookmark dan tetap ada setelah refresh. Konfirmasi hapus selalu pakai modal coral, jangan <code>confirm()</code> bawaan browser.</p>
+</section>
+
+<!-- ============================ 6. LAYOUT ============================ -->
+<section class="sec" id="layout">
+  <h2 class="t-h1">6. Layout &amp; halaman per role</h2>
+  <p class="t-lead">Satu shell untuk semua role: sidebar krem di kiri, konten putih di kanan. Item menu aktif berwarna kuning. Isi menu dan dashboard mengikuti role.</p>
+
+  <div class="shell">
+    <aside class="shell__side" aria-label="Contoh sidebar">
+      <div class="docs__brand" style="margin-bottom:var(--ta-s3);font-size:1rem"><span class="bubble" style="width:36px;height:36px;font-size:.8rem;background:var(--ta-yellow);border-radius:8px">TA</span> TitipAnak</div>
+      <div class="item on">Dashboard</div>
+      <div class="item">Pendaftaran</div>
+      <div class="item">Tagihan</div>
+      <div class="item">Data Anak</div>
+      <div class="item">Pengumuman</div>
+    </aside>
+    <div class="shell__body">
+      <div class="shell__top">
+        <div><div class="t-h2" style="margin:0">Dashboard</div><div class="t-caption">Halo, Admin Daycare</div></div>
+        <span class="badge badge--yellow">Admin</span>
+      </div>
+      <div class="grid grid--3">
+        <div class="card card--yellow" style="padding:var(--ta-s4)"><div class="stat__num" style="font-size:2.25rem">24</div><div class="t-small" style="font-weight:700">Anak aktif</div></div>
+        <div class="card card--blue" style="padding:var(--ta-s4)"><div class="stat__num" style="font-size:2.25rem">3</div><div class="t-small" style="font-weight:700">Menunggu verifikasi</div></div>
+        <div class="card card--mint" style="padding:var(--ta-s4)"><div class="stat__num" style="font-size:2.25rem">92%</div><div class="t-small" style="font-weight:700">Kehadiran hari ini</div></div>
+      </div>
+      <div class="card card--cream" style="padding:var(--ta-s4)">
+        <div class="t-h3" style="margin-bottom:var(--ta-s2)">Pengumuman terbaru</div>
+        <div class="t-small">Libur nasional, daycare tutup tanggal 17.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Aturan layout</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Grid</div>
+      <div class="t-small">Konten maks 1120px, grid 12 kolom, gap 16px. Kartu sejajar memakai 3 kolom (desktop), 2 kolom (tablet), 1 kolom (mobile).</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Halaman</div>
+      <div class="t-small">Judul halaman (H1) di kiri atas, badge peran atau aksi utama di kanan atas. Di bawahnya: statistik, lalu tabel atau daftar.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Menu sidebar per role</h3>
+  <div class="grid grid--3">
+    <div class="card card--yellow"><div class="t-h3" style="margin-bottom:var(--ta-s2)">Admin</div><div class="t-small">Dashboard · Akun · Master Data · Pendaftaran · Tagihan · Jadwal · Pengumuman</div></div>
+    <div class="card card--blue"><div class="t-h3" style="margin-bottom:var(--ta-s2)">Pengasuh</div><div class="t-small">Dashboard · Jadwal Shift · Presensi · Laporan Harian · Insiden · Penilaian</div></div>
+    <div class="card card--mint"><div class="t-h3" style="margin-bottom:var(--ta-s2)">Orang Tua</div><div class="t-small">Dashboard · Pendaftaran · Data Anak · Tagihan · Laporan Anak · Penjemput</div></div>
+  </div>
+
+  <h3 class="t-h3 sub">Responsif</h3>
+  <p class="t-small">Breakpoint: <code>≤640px</code> mobile (1 kolom, sidebar jadi bar horizontal), <code>≤960px</code> tablet, di atasnya desktop. Area sentuh minimal 44px. Orang tua dominan memakai HP, jadi desain mobile-first untuk halaman orang tua.</p>
+</section>
+
+<!-- ============================ 7. IMPLEMENTASI ============================ -->
+<section class="sec" id="implementasi">
+  <h2 class="t-h1">7. Implementasi di Laravel</h2>
+  <p class="t-lead">Pindahkan token ke <code>resources/css/app.css</code>, lalu bungkus komponen jadi Blade component supaya konsisten.</p>
+
+  <h3 class="t-h3 sub">Token (Tailwind v4 <code>@theme</code>)</h3>
+<pre><span class="c">/* resources/css/app.css */</span>
+<span class="k">@import</span> <span class="s">"tailwindcss"</span>;
+
+<span class="k">@theme</span> {
+  --font-sans: <span class="s">"Poppins"</span>, ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink:      #1B1B1B;
+  --color-muted:    #6B6B6B;
+  --color-cream:    #FFF6D6;
+  --color-yellow:   #FFD43B;
+  --color-blue:     #A8D4FF;
+  --color-mint:     #A8E6CF;
+  --color-lavender: #CDBDFF;
+  --color-coral:    #FF9E80;
+
+  --radius-ta: 10px;
+}</pre>
+
+  <h3 class="t-h3 sub">Blade component</h3>
+<pre><span class="c">{{-- resources/views/components/card.blade.php --}}</span>
+@props(['tone' => 'white'])
+@php
+  $tones = ['white' => 'bg-white', 'yellow' => 'bg-yellow', 'blue' => 'bg-blue',
+            'mint' => 'bg-mint', 'lavender' => 'bg-lavender', 'coral' => 'bg-coral', 'cream' => 'bg-cream'];
+@endphp
+&lt;div {{ $attributes->class(['border-[1.5px] border-ink rounded-ta p-6', $tones[$tone]]) }}&gt;
+  {{ $slot }}
+&lt;/div&gt;
+
+<span class="c">{{-- pemakaian --}}</span>
+&lt;x-card tone="mint"&gt;Orang Tua&lt;/x-card&gt;</pre>
+
+  <h3 class="t-h3 sub">Konvensi</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Struktur view</div>
+      <div class="t-small">Komponen UI di <code>resources/views/components/</code> (<code>x-button</code>, <code>x-card</code>, <code>x-badge</code>, <code>x-input</code>). Halaman Livewire di <code>app/Livewire/{Admin,Pengasuh,OrangTua}/</code>. Layout dasar di <code>components/layouts/app.blade.php</code>.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Role &amp; tampilan</div>
+      <div class="t-small">Pakai Spatie Permission untuk menyembunyikan menu: <code>@role('admin')</code>, <code>@can('verifikasi pendaftaran')</code>. Warna aksen sidebar mengikuti role: kuning, biru, mint.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Livewire</div>
+      <div class="t-small">Tampilkan state loading dengan <code>wire:loading</code> (tombol jadi <code>opacity-50</code>). Error validasi memakai gaya <code>.field--error</code>. Notifikasi sukses memakai alert mint.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Ikon</div>
+      <div class="t-small">Ikon digambar di dalam <b>bubble</b> putih berborder (lingkaran 56px). Pakai set ikon outline satu gaya (mis. Heroicons outline), stroke 1.75–2px, warna ink.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 8. DO / DON'T ============================ -->
+<section class="sec" id="aturan">
+  <h2 class="t-h1">8. Do &amp; Don't</h2>
+  <div class="grid grid--2" style="margin-top:var(--ta-s5)">
+    <div class="rule rule--do">
+      <span class="bubble bubble--sm">✓</span>
+      <div><div class="t-h3">Lakukan</div>
+        <ul>
+          <li>Latar putih, blok warna pastel, border ink 1.5px</li>
+          <li>Satu warna pastel per aktor / modul secara konsisten</li>
+          <li>Poppins bold untuk judul, regular untuk isi</li>
+          <li>Radius 10px di semua kartu, tombol, input</li>
+          <li>Fokus keyboard terlihat jelas pada semua elemen interaktif</li>
+          <li>Bahasa Indonesia yang sederhana, tanpa istilah teknis</li>
+        </ul>
+      </div>
+    </div>
+    <div class="rule rule--dont">
+      <span class="bubble bubble--sm">✕</span>
+      <div><div class="t-h3">Jangan</div>
+        <ul>
+          <li>Memakai shadow, gradient, atau glassmorphism</li>
+          <li>Menambah warna di luar palet (mis. biru tua, merah pekat)</li>
+          <li>Teks abu muda di atas warna pastel</li>
+          <li>Border tipis abu-abu; border selalu ink</li>
+          <li>Lebih dari satu tombol kuning utama per area</li>
+          <li>Memakai warna saja sebagai penanda status; tambahkan label teks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="banner" style="margin-top:var(--ta-s6)">
+    <span class="bubble bubble--sm" style="color:var(--ta-ink)">💛</span>
+    <span>Sumber gaya: TitipAnak_Presentasi_PBI.pptx · Kelompok A SI48EXT · Tugas Besar PPL</span>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+/* Salin hex saat swatch diklik */
+document.querySelectorAll('.swatch').forEach(function (el) {
+  el.addEventListener('click', function () {
+    var hex = el.dataset.hex, label = el.querySelector('b'), old = label.textContent;
+    function done() { label.textContent = 'Tersalin ' + hex; setTimeout(function () { label.textContent = old; }, 1200); }
+    try { navigator.clipboard.writeText(hex).then(done, function () {}); } catch (e) {}
+  });
+});
+
+/* Tandai menu aktif sesuai section yang terlihat */
+(function () {
+  var links = document.querySelectorAll('.docs__nav a.link');
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+  if (!('IntersectionObserver' in window)) return;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      links.forEach(function (a) { a.classList.remove('is-active'); });
+      var a = map[en.target.id]; if (a) a.classList.add('is-active');
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  Object.keys(map).forEach(function (id) { var s = document.getElementById(id); if (s) io.observe(s); });
+})();
+
+/* Modal demo */
+document.querySelectorAll('[data-open]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var d = document.getElementById(b.dataset.open);
+    if (d && d.showModal) d.showModal();
+  });
+});
+document.querySelectorAll('dialog.modal').forEach(function (d) {
+  d.addEventListener('click', function (e) { if (e.target === d) d.close('cancel'); }); /* klik backdrop */
+});
+
+/* Search + filter demo */
+(function () {
+  var root = document.getElementById('filter-demo'); if (!root) return;
+  var q = root.querySelector('#f-q'), paket = root.querySelector('#f-paket'), kel = root.querySelector('#f-kel');
+  var rows = [].slice.call(root.querySelectorAll('#f-table tbody tr'));
+  var chips = [].slice.call(root.querySelectorAll('.chip[data-status]'));
+  var empty = root.querySelector('#f-empty'), active = root.querySelector('#f-active');
+  var count = root.querySelector('#f-count'), box = root.querySelector('.search');
+  var status = '', advKel = '';
+
+  function apply() {
+    var term = q.value.trim().toLowerCase(), shown = 0;
+    rows.forEach(function (r) {
+      var c = r.children, ok =
+        (!term || c[0].textContent.toLowerCase().indexOf(term) > -1) &&
+        (!paket.value || c[1].textContent === paket.value) &&
+        (!advKel || c[2].textContent === advKel) &&
+        (!status || c[3].textContent.indexOf(status) > -1);
+      r.hidden = !ok; if (ok) shown++;
+    });
+    empty.hidden = shown > 0;
+    box.classList.toggle('has-value', !!q.value);
+    chips.forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.status === status ? 'true' : 'false'); });
+    count.hidden = !advKel; count.textContent = advKel ? 1 : 0;
+    var tags = [];
+    if (q.value) tags.push(['q', 'Cari: ' + q.value]);
+    if (paket.value) tags.push(['paket', paket.value]);
+    if (advKel) tags.push(['kel', advKel]);
+    if (status) tags.push(['status', status]);
+    active.innerHTML = '';
+    tags.forEach(function (t) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip chip--removable'; b.setAttribute('aria-pressed', 'true');
+      b.textContent = t[1]; b.setAttribute('aria-label', 'Hapus filter ' + t[1]);
+      b.addEventListener('click', function () {
+        if (t[0] === 'q') q.value = ''; if (t[0] === 'paket') paket.value = '';
+        if (t[0] === 'kel') { advKel = ''; kel.value = ''; } if (t[0] === 'status') status = '';
+        apply();
+      });
+      active.appendChild(b);
+    });
+  }
+  function reset() { q.value = ''; paket.value = ''; kel.value = ''; advKel = ''; status = ''; apply(); }
+
+  q.addEventListener('input', apply);
+  paket.addEventListener('change', apply);
+  chips.forEach(function (c) { c.addEventListener('click', function () { status = c.dataset.status; apply(); }); });
+  root.querySelector('.search__clear').addEventListener('click', function () { q.value = ''; q.focus(); apply(); });
+  root.querySelector('#f-apply').addEventListener('click', function () { advKel = kel.value; root.querySelector('.popover').open = false; apply(); });
+  root.querySelector('#f-reset-adv').addEventListener('click', function () { kel.value = ''; advKel = ''; apply(); });
+  root.querySelector('#f-reset').addEventListener('click', reset);
+  document.addEventListener('click', function (e) { var p = root.querySelector('.popover'); if (p.open && !p.contains(e.target)) p.open = false; });
+  apply();
+})();
+
+/* Tab demo */
+document.querySelectorAll('.tabs').forEach(function (group) {
+  group.addEventListener('click', function (e) {
+    var t = e.target.closest('.tab'); if (!t) return;
+    group.querySelectorAll('.tab').forEach(function (x) { x.setAttribute('aria-selected', x === t ? 'true' : 'false'); });
+  });
+});
+</script>
+</body>
+</html>

@@ -59,6 +59,7 @@ return [
     [
         'group' => 'Orang Tua',
         'items' => [
+            ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'orang-tua.paket-layanan.index', 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Data Anak', 'icon' => '🧒', 'route' => null, 'permission' => 'kelola data anak'],
             ['label' => 'Tagihan', 'icon' => '💳', 'route' => null, 'permission' => 'bayar tagihan'],

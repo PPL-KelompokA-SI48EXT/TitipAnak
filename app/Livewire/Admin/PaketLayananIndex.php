@@ -4,19 +4,14 @@ namespace App\Livewire\Admin;
 
 use App\Models\PaketLayanan;
 use Illuminate\Contracts\View\View;
-use Illuminate\Validation\Rule;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Title('Paket Layanan')]
 class PaketLayananIndex extends Component
 {
-    public string $nama = '';
-
-    public string $deskripsi = '';
-
-    public string $harga = '';
-
     public ?int $editingId = null;
 
     public string $editDeskripsi = '';
@@ -25,17 +20,9 @@ class PaketLayananIndex extends Component
 
     public bool $editAktif = true;
 
-    /**
-     * @return array<string, mixed>
-     */
-    protected function rules(): array
-    {
-        return [
-            'nama' => ['required', 'string', 'max:100', Rule::unique('paket_layanan', 'nama')],
-            'deskripsi' => ['nullable', 'string'],
-            'harga' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9999999999.99'],
-        ];
-    }
+    public ?int $deletingId = null;
+
+    public ?string $deletingName = null;
 
     /**
      * @return array<string, mixed>
@@ -55,27 +42,10 @@ class PaketLayananIndex extends Component
     protected function validationAttributes(): array
     {
         return [
-            'nama' => 'nama paket',
-            'deskripsi' => 'deskripsi',
-            'harga' => 'tarif',
             'editDeskripsi' => 'deskripsi',
             'editHarga' => 'tarif',
             'editAktif' => 'status aktif',
         ];
-    }
-
-    public function simpan(): void
-    {
-        abort_unless(auth()->user()?->can('kelola master data'), 403);
-
-        $data = $this->validate();
-        $data['deskripsi'] = $data['deskripsi'] !== '' ? $data['deskripsi'] : null;
-        $data['aktif'] = true;
-
-        PaketLayanan::create($data);
-
-        $this->reset('nama', 'deskripsi', 'harga');
-        session()->flash('sukses', 'Paket layanan berhasil ditambahkan.');
     }
 
     public function mulaiEdit(int $paketId): void
@@ -128,6 +98,73 @@ class PaketLayananIndex extends Component
         session()->flash('sukses', $paket->aktif
             ? 'Paket layanan diaktifkan.'
             : 'Paket layanan dinonaktifkan.');
+    }
+
+    public function bukaKonfirmasiHapus(int $paketId): void
+    {
+        abort_unless(auth()->user()?->can('kelola master data'), 403);
+
+        $paket = PaketLayanan::findOrFail($paketId);
+        $this->deletingId = $paket->id;
+        $this->deletingName = $paket->nama;
+        $this->resetValidation('hapus');
+    }
+
+    public function batalHapus(): void
+    {
+        abort_unless(auth()->user()?->can('kelola master data'), 403);
+
+        $this->reset('deletingId', 'deletingName');
+        $this->resetValidation('hapus');
+    }
+
+    public function hapus(): void
+    {
+        abort_unless(auth()->user()?->can('kelola master data'), 403);
+        abort_if($this->deletingId === null, 404);
+
+        $paket = PaketLayanan::find($this->deletingId);
+
+        if ($paket === null) {
+            $this->batalHapus();
+
+            return;
+        }
+
+        $id = $paket->id;
+
+        if (DB::table('pendaftaran')->where('paket_layanan_id', $id)->exists()) {
+            $this->addError('hapus', 'Paket layanan tidak dapat dihapus karena sudah digunakan oleh pendaftaran.');
+
+            return;
+        }
+
+        try {
+            $paket->delete();
+        } catch (QueryException $exception) {
+            if (! $this->isRestrictiveForeignKeyFailure($exception)) {
+                throw $exception;
+            }
+
+            $this->addError('hapus', 'Paket layanan tidak dapat dihapus karena baru saja digunakan oleh pendaftaran.');
+
+            return;
+        }
+
+        $this->reset('deletingId', 'deletingName');
+
+        if ($this->editingId === $id) {
+            $this->batalEdit();
+        }
+
+        $this->resetValidation('hapus');
+        session()->flash('sukses', 'Paket layanan berhasil dihapus permanen.');
+    }
+
+    private function isRestrictiveForeignKeyFailure(QueryException $exception): bool
+    {
+        return in_array($exception->getCode(), ['23000', '23503'], true)
+            && str_contains(strtolower($exception->getMessage()), 'foreign key');
     }
 
     public function render(): View

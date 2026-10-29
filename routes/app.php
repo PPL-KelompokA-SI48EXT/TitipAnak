@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
+use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
@@ -23,5 +24,6 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('paket-layanan', PaketLayananIndex::class)->name('paket-layanan.index');
+            Route::get('paket-layanan/tambah', PaketLayananCreate::class)->name('paket-layanan.create');
         });
 });

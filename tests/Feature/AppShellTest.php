@@ -61,6 +61,7 @@ class AppShellTest extends TestCase
             ->get(route('dashboard'))
             ->assertSee('Jadwal Shift')
             ->assertSee('Akun Pengguna')
+            ->assertSee('Paket Layanan')
             ->assertDontSee('Presensi')
             ->assertDontSee('Laporan Anak');
     }

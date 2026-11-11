@@ -27,7 +27,14 @@ return [
         'group' => 'Admin',
         'items' => [
             ['label' => 'Akun Pengguna', 'icon' => '👥', 'route' => null, 'permission' => 'kelola akun'],
-            ['label' => 'Master Data', 'icon' => '🗂️', 'route' => null, 'permission' => 'kelola master data'],
+            [
+    'label' => 'Master Data',
+    'icon' => '🗂️',
+    'permission' => 'kelola master data',
+    'children' => [
+        ['label' => 'Tambah Kelompok Usia', 'route' => 'admin.kelompok-usia.buat'],
+    ],
+],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
             ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => null, 'permission' => 'verifikasi pembayaran'],
             [

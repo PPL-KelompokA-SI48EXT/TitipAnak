@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Admin\KelompokUsiaBuat;
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Dashboard;
@@ -16,4 +17,11 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('jadwal-shift', JadwalShiftIndex::class)->name('jadwal-shift.index');
             Route::get('jadwal-shift/buat', JadwalShiftBuat::class)->name('jadwal-shift.buat');
         });
+    Route::middleware('permission:kelola master data')
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('kelompok-usia/buat', KelompokUsiaBuat::class)
+            ->name('kelompok-usia.buat');
+    });
 });

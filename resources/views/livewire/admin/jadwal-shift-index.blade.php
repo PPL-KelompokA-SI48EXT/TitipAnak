@@ -31,6 +31,13 @@
         </a>
     </div>
 
+    @if (session('sukses'))
+        <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
+            <span aria-hidden="true">✅</span>
+            <span><b>Berhasil.</b> {{ session('sukses') }}</span>
+        </div>
+    @endif
+
     {{-- Pilihan tampilan --}}
     <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Pilih tampilan">
         @foreach (['minggu' => 'Minggu', 'bulan' => 'Bulan', 'daftar' => 'Daftar'] as $kode => $label)
@@ -126,6 +133,8 @@
                                 <div class="font-bold">{{ $jam($j) }}</div>
                                 <div class="mt-0.5 break-words">{{ $j->pengasuh?->nama ?? '—' }}</div>
                                 <div class="mt-1 font-semibold">{{ $j->kelompokUsia?->nama ?? '—' }}</div>
+                                <a href="{{ route('admin.jadwal-shift.ubah', $j) }}" class="mt-1 inline-block font-semibold underline"
+                                    aria-label="Ubah shift {{ $j->pengasuh?->nama }} {{ $jam($j) }}">Ubah</a>
                             </article>
                         @empty
                             <p class="py-4 text-center text-xs text-muted">Tidak ada shift</p>
@@ -187,6 +196,7 @@
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Jam</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Pengasuh</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Kelompok usia</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -197,6 +207,10 @@
                             <td class="px-4 py-3">{{ $j->pengasuh?->nama ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 <span class="rounded-full border border-ink px-3 py-1 text-xs font-semibold {{ $warna[$j->kelompok_usia_id] ?? 'bg-cream' }}">{{ $j->kelompokUsia?->nama ?? '—' }}</span>
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <a href="{{ route('admin.jadwal-shift.ubah', $j) }}" class="font-semibold underline"
+                                    aria-label="Ubah shift {{ $j->pengasuh?->nama }} {{ $hariList[$j->hari] ?? '' }}">Ubah</a>
                             </td>
                         </tr>
                     @endforeach

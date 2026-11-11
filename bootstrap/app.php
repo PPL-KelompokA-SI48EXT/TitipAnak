@@ -28,10 +28,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
 
-        // Sebelum halaman login (PBI-01) ada: saat pengembangan, tamu diarahkan ke pemilih akun.
-        $middleware->redirectGuestsTo(
-            fn () => config('titipanak.dev_switcher') ? route('dev.akun') : '/'
-        );
+        $middleware->redirectGuestsTo(fn () => route('login'));
+        $middleware->redirectUsersTo(fn () => route('dashboard'));
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

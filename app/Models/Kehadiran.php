@@ -59,6 +59,43 @@ class Kehadiran extends Model
         $query->whereDate('tanggal', $tanggal->toDateString());
     }
 
+    /** Kehadiran dalam rentang tanggal (inklusif). Sisi kosong berarti tanpa batas. */
+    public function scopeAntara(Builder $query, ?CarbonInterface $dari, ?CarbonInterface $sampai): void
+    {
+        $query
+            ->when($dari, fn (Builder $q) => $q->whereDate('tanggal', '>=', $dari->toDateString()))
+            ->when($sampai, fn (Builder $q) => $q->whereDate('tanggal', '<=', $sampai->toDateString()));
+    }
+
+    /** Kehadiran anak yang tergabung di kelompok usia tertentu. */
+    public function scopeKelompokUsia(Builder $query, int $kelompokId): void
+    {
+        $query->whereHas('anak', fn (Builder $a) => $a->where('kelompok_usia_id', $kelompokId));
+    }
+
+    /** Kehadiran anak yang namanya memuat kata kunci. */
+    public function scopeNamaAnak(Builder $query, string $kata): void
+    {
+        $query->whereHas('anak', fn (Builder $a) => $a->where('nama_lengkap', 'like', '%'.trim($kata).'%'));
+    }
+
+    /**
+     * Query rekap kehadiran: filter tanggal, kelompok usia, dan nama anak, terbaru dulu.
+     *
+     * @param  array{dari?: ?CarbonInterface, sampai?: ?CarbonInterface, kelompok?: ?int, q?: ?string}  $filter
+     */
+    public static function rekap(array $filter = []): Builder
+    {
+        return static::query()
+            ->antara($filter['dari'] ?? null, $filter['sampai'] ?? null)
+            ->when($filter['kelompok'] ?? null, fn (Builder $q, int $k) => $q->kelompokUsia($k))
+            ->when(filled($filter['q'] ?? null), fn (Builder $q) => $q->namaAnak($filter['q']))
+            ->with(['anak.kelompokUsia:id,nama', 'penjemputTerdaftar:id,nama_lengkap,hubungan'])
+            ->orderByDesc('tanggal')
+            ->orderBy('check_in_pada')
+            ->orderBy('id');
+    }
+
     /** Anak sudah check-in tetapi belum check-out. */
     public function scopeMasihDiTempat(Builder $query): void
     {

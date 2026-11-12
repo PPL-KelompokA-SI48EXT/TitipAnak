@@ -37,6 +37,12 @@ return [
                     ['label' => 'Lihat Jadwal Shift', 'route' => 'admin.jadwal-shift.index'],
                 ],
             ],
+            [
+                'label' => 'Jadwal Kegiatan', 'icon' => '🧸', 'permission' => 'kelola jadwal',
+                'children' => [
+                    ['label' => 'Kelola Jadwal Kegiatan', 'route' => 'admin.jadwal-kegiatan.buat'],
+                ],
+            ],
             ['label' => 'Pengumuman', 'icon' => '📣', 'route' => null, 'permission' => 'kelola pengumuman'],
         ],
     ],

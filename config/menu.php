@@ -44,6 +44,7 @@ return [
                     ['label' => 'Lihat Jadwal Kegiatan', 'route' => 'admin.jadwal-kegiatan.index'],
                 ],
             ],
+            ['label' => 'Rekap Kehadiran', 'icon' => '📊', 'route' => 'admin.kehadiran.rekap', 'permission' => 'lihat semua laporan'],
             ['label' => 'Pengumuman', 'icon' => '📣', 'route' => null, 'permission' => 'kelola pengumuman'],
         ],
     ],

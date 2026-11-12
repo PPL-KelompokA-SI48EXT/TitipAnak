@@ -2,6 +2,8 @@
     // Satu warna pastel per kelompok usia (urut dari yang termuda), sama dengan jadwal shift.
     $palet = ['bg-yellow', 'bg-blue', 'bg-mint', 'bg-lavender', 'bg-coral'];
     $jam = fn ($k) => substr($k->jam_mulai, 0, 5).' – '.substr($k->jam_selesai, 0, 5);
+    $input = 'rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow';
+    $adaFilter = $kelompok !== '' || $hari !== '' || $jenis !== '';
 @endphp
 
 <div class="grid gap-6">
@@ -23,10 +25,51 @@
         </div>
     @endif
 
+    {{-- Filter --}}
+    <div class="flex flex-wrap items-center gap-3">
+        <select wire:model.live="kelompok" aria-label="Filter kelompok usia" class="{{ $input }}">
+            <option value="">Semua kelompok usia</option>
+            @foreach ($semuaKelompok as $k)
+                <option value="{{ $k->id }}">{{ $k->nama }}</option>
+            @endforeach
+        </select>
+
+        <select wire:model.live="hari" aria-label="Filter hari" class="{{ $input }}">
+            <option value="">Semua hari</option>
+            @foreach ($hariList as $nomor => $nama)
+                <option value="{{ $nomor }}">{{ $nama }}</option>
+            @endforeach
+        </select>
+
+        <select wire:model.live="jenis" aria-label="Filter jenis kegiatan" class="{{ $input }}">
+            <option value="">Semua jenis</option>
+            @foreach ($jenisList as $kode => $label)
+                <option value="{{ $kode }}">{{ $label }}</option>
+            @endforeach
+        </select>
+
+        @if ($adaFilter)
+            <button type="button" wire:click="resetFilter"
+                class="rounded-ta border-[1.5px] border-ink bg-paper px-4 py-2.5 text-sm font-semibold transition hover:bg-cream">Reset filter</button>
+        @endif
+    </div>
+
+    <p class="-mt-3 text-sm text-muted" aria-live="polite">
+        Menampilkan {{ $tampil }} dari {{ $semua }} kegiatan
+        @if ($hari !== '')
+            pada hari {{ $hariList[$hari] ?? '' }} (termasuk kegiatan setiap hari)
+        @endif
+    </p>
+
     @if ($semua === 0)
         <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center">
             <div class="text-xl font-bold">Belum ada jadwal kegiatan</div>
             <p class="mt-1 text-sm text-muted">Buat kegiatan pertama untuk menyusun rutinitas anak.</p>
+        </div>
+    @elseif ($tampil === 0)
+        <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center">
+            <div class="text-xl font-bold">Tidak ada hasil</div>
+            <p class="mt-1 text-sm text-muted">Coba ubah atau reset filter.</p>
         </div>
     @else
         @foreach ($kelompokList as $k)
@@ -38,7 +81,7 @@
                 </header>
 
                 @if ($daftar->isEmpty())
-                    <p class="px-4 py-6 text-center text-sm text-muted">Belum ada kegiatan untuk kelompok usia ini.</p>
+                    <p class="px-4 py-6 text-center text-sm text-muted">{{ $adaFilter ? 'Tidak ada kegiatan yang cocok dengan filter.' : 'Belum ada kegiatan untuk kelompok usia ini.' }}</p>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full border-collapse text-sm">

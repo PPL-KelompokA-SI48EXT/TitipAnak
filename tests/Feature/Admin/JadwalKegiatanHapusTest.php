@@ -72,6 +72,55 @@ class JadwalKegiatanHapusTest extends TestCase
         $this->assertDatabaseHas('jadwal_kegiatan', ['id' => $this->kegiatan->id]);
     }
 
+    public function test_konfirmasi_menghapus_kegiatan_dan_menutup_dialog(): void
+    {
+        $lain = $this->buat('Makan siang', 11);
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalKegiatanIndex::class)
+            ->call('konfirmasiHapus', $this->kegiatan->id)
+            ->call('hapus')
+            ->assertSet('hapusId', null)
+            ->assertSee('Kegiatan berhasil dihapus.')
+            ->assertDontSee('Hapus kegiatan Tidur siang');
+
+        $this->assertDatabaseMissing('jadwal_kegiatan', ['id' => $this->kegiatan->id]);
+        $this->assertDatabaseHas('jadwal_kegiatan', ['id' => $lain->id]);
+    }
+
+    public function test_hapus_tanpa_konfirmasi_tidak_menghapus_apa_pun(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(JadwalKegiatanIndex::class)
+            ->call('hapus');
+
+        $this->assertDatabaseCount('jadwal_kegiatan', 1);
+    }
+
+    public function test_kegiatan_yang_sudah_terhapus_tidak_menimbulkan_error(): void
+    {
+        $komponen = Livewire::actingAs($this->admin)
+            ->test(JadwalKegiatanIndex::class)
+            ->call('konfirmasiHapus', $this->kegiatan->id);
+
+        $this->kegiatan->delete();
+
+        $komponen->call('hapus')->assertSet('hapusId', null)->assertSee('sudah tidak ada');
+    }
+
+    public function test_pengasuh_tidak_boleh_menghapus_kegiatan(): void
+    {
+        $pengasuh = User::factory()->create()->assignRole('pengasuh');
+
+        Livewire::actingAs($pengasuh)
+            ->test(JadwalKegiatanIndex::class)
+            ->call('konfirmasiHapus', $this->kegiatan->id)
+            ->call('hapus')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('jadwal_kegiatan', ['id' => $this->kegiatan->id]);
+    }
+
     public function test_id_tidak_dikenal_tidak_membuka_dialog(): void
     {
         Livewire::actingAs($this->admin)

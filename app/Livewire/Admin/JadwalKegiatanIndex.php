@@ -41,8 +41,19 @@ class JadwalKegiatanIndex extends Component
 
     public function hapus(): void
     {
-        // Logika penghapusan menyusul di commit berikutnya (PK4-110 backend).
+        abort_unless(auth()->user()?->can('kelola jadwal'), 403);
+
+        $kegiatan = $this->hapusId ? JadwalKegiatan::find($this->hapusId) : null;
         $this->batalHapus();
+
+        if (! $kegiatan) {
+            session()->flash('sukses', 'Kegiatan sudah tidak ada.');
+
+            return;
+        }
+
+        $kegiatan->delete();
+        session()->flash('sukses', 'Kegiatan berhasil dihapus.');
     }
 
     public function resetFilter(): void

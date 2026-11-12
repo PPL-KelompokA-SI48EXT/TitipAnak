@@ -86,8 +86,19 @@ class JadwalShiftIndex extends Component
 
     public function hapus(): void
     {
-        // Logika penghapusan menyusul di commit berikutnya (PK4-105 backend).
+        abort_unless(auth()->user()?->can('kelola jadwal'), 403);
+
+        $jadwal = $this->hapusId ? JadwalShift::find($this->hapusId) : null;
         $this->batalHapus();
+
+        if (! $jadwal) {
+            session()->flash('sukses', 'Jadwal shift sudah tidak ada.');
+
+            return;
+        }
+
+        $jadwal->delete();
+        session()->flash('sukses', 'Jadwal shift berhasil dihapus.');
     }
 
     public function resetFilter(): void

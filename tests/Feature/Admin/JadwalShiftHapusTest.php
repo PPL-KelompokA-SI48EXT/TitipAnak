@@ -77,4 +77,53 @@ class JadwalShiftHapusTest extends TestCase
             ->call('konfirmasiHapus', 9999)
             ->assertSet('hapusId', null);
     }
+
+    public function test_konfirmasi_menghapus_jadwal_dan_menutup_dialog(): void
+    {
+        $lain = JadwalShift::create([
+            'pengasuh_id' => $this->siti->id, 'kelompok_usia_id' => $this->batita->id, 'hari' => 2,
+            'jam_mulai' => '07:00:00', 'jam_selesai' => '15:00:00',
+        ]);
+
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('konfirmasiHapus', $this->jadwal->id)
+            ->call('hapus')
+            ->assertSet('hapusId', null)
+            ->assertSee('Jadwal shift berhasil dihapus.');
+
+        $this->assertDatabaseMissing('jadwal_shift', ['id' => $this->jadwal->id]);
+        $this->assertDatabaseHas('jadwal_shift', ['id' => $lain->id]);
+    }
+
+    public function test_hapus_tanpa_konfirmasi_tidak_menghapus_apa_pun(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('hapus');
+
+        $this->assertDatabaseCount('jadwal_shift', 1);
+    }
+
+    public function test_jadwal_yang_sudah_terhapus_tidak_menimbulkan_error(): void
+    {
+        $komponen = Livewire::actingAs($this->admin)
+            ->test(JadwalShiftIndex::class)
+            ->call('konfirmasiHapus', $this->jadwal->id);
+
+        $this->jadwal->delete();
+
+        $komponen->call('hapus')->assertSet('hapusId', null)->assertSee('sudah tidak ada');
+    }
+
+    public function test_pengasuh_tidak_boleh_menghapus_jadwal(): void
+    {
+        Livewire::actingAs($this->siti)
+            ->test(JadwalShiftIndex::class)
+            ->call('konfirmasiHapus', $this->jadwal->id)
+            ->call('hapus')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('jadwal_shift', ['id' => $this->jadwal->id]);
+    }
 }

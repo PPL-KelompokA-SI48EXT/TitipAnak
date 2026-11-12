@@ -17,6 +17,11 @@ class KelompokUsia extends Model
         return $this->hasMany(Anak::class)->where('status', 'aktif');
     }
 
+    public function jadwalKegiatan(): HasMany
+    {
+        return $this->hasMany(JadwalKegiatan::class);
+    }
+
     public function jadwalShift(): HasMany
     {
         return $this->hasMany(JadwalShift::class);

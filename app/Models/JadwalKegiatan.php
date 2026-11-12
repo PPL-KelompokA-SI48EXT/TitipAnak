@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -45,6 +46,34 @@ class JadwalKegiatan extends Model
             ->where('jam_mulai', '<', $selesai)
             ->where('jam_selesai', '>', $mulai)
             ->when($kecualiId !== null, fn (Builder $q) => $q->whereKeyNot($kecualiId));
+    }
+
+    /**
+     * Kegiatan harian untuk semua kelompok usia yang dipegang pengasuh pada tanggal itu
+     * (berdasarkan shift hari itu), urut jam, dikelompokkan per kelompok usia.
+     *
+     * @return Collection<int, Collection<int, JadwalKegiatan>>
+     */
+    public static function harianUntukPengasuh(User $pengasuh, CarbonInterface $tanggal): Collection
+    {
+        $kelompokIds = JadwalShift::query()
+            ->milik($pengasuh)
+            ->padaTanggal($tanggal)
+            ->pluck('kelompok_usia_id')
+            ->unique();
+
+        if ($kelompokIds->isEmpty()) {
+            return new Collection;
+        }
+
+        return static::query()
+            ->whereIn('kelompok_usia_id', $kelompokIds)
+            ->padaTanggal($tanggal)
+            ->with('kelompokUsia:id,nama')
+            ->orderBy('jam_mulai')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('kelompok_usia_id');
     }
 
     public function labelHari(): string

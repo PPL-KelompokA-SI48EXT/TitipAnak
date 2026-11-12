@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -21,6 +24,49 @@ class JadwalShift extends Model
         6 => 'Sabtu',
         7 => 'Minggu',
     ];
+
+    /** Shift milik satu pengasuh. */
+    public function scopeMilik(Builder $query, User $pengasuh): void
+    {
+        $query->where('pengasuh_id', $pengasuh->id);
+    }
+
+    /** Shift yang berlaku pada tanggal tertentu (pola mingguan dipetakan lewat hari ISO). */
+    public function scopePadaTanggal(Builder $query, CarbonInterface $tanggal): void
+    {
+        $query->where('hari', $tanggal->dayOfWeekIso);
+    }
+
+    /**
+     * Shift pengasuh pada tanggal itu beserta kelompok usia dan anak aktif yang menjadi tanggung jawabnya.
+     *
+     * @return Collection<int, JadwalShift>
+     */
+    public static function tanggungJawab(User $pengasuh, CarbonInterface $tanggal): Collection
+    {
+        return static::query()
+            ->milik($pengasuh)
+            ->padaTanggal($tanggal)
+            ->with(['kelompokUsia', 'kelompokUsia.anak' => fn ($q) => $q->orderBy('nama_lengkap')])
+            ->orderBy('jam_mulai')
+            ->orderBy('id')
+            ->get();
+    }
+
+    /**
+     * Seluruh pola shift mingguan pengasuh, urut hari lalu jam.
+     *
+     * @return Collection<int, JadwalShift>
+     */
+    public static function polaMingguan(User $pengasuh): Collection
+    {
+        return static::query()
+            ->milik($pengasuh)
+            ->with('kelompokUsia:id,nama')
+            ->orderBy('hari')
+            ->orderBy('jam_mulai')
+            ->get();
+    }
 
     public function pengasuh(): BelongsTo
     {

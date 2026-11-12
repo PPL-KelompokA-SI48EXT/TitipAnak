@@ -3,6 +3,7 @@
 namespace App\Livewire\Pengasuh;
 
 use App\Models\Anak;
+use App\Models\IzinPenjemputan;
 use App\Models\Kehadiran;
 use App\Models\PenjemputTerdaftar;
 use Carbon\Carbon;
@@ -117,7 +118,17 @@ class CheckOut extends Component
         $izin = null;
         $penjemput = null;
         if (str_starts_with($data['penjemput'], self::IZIN)) {
-            $izin = $this->izinBerlaku($kehadiran->anak)->whereKey((int) substr($data['penjemput'], strlen(self::IZIN)))->first();
+            $izinId = substr($data['penjemput'], strlen(self::IZIN));
+            $alasan = $this->alasanIzinTidakBerlaku($kehadiran->anak, $izinId);
+
+            if ($alasan) {
+                $this->tidakCocok = true;
+                $this->addError('penjemput', $alasan);
+
+                return;
+            }
+
+            $izin = IzinPenjemputan::find((int) $izinId);
         } else {
             $penjemput = $this->cocokkanPenjemput($kehadiran->anak, $data['penjemput'], $data['nama_penjemput'] ?? '');
         }
@@ -145,10 +156,30 @@ class CheckOut extends Component
         session()->flash('sukses', "Check-out {$nama} berhasil dicatat. Dijemput oleh {$namaPenjemput}".($izin ? ' (izin penjemputan).' : '.'));
     }
 
-    /** Izin penjemputan anak yang disetujui dan berlaku hari ini. */
+    /** Izin penjemputan anak yang disetujui dan berlaku hari ini dan belum dipakai check-out. */
     private function izinBerlaku(Anak $anak)
     {
-        return $anak->izinPenjemputan()->disetujui()->padaTanggal(today());
+        return $anak->izinPenjemputan()
+            ->disetujui()
+            ->padaTanggal(today())
+            ->whereNotIn('id', Kehadiran::query()->whereNotNull('izin_penjemputan_id')->select('izin_penjemputan_id'));
+    }
+
+    /**
+     * Periksa izin saat disimpan (status bisa berubah sejak form dibuka). Mengembalikan alasan penolakan,
+     * atau null bila izin sah dipakai: milik anak ini, berstatus disetujui, berlaku hari ini, dan belum terpakai.
+     */
+    private function alasanIzinTidakBerlaku(Anak $anak, string $izinId): ?string
+    {
+        $izin = ctype_digit($izinId) ? $anak->izinPenjemputan()->whereKey((int) $izinId)->first() : null;
+
+        return match (true) {
+            $izin === null => 'Izin penjemputan tidak ditemukan untuk anak ini.',
+            $izin->status !== IzinPenjemputan::STATUS_DISETUJUI => "Izin penjemputan berstatus {$izin->status}. Hanya izin yang disetujui yang bisa dipakai.",
+            ! $izin->tanggal_jemput->isToday() => 'Izin penjemputan ini berlaku pada '.$izin->tanggal_jemput->format('d/m/Y').', bukan hari ini.',
+            Kehadiran::query()->where('izin_penjemputan_id', $izin->id)->exists() => 'Izin penjemputan ini sudah dipakai untuk check-out.',
+            default => null,
+        };
     }
 
     /**

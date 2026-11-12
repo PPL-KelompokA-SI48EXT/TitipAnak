@@ -116,27 +116,73 @@ class CheckOutIzinTest extends TestCase
         $this->assertSame($this->siti->id, $k->check_out_oleh_id);
     }
 
-    public function test_izin_yang_tidak_berlaku_ditolak_saat_simpan(): void
+    public function test_izin_yang_tidak_berlaku_ditolak_dengan_alasan_spesifik(): void
     {
-        $ditolak = $this->izin('Tante Ditolak', 'ditolak');
-        $menunggu = $this->izin('Pak Menunggu', 'menunggu');
-        $kemarin = $this->izin('Pak Kemarin', 'disetujui', today()->subDay()->toDateString());
         $lain = $this->buatAnak('Anak Lain', $this->batita);
-        $milikLain = $this->izin('Orang Anak Lain', 'disetujui', null, $lain);
+        $kasus = [
+            [$this->izin('Tante Ditolak', 'ditolak'), 'berstatus ditolak'],
+            [$this->izin('Pak Menunggu', 'menunggu'), 'berstatus menunggu'],
+            [$this->izin('Bu Batal', 'dibatalkan'), 'berstatus dibatalkan'],
+            [$this->izin('Pak Kemarin', 'disetujui', today()->subDay()->toDateString()), 'bukan hari ini'],
+            [$this->izin('Bu Besok', 'disetujui', today()->addDay()->toDateString()), 'bukan hari ini'],
+            [$this->izin('Orang Anak Lain', 'disetujui', null, $lain), 'tidak ditemukan untuk anak ini'],
+        ];
 
-        foreach ([$ditolak, $menunggu, $kemarin, $milikLain] as $tidakBerlaku) {
-            $this->form(CheckOut::IZIN.$tidakBerlaku->id)
+        foreach ($kasus as [$izin, $pesan]) {
+            $this->form(CheckOut::IZIN.$izin->id)
                 ->call('simpan')
                 ->assertHasErrors(['penjemput'])
-                ->assertSet('tidakCocok', true);
+                ->assertSet('tidakCocok', true)
+                ->assertSee($pesan);
         }
 
         $this->assertNull($this->kehadiran->fresh()->check_out_pada);
     }
 
+    public function test_tanggal_berlaku_izin_ditampilkan_pada_pesan(): void
+    {
+        $besok = today()->addDay();
+        $izin = $this->izin('Bu Besok', 'disetujui', $besok->toDateString());
+
+        $this->form(CheckOut::IZIN.$izin->id)
+            ->call('simpan')
+            ->assertSee('berlaku pada '.$besok->format('d/m/Y'));
+    }
+
+    public function test_izin_dibatalkan_setelah_form_dibuka_ditolak_saat_simpan(): void
+    {
+        $izin = $this->izin('Om Budi');
+        $komponen = $this->form(CheckOut::IZIN.$izin->id);
+
+        $izin->update(['status' => 'dibatalkan']);
+
+        $komponen->call('simpan')->assertHasErrors(['penjemput'])->assertSee('berstatus dibatalkan');
+        $this->assertNull($this->kehadiran->fresh()->check_out_pada);
+    }
+
+    public function test_izin_yang_sudah_dipakai_tidak_bisa_dipakai_lagi(): void
+    {
+        $izin = $this->izin('Om Budi');
+        $kakak = $this->buatAnak('Kakak Aisyah', $this->batita, 'aktif', $this->orangTua);
+        $tanggal = today()->toDateString();
+        Kehadiran::create([
+            'anak_id' => $kakak->id, 'tanggal' => $tanggal, 'check_in_pada' => "$tanggal 08:00:00", 'check_in_oleh_id' => $this->siti->id,
+            'check_out_pada' => "$tanggal 15:00:00", 'check_out_oleh_id' => $this->siti->id, 'izin_penjemputan_id' => $izin->id,
+        ]);
+
+        $this->form(CheckOut::IZIN.$izin->id)
+            ->call('simpan')
+            ->assertHasErrors(['penjemput'])
+            ->assertSee('sudah dipakai untuk check-out');
+
+        Livewire::actingAs($this->siti)->test(CheckOut::class)
+            ->call('mulaiCheckOut', $this->kehadiran->id)
+            ->assertDontSee('Om Budi (izin)');
+    }
+
     public function test_pilihan_izin_dengan_id_ngawur_ditolak(): void
     {
-        $this->form(CheckOut::IZIN.'abc')->call('simpan')->assertHasErrors(['penjemput']);
+        $this->form(CheckOut::IZIN.'abc')->call('simpan')->assertHasErrors(['penjemput'])->assertSee('tidak ditemukan untuk anak ini');
         $this->form(CheckOut::IZIN.'99999')->call('simpan')->assertHasErrors(['penjemput']);
     }
 

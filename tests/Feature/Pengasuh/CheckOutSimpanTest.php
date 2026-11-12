@@ -113,8 +113,8 @@ class CheckOutSimpanTest extends TestCase
         $lain = $this->buatAnak('Anak Lain', $this->batita);
         $milikLain = PenjemputTerdaftar::create(['anak_id' => $lain->id, 'nama_lengkap' => 'Ayah Lain', 'hubungan' => 'Ayah', 'no_hp' => '0822']);
 
-        $this->form('15:45', (string) $this->ibu->id)->call('simpan')->assertHasErrors(['nama_penjemput']);
-        $this->form('15:45', (string) $milikLain->id)->call('simpan')->assertHasErrors(['nama_penjemput']);
+        $this->form('15:45', (string) $this->ibu->id)->call('simpan')->assertHasErrors(['penjemput']);
+        $this->form('15:45', (string) $milikLain->id)->call('simpan')->assertHasErrors(['penjemput']);
         $this->form('15:45', CheckOut::LAIN, 'Ayah Lain')->call('simpan')->assertHasErrors(['nama_penjemput']);
         $this->form('15:45', CheckOut::LAIN, 'Ibu Aisyah')->call('simpan')->assertHasErrors(['nama_penjemput']);
 
@@ -123,8 +123,8 @@ class CheckOutSimpanTest extends TestCase
 
     public function test_pilihan_penjemput_yang_bukan_angka_atau_id_tidak_ada_ditolak(): void
     {
-        $this->form('15:45', 'asal')->call('simpan')->assertHasErrors(['nama_penjemput']);
-        $this->form('15:45', '99999')->call('simpan')->assertHasErrors(['nama_penjemput']);
+        $this->form('15:45', 'asal')->call('simpan')->assertHasErrors(['penjemput']);
+        $this->form('15:45', '99999')->call('simpan')->assertHasErrors(['penjemput']);
     }
 
     public function test_nama_wajib_diisi_untuk_penjemput_lain(): void

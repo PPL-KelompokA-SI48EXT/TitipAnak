@@ -60,6 +60,31 @@
                 </div>
             @endif
 
+            @if ($tidakCocok)
+                <div role="alert" class="grid gap-2 rounded-ta border-[1.5px] border-ink bg-coral px-4 py-3 text-sm">
+                    <div class="font-bold">⚠️ Penjemput tidak cocok. Jangan lepas anak ini dulu.</div>
+                    <ul class="grid list-disc gap-1 pl-5">
+                        <li>
+                            Penjemput yang boleh menjemput:
+                            @if ($penjemputList->isEmpty())
+                                <b>belum ada yang terdaftar</b>.
+                            @else
+                                <b>{{ $penjemputList->pluck('nama_lengkap')->join(', ') }}</b>.
+                            @endif
+                        </li>
+                        <li>
+                            Hubungi orang tua untuk memastikan:
+                            @if ($kontakOrangTua)
+                                <b>{{ $kontakOrangTua->nama_lengkap }}</b>, <a href="tel:{{ $kontakOrangTua->no_hp }}" class="font-semibold underline">{{ $kontakOrangTua->no_hp }}</a>.
+                            @else
+                                kontak orang tua belum tersedia, hubungi admin.
+                            @endif
+                        </li>
+                        <li>Pastikan identitas penjemput sebelum mencoba lagi.</li>
+                    </ul>
+                </div>
+            @endif
+
             <div class="flex flex-wrap gap-3">
                 <button type="submit" wire:loading.attr="disabled"
                     class="inline-flex items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-50">

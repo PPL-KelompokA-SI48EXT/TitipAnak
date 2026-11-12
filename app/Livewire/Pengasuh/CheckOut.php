@@ -31,6 +31,21 @@ class CheckOut extends Component
 
     public string $nama_penjemput = '';
 
+    /** True setelah percobaan check-out gagal karena penjemput tidak cocok; menampilkan panduan tindak lanjut. */
+    #[Locked]
+    public bool $tidakCocok = false;
+
+    /** Mengubah pilihan atau nama penjemput berarti pengasuh mencoba lagi: panduan lama disembunyikan. */
+    public function updatedPenjemput(): void
+    {
+        $this->tidakCocok = false;
+    }
+
+    public function updatedNamaPenjemput(): void
+    {
+        $this->tidakCocok = false;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -71,11 +86,12 @@ class CheckOut extends Component
         $this->jam_pulang = now()->format('H:i');
         $this->penjemput = '';
         $this->nama_penjemput = '';
+        $this->tidakCocok = false;
     }
 
     public function batal(): void
     {
-        $this->reset('kehadiranId', 'jam_pulang', 'penjemput', 'nama_penjemput');
+        $this->reset('kehadiranId', 'jam_pulang', 'penjemput', 'nama_penjemput', 'tidakCocok');
         $this->resetValidation();
     }
 
@@ -96,7 +112,9 @@ class CheckOut extends Component
 
         $penjemput = $this->cocokkanPenjemput($kehadiran->anak, $data['penjemput'], $data['nama_penjemput'] ?? '');
         if (! $penjemput) {
-            $this->addError('nama_penjemput', 'Nama penjemput tidak cocok dengan Penjemput Terdaftar anak ini.');
+            // Anak tidak dilepas. Form tetap terbuka dan panduan tindak lanjut ditampilkan.
+            $this->tidakCocok = true;
+            $this->addError($this->penjemput === self::LAIN ? 'nama_penjemput' : 'penjemput', 'Penjemput tidak cocok dengan Penjemput Terdaftar anak ini.');
 
             return;
         }
@@ -167,6 +185,9 @@ class CheckOut extends Component
         return view('livewire.pengasuh.check-out', [
             'daftar' => $daftar,
             'terpilih' => $terpilih,
+            'kontakOrangTua' => $terpilih && $this->tidakCocok
+                ? $terpilih->anak->orangTua()->with('profilOrangTua:pengguna_id,nama_lengkap,no_hp')->first()?->profilOrangTua
+                : null,
             'penjemputList' => $terpilih
                 ? $terpilih->anak->penjemputTerdaftar()->aktif()->orderBy('nama_lengkap')->get(['id', 'nama_lengkap', 'hubungan'])
                 : collect(),

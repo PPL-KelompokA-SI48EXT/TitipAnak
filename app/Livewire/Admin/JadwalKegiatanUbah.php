@@ -36,8 +36,31 @@ class JadwalKegiatanUbah extends JadwalKegiatanBuat
     {
         abort_unless(auth()->user()?->can('kelola jadwal'), 403);
 
-        // Penyimpanan perubahan menyusul di commit berikutnya (PK4-109 logika update dan validasi).
-        $this->validate();
+        $data = $this->validate();
+
+        $mulai = $data['jam_mulai'].':00';
+        $selesai = $data['jam_selesai'].':00';
+        $hari = ($data['hari'] ?? '') === '' ? null : (int) $data['hari'];
+
+        // Kegiatan ini sendiri dikecualikan, supaya mengubah catatan saja tidak dianggap bentrok.
+        if (JadwalKegiatan::bertabrakan((int) $data['kelompok_usia_id'], $hari, $mulai, $selesai, $this->kegiatanId)->exists()) {
+            $this->addError('jam_mulai', 'Kelompok usia ini sudah punya kegiatan yang bertabrakan pada hari dan jam tersebut.');
+
+            return;
+        }
+
+        JadwalKegiatan::findOrFail($this->kegiatanId)->update([
+            'kelompok_usia_id' => $data['kelompok_usia_id'],
+            'nama_kegiatan' => trim($data['nama_kegiatan']),
+            'jenis_kegiatan' => $data['jenis_kegiatan'],
+            'hari' => $hari,
+            'jam_mulai' => $mulai,
+            'jam_selesai' => $selesai,
+            'catatan' => filled($data['catatan'] ?? null) ? trim($data['catatan']) : null,
+        ]);
+
+        session()->flash('sukses', 'Jadwal kegiatan berhasil diubah.');
+        $this->redirectRoute('admin.jadwal-kegiatan.index');
     }
 
     public function render(): View

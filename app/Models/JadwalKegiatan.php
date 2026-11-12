@@ -34,7 +34,7 @@ class JadwalKegiatan extends Model
     }
 
     /** Kegiatan yang jamnya bertabrakan dengan rentang [$mulai, $selesai) pada hari yang beririsan. */
-    public function scopeBertabrakan(Builder $query, int $kelompokId, ?int $hari, string $mulai, string $selesai): void
+    public function scopeBertabrakan(Builder $query, int $kelompokId, ?int $hari, string $mulai, string $selesai, ?int $kecualiId = null): void
     {
         // Kolom time disimpan H:i:s; samakan format agar perbandingan teks akurat.
         $mulai = strlen($mulai) === 5 ? $mulai.':00' : $mulai;
@@ -43,7 +43,8 @@ class JadwalKegiatan extends Model
         $query->where('kelompok_usia_id', $kelompokId)
             ->when($hari !== null, fn (Builder $q) => $q->where(fn (Builder $w) => $w->whereNull('hari')->orWhere('hari', $hari)))
             ->where('jam_mulai', '<', $selesai)
-            ->where('jam_selesai', '>', $mulai);
+            ->where('jam_selesai', '>', $mulai)
+            ->when($kecualiId !== null, fn (Builder $q) => $q->whereKeyNot($kecualiId));
     }
 
     public function labelHari(): string

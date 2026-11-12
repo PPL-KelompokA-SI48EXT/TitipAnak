@@ -7,6 +7,7 @@ use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Dashboard;
+use App\Livewire\Pengasuh\JadwalKegiatanHarian;
 use App\Livewire\Pengasuh\JadwalSaya;
 use Illuminate\Support\Facades\Route;
 
@@ -32,5 +33,6 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('pengasuh.')
         ->group(function () {
             Route::get('jadwal-saya', JadwalSaya::class)->name('jadwal-saya');
+            Route::get('jadwal-kegiatan', JadwalKegiatanHarian::class)->name('jadwal-kegiatan');
         });
 });

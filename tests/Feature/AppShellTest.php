@@ -24,9 +24,9 @@ class AppShellTest extends TestCase
         return User::factory()->create($attrs)->assignRole($role);
     }
 
-    public function test_tamu_diarahkan_ke_pemilih_akun(): void
+    public function test_tamu_diarahkan_ke_halaman_login(): void
     {
-        $this->get(route('dashboard'))->assertRedirect(route('dev.akun'));
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
     }
 
     public function test_pemilih_akun_menampilkan_akun_per_peran(): void

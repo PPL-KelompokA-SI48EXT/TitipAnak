@@ -23,6 +23,7 @@ class RolePermissionSeeder extends Seeder
                 'kelola jadwal',
                 'kelola pengumuman',
                 'lihat semua laporan',
+                'hapus data kehadiran',
                 'lihat dashboard admin',
             ],
             'pengasuh' => [

@@ -7,6 +7,7 @@ use App\Models\KelompokUsia;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -58,6 +59,36 @@ class RekapKehadiran extends Component
         $this->resetPage();
     }
 
+    /** Catatan kehadiran yang sedang menunggu konfirmasi hapus (null = dialog tertutup). */
+    #[Locked]
+    public ?int $hapusId = null;
+
+    /** Alasan penghapusan, wajib diisi agar jejak audit jelas. */
+    public string $alasan = '';
+
+    public function konfirmasiHapus(int $id): void
+    {
+        abort_unless(auth()->user()?->can('hapus data kehadiran'), 403);
+
+        $this->resetValidation();
+        $this->alasan = '';
+        $this->hapusId = Kehadiran::whereKey($id)->value('id');
+    }
+
+    public function batalHapus(): void
+    {
+        $this->reset('hapusId', 'alasan');
+        $this->resetValidation();
+    }
+
+    public function hapus(): void
+    {
+        abort_unless(auth()->user()?->can('hapus data kehadiran'), 403);
+
+        // Penghapusan dan pencatatannya menyusul di commit berikutnya (PK4-118 logika hapus).
+        $this->batalHapus();
+    }
+
     private function tanggal(string $nilai, CarbonInterface $bawaan): CarbonInterface
     {
         try {
@@ -92,6 +123,7 @@ class RekapKehadiran extends Component
             'awal' => $dari,
             'akhir' => $sampai,
             'terbalik' => $dari->gt($sampai),
+            'hapusKehadiran' => $this->hapusId ? Kehadiran::with('anak:id,nama_lengkap')->find($this->hapusId) : null,
             'kelompokList' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama']),
             'adaFilter' => $this->dari !== '' || $this->sampai !== '' || $this->kelompok !== '' || $this->q !== '',
         ]);

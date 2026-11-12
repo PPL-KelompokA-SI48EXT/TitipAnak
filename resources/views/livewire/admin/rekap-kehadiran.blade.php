@@ -121,6 +121,9 @@
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Kondisi</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Pulang</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Penjemput</th>
+                        @can('hapus data kehadiran')
+                            <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Aksi</th>
+                        @endcan
                     </tr>
                 </thead>
                 <tbody>
@@ -139,6 +142,12 @@
                                 @endif
                             </td>
                             <td class="px-4 py-3">{{ $k->nama_penjemput ?: '—' }}</td>
+                            @can('hapus data kehadiran')
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    <button type="button" wire:click="konfirmasiHapus({{ $k->id }})" class="font-semibold underline"
+                                        aria-label="Hapus kehadiran {{ $k->anak?->nama_lengkap }} tanggal {{ $fmt($k->tanggal) }}">Hapus</button>
+                                </td>
+                            @endcan
                         </tr>
                     @endforeach
                 </tbody>
@@ -146,5 +155,25 @@
         </div>
 
         {{ $baris->links() }}
+    @endif
+
+    @if ($hapusKehadiran)
+        @php
+            $waktu = 'datang '.$hapusKehadiran->check_in_pada->format('H:i')
+                .($hapusKehadiran->check_out_pada ? ', pulang '.$hapusKehadiran->check_out_pada->format('H:i') : ', belum pulang');
+        @endphp
+        <x-konfirmasi-hapus judul="Hapus data kehadiran?" tombol="Ya, hapus">
+            <div class="grid gap-3">
+                <p>
+                    Kehadiran <b>{{ $hapusKehadiran->anak?->nama_lengkap ?? '—' }}</b> pada <b>{{ $fmt($hapusKehadiran->tanggal) }}</b>
+                    ({{ $waktu }}) akan dihapus. Gunakan hanya untuk data yang salah input.
+                </p>
+                <div class="grid gap-1.5">
+                    <label for="alasan" class="font-semibold">Alasan penghapusan</label>
+                    <textarea id="alasan" wire:model="alasan" rows="2" maxlength="255" placeholder="mis. Salah memilih anak saat check-in" class="{{ $input }} w-full"></textarea>
+                    @error('alasan') <span class="text-xs font-semibold text-[#B02E12]">{{ $message }}</span> @enderror
+                </div>
+            </div>
+        </x-konfirmasi-hapus>
     @endif
 </div>

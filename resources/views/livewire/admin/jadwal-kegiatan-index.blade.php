@@ -106,6 +106,8 @@
                                         <td class="whitespace-nowrap px-4 py-2">
                                             <a href="{{ route('admin.jadwal-kegiatan.ubah', $g) }}" class="font-semibold underline"
                                                 aria-label="Ubah kegiatan {{ $g->nama_kegiatan }}">Ubah</a>
+                                            <button type="button" wire:click="konfirmasiHapus({{ $g->id }})" class="ml-3 font-semibold underline"
+                                                aria-label="Hapus kegiatan {{ $g->nama_kegiatan }}">Hapus</button>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -115,5 +117,15 @@
                 @endif
             </section>
         @endforeach
+    @endif
+
+    @if ($hapusKegiatan)
+        <x-konfirmasi-hapus judul="Hapus kegiatan?" tombol="Ya, hapus">
+            <p>
+                Kegiatan <b>{{ $hapusKegiatan->nama_kegiatan }}</b> untuk <b>{{ $hapusKegiatan->kelompokUsia?->nama ?? '—' }}</b>
+                ({{ $hapusKegiatan->labelHari() }}, {{ substr($hapusKegiatan->jam_mulai, 0, 5) }} – {{ substr($hapusKegiatan->jam_selesai, 0, 5) }})
+                akan dihapus dari jadwal karena sudah tidak dilakukan.
+            </p>
+        </x-konfirmasi-hapus>
     @endif
 </div>

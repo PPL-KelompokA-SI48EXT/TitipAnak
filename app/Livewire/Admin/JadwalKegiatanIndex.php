@@ -26,6 +26,25 @@ class JadwalKegiatanIndex extends Component
     #[Url(except: '')]
     public string $jenis = '';
 
+    /** Kegiatan yang sedang menunggu konfirmasi hapus (null = dialog tertutup). */
+    public ?int $hapusId = null;
+
+    public function konfirmasiHapus(int $id): void
+    {
+        $this->hapusId = JadwalKegiatan::whereKey($id)->value('id');
+    }
+
+    public function batalHapus(): void
+    {
+        $this->hapusId = null;
+    }
+
+    public function hapus(): void
+    {
+        // Logika penghapusan menyusul di commit berikutnya (PK4-110 backend).
+        $this->batalHapus();
+    }
+
     public function resetFilter(): void
     {
         $this->reset('kelompok', 'hari', 'jenis');
@@ -52,6 +71,7 @@ class JadwalKegiatanIndex extends Component
             'kegiatan' => $kegiatan,
             'tampil' => $kegiatan->flatten(1)->count(),
             'semua' => JadwalKegiatan::count(),
+            'hapusKegiatan' => $this->hapusId ? JadwalKegiatan::with('kelompokUsia:id,nama')->find($this->hapusId) : null,
             'hariList' => JadwalShift::HARI,
             'jenisList' => JadwalKegiatan::JENIS,
         ]);

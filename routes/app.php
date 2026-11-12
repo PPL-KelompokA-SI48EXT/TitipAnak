@@ -9,6 +9,7 @@ use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Dashboard;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
 use App\Livewire\Pengasuh\JadwalSaya;
+use App\Livewire\Pengasuh\Presensi;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -34,5 +35,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->group(function () {
             Route::get('jadwal-saya', JadwalSaya::class)->name('jadwal-saya');
             Route::get('jadwal-kegiatan', JadwalKegiatanHarian::class)->name('jadwal-kegiatan');
+        });
+
+    Route::middleware('permission:presensi anak')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('presensi', Presensi::class)->name('presensi');
         });
 });

@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -23,6 +25,15 @@ class Anak extends Model
     public function orangTua(): BelongsTo
     {
         return $this->belongsTo(User::class, 'orang_tua_id');
+    }
+
+    /** Anak aktif di kelompok usia yang dipegang pengasuh pada tanggal itu (berdasarkan shift hari itu). */
+    public function scopeDiasuhOleh(Builder $query, User $pengasuh, CarbonInterface $tanggal): void
+    {
+        $query->where('status', 'aktif')->whereIn(
+            'kelompok_usia_id',
+            JadwalShift::query()->milik($pengasuh)->padaTanggal($tanggal)->select('kelompok_usia_id')
+        );
     }
 
     public function kehadiran(): HasMany

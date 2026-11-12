@@ -52,7 +52,7 @@ return [
         'items' => [
             ['label' => 'Jadwal Saya', 'icon' => '🗓️', 'route' => 'pengasuh.jadwal-saya', 'permission' => 'lihat jadwal sendiri'],
             ['label' => 'Jadwal Kegiatan', 'icon' => '🧸', 'route' => 'pengasuh.jadwal-kegiatan', 'permission' => 'lihat jadwal sendiri'],
-            ['label' => 'Presensi', 'icon' => '✅', 'route' => null, 'permission' => 'presensi anak'],
+            ['label' => 'Presensi', 'icon' => '✅', 'route' => 'pengasuh.presensi', 'permission' => 'presensi anak'],
             ['label' => 'Laporan Harian', 'icon' => '📒', 'route' => null, 'permission' => 'buat laporan harian'],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => null, 'permission' => 'buat laporan insiden'],
             ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => null, 'permission' => 'buat penilaian bulanan'],

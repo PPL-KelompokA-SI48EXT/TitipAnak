@@ -34,8 +34,14 @@ class Presensi extends Component
     protected function rules(): array
     {
         return [
-            'jam_datang' => ['required'],
-            'kondisi' => ['required'],
+            'jam_datang' => [
+                'required',
+                'date_format:H:i',
+                // Jam datang tidak boleh lebih dari sekarang (presensi hanya untuk hari ini).
+                fn (string $attribute, mixed $value, \Closure $fail) => $value <= now()->format('H:i')
+                    ?: $fail('Jam datang tidak boleh melewati jam sekarang.'),
+            ],
+            'kondisi' => ['required', 'string', 'max:255'],
         ];
     }
 
@@ -77,8 +83,27 @@ class Presensi extends Component
     {
         abort_unless(auth()->user()?->can('presensi anak'), 403);
 
-        // Aturan lengkap dan penyimpanan menyusul di commit berikutnya (PK4-112 validasi dan penyimpanan).
-        $this->validate();
+        $data = $this->validate();
+
+        // Anak harus masih di kelompok yang dipegang pengasuh hari ini (cegah id dimanipulasi).
+        $anak = $this->anakId ? $this->anakDiasuh()->whereKey($this->anakId)->first() : null;
+        if (! $anak) {
+            $this->batal();
+            session()->flash('sukses', 'Anak tidak ditemukan di kelompok Anda hari ini.');
+
+            return;
+        }
+
+        Kehadiran::create([
+            'anak_id' => $anak->id,
+            'tanggal' => today(),
+            'check_in_pada' => today()->setTimeFromTimeString($data['jam_datang']),
+            'kondisi_check_in' => trim($data['kondisi']),
+            'check_in_oleh_id' => auth()->id(),
+        ]);
+
+        $this->batal();
+        session()->flash('sukses', "Check-in {$anak->nama_lengkap} berhasil dicatat.");
     }
 
     private function anakDiasuh()

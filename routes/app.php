@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\JadwalKegiatanBuat;
 use App\Livewire\Admin\JadwalKegiatanIndex;
+use App\Livewire\Admin\JadwalKegiatanUbah;
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
@@ -22,7 +23,8 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('jadwal-shift/{jadwal}/ubah', JadwalShiftUbah::class)->name('jadwal-shift.ubah');
 
             Route::get('jadwal-kegiatan', JadwalKegiatanIndex::class)->name('jadwal-kegiatan.index');
-            Route::get('jadwal-kegiatan/buat',JadwalKegiatanBuat::class)->name('jadwal-kegiatan.buat');
+            Route::get('jadwal-kegiatan/buat', JadwalKegiatanBuat::class)->name('jadwal-kegiatan.buat');
+            Route::get('jadwal-kegiatan/{kegiatan}/ubah', JadwalKegiatanUbah::class)->name('jadwal-kegiatan.ubah');
         });
 
     Route::middleware('permission:lihat jadwal sendiri')

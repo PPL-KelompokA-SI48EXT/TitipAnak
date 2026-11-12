@@ -122,6 +122,9 @@ class JadwalKegiatanBuat extends Component
             'hariList' => JadwalShift::HARI,
             'jenisList' => JadwalKegiatan::JENIS,
             'preset' => array_keys(self::PRESET),
+            'judul' => 'Buat Jadwal Kegiatan',
+            'subjudul' => 'Susun rutinitas harian tiap kelompok usia: sarapan, bermain, tidur siang, dan lainnya.',
+            'tombol' => 'Simpan kegiatan',
         ]);
     }
 }

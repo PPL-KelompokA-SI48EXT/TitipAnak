@@ -92,6 +92,7 @@
                                     <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Kegiatan</th>
                                     <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Jenis</th>
                                     <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Catatan</th>
+                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,6 +103,10 @@
                                         <td class="px-4 py-2">{{ $g->nama_kegiatan }}</td>
                                         <td class="px-4 py-2"><span class="rounded-full border border-ink bg-cream px-3 py-0.5 text-xs font-semibold">{{ $g->labelJenis() }}</span></td>
                                         <td class="px-4 py-2 text-muted">{{ $g->catatan ?: '—' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-2">
+                                            <a href="{{ route('admin.jadwal-kegiatan.ubah', $g) }}" class="font-semibold underline"
+                                                aria-label="Ubah kegiatan {{ $g->nama_kegiatan }}">Ubah</a>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

@@ -5,8 +5,8 @@
 
 <div class="grid gap-6">
     <div>
-        <h1 class="text-4xl font-bold leading-tight">Buat Jadwal Kegiatan</h1>
-        <p class="text-muted">Susun rutinitas harian tiap kelompok usia: sarapan, bermain, tidur siang, dan lainnya.</p>
+        <h1 class="text-4xl font-bold leading-tight">{{ $judul }}</h1>
+        <p class="text-muted">{{ $subjudul }}</p>
     </div>
 
     @if (session('sukses'))
@@ -17,6 +17,7 @@
     @endif
 
     <form wire:submit="simpan" class="grid gap-5 rounded-ta border-[1.5px] border-ink bg-paper p-6">
+        @if ($preset)
         <div class="grid gap-1.5">
             <span class="text-sm font-semibold">Kegiatan rutin</span>
             <div class="flex flex-wrap gap-2" role="group" aria-label="Pilih kegiatan rutin">
@@ -29,6 +30,7 @@
             </div>
             <span class="text-xs text-muted">Klik untuk mengisi nama, jenis, dan jam otomatis. Tetap bisa diubah.</span>
         </div>
+        @endif
 
         <div class="grid gap-5 sm:grid-cols-2">
             <div class="grid gap-1.5">
@@ -96,7 +98,7 @@
         <div>
             <button type="submit" wire:loading.attr="disabled"
                 class="inline-flex items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-3 text-sm font-semibold transition hover:-translate-y-0.5 disabled:opacity-50">
-                <span wire:loading.remove wire:target="simpan">Simpan kegiatan</span>
+                <span wire:loading.remove wire:target="simpan">{{ $tombol }}</span>
                 <span wire:loading wire:target="simpan">Menyimpan…</span>
             </button>
         </div>

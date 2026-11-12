@@ -25,6 +25,21 @@ class Anak extends Model
         return $this->belongsTo(User::class, 'orang_tua_id');
     }
 
+    public function kehadiran(): HasMany
+    {
+        return $this->hasMany(Kehadiran::class);
+    }
+
+    public function penjemputTerdaftar(): HasMany
+    {
+        return $this->hasMany(PenjemputTerdaftar::class);
+    }
+
+    public function izinPenjemputan(): HasMany
+    {
+        return $this->hasMany(IzinPenjemputan::class);
+    }
+
     public function kelompokUsia(): BelongsTo
     {
         return $this->belongsTo(KelompokUsia::class);

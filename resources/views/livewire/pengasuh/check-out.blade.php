@@ -40,14 +40,25 @@
                     <label for="penjemput" class="text-sm font-semibold">Dijemput oleh</label>
                     <select id="penjemput" wire:model.live="penjemput" class="{{ $input }}">
                         <option value="">Pilih penjemput</option>
-                        @foreach ($penjemputList as $p)
-                            <option value="{{ $p->id }}">{{ $p->nama_lengkap }} ({{ $p->hubungan }})</option>
-                        @endforeach
+                        @if ($penjemputList->isNotEmpty())
+                            <optgroup label="Penjemput terdaftar">
+                                @foreach ($penjemputList as $p)
+                                    <option value="{{ $p->id }}">{{ $p->nama_lengkap }} ({{ $p->hubungan }})</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
+                        @if ($izinList->isNotEmpty())
+                            <optgroup label="Izin penjemputan disetujui (hari ini)">
+                                @foreach ($izinList as $i)
+                                    <option value="{{ \App\Livewire\Pengasuh\CheckOut::IZIN }}{{ $i->id }}">{{ $i->nama_penjemput }} (izin)</option>
+                                @endforeach
+                            </optgroup>
+                        @endif
                         <option value="{{ \App\Livewire\Pengasuh\CheckOut::LAIN }}">Penjemput lain (tidak ada di daftar)</option>
                     </select>
                     @error('penjemput') <span class="{{ $galat }}">{{ $message }}</span> @enderror
-                    @if ($penjemputList->isEmpty())
-                        <span class="text-xs text-muted">Orang tua belum mendaftarkan penjemput untuk anak ini.</span>
+                    @if ($penjemputList->isEmpty() && $izinList->isEmpty())
+                        <span class="text-xs text-muted">Orang tua belum mendaftarkan penjemput atau mengajukan izin penjemputan untuk anak ini.</span>
                     @endif
                 </div>
             </div>

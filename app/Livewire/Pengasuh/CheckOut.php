@@ -20,6 +20,9 @@ class CheckOut extends Component
     /** Pilihan "penjemput lain" pada daftar penjemput. */
     public const LAIN = 'lain';
 
+    /** Awalan nilai pilihan untuk izin penjemputan: "izin-{id}". */
+    public const IZIN = 'izin-';
+
     /** Kehadiran (anak) yang sedang diisi form check-out-nya. */
     #[Locked]
     public ?int $kehadiranId = null;
@@ -110,25 +113,42 @@ class CheckOut extends Component
             return;
         }
 
-        $penjemput = $this->cocokkanPenjemput($kehadiran->anak, $data['penjemput'], $data['nama_penjemput'] ?? '');
-        if (! $penjemput) {
+        // Penjemput dengan izin penjemputan yang sudah disetujui.
+        $izin = null;
+        $penjemput = null;
+        if (str_starts_with($data['penjemput'], self::IZIN)) {
+            $izin = $this->izinBerlaku($kehadiran->anak)->whereKey((int) substr($data['penjemput'], strlen(self::IZIN)))->first();
+        } else {
+            $penjemput = $this->cocokkanPenjemput($kehadiran->anak, $data['penjemput'], $data['nama_penjemput'] ?? '');
+        }
+
+        if (! $penjemput && ! $izin) {
             // Anak tidak dilepas. Form tetap terbuka dan panduan tindak lanjut ditampilkan.
             $this->tidakCocok = true;
-            $this->addError($this->penjemput === self::LAIN ? 'nama_penjemput' : 'penjemput', 'Penjemput tidak cocok dengan Penjemput Terdaftar anak ini.');
+            $this->addError($this->penjemput === self::LAIN ? 'nama_penjemput' : 'penjemput', 'Penjemput tidak cocok dengan Penjemput Terdaftar atau izin penjemputan anak ini.');
 
             return;
         }
 
+        $namaPenjemput = $izin?->nama_penjemput ?? $penjemput->nama_lengkap;
+
         $kehadiran->update([
             'check_out_pada' => today()->setTimeFromTimeString($data['jam_pulang']),
             'check_out_oleh_id' => auth()->id(),
-            'penjemput_terdaftar_id' => $penjemput->id,
-            'nama_penjemput' => $penjemput->nama_lengkap,
+            'penjemput_terdaftar_id' => $penjemput?->id,
+            'izin_penjemputan_id' => $izin?->id,
+            'nama_penjemput' => $namaPenjemput,
         ]);
 
         $nama = $kehadiran->anak->nama_lengkap;
         $this->batal();
-        session()->flash('sukses', "Check-out {$nama} berhasil dicatat. Dijemput oleh {$penjemput->nama_lengkap}.");
+        session()->flash('sukses', "Check-out {$nama} berhasil dicatat. Dijemput oleh {$namaPenjemput}".($izin ? ' (izin penjemputan).' : '.'));
+    }
+
+    /** Izin penjemputan anak yang disetujui dan berlaku hari ini. */
+    private function izinBerlaku(Anak $anak)
+    {
+        return $anak->izinPenjemputan()->disetujui()->padaTanggal(today());
     }
 
     /**
@@ -188,6 +208,9 @@ class CheckOut extends Component
             'kontakOrangTua' => $terpilih && $this->tidakCocok
                 ? $terpilih->anak->orangTua()->with('profilOrangTua:pengguna_id,nama_lengkap,no_hp')->first()?->profilOrangTua
                 : null,
+            'izinList' => $terpilih
+                ? $this->izinBerlaku($terpilih->anak)->orderBy('nama_penjemput')->get(['id', 'nama_penjemput', 'alasan'])
+                : collect(),
             'penjemputList' => $terpilih
                 ? $terpilih->anak->penjemputTerdaftar()->aktif()->orderBy('nama_lengkap')->get(['id', 'nama_lengkap', 'hubungan'])
                 : collect(),

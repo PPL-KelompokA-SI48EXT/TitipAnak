@@ -79,7 +79,7 @@ class CheckOutTidakCocokTest extends TestCase
             ->assertSee('Ibu Aisyah, Nenek Siti')
             ->assertSee('Ibu Aisyah Rahma')
             ->assertSee('081234567890')
-            ->assertSee('Penjemput tidak cocok dengan Penjemput Terdaftar anak ini.');
+            ->assertSee('Penjemput tidak cocok dengan Penjemput Terdaftar atau izin penjemputan anak ini.');
 
         $this->assertNull($this->kehadiran->fresh()->check_out_pada);
     }

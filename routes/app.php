@@ -7,6 +7,7 @@ use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Dashboard;
+use App\Livewire\Pengasuh\CheckOut;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
 use App\Livewire\Pengasuh\KehadiranHariIni;
 use App\Livewire\Pengasuh\JadwalSaya;
@@ -43,6 +44,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('pengasuh.')
         ->group(function () {
             Route::get('presensi', Presensi::class)->name('presensi');
+            Route::get('check-out', CheckOut::class)->name('check-out');
             Route::get('kehadiran', KehadiranHariIni::class)->name('kehadiran');
         });
 });

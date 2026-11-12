@@ -55,7 +55,8 @@ return [
             [
                 'label' => 'Presensi', 'icon' => '✅', 'permission' => 'presensi anak',
                 'children' => [
-                    ['label' => 'Catat Presensi', 'route' => 'pengasuh.presensi'],
+                    ['label' => 'Check-in', 'route' => 'pengasuh.presensi'],
+                    ['label' => 'Check-out', 'route' => 'pengasuh.check-out'],
                     ['label' => 'Kehadiran Hari Ini', 'route' => 'pengasuh.kehadiran'],
                 ],
             ],

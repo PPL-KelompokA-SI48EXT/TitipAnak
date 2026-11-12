@@ -6,6 +6,7 @@ use App\Models\JadwalKegiatan;
 use App\Models\JadwalShift;
 use App\Models\KelompokUsia;
 use Illuminate\Contracts\View\View;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -43,11 +44,13 @@ class JadwalKegiatanBuat extends Component
     protected function rules(): array
     {
         return [
-            'kelompok_usia_id' => ['required'],
-            'nama_kegiatan' => ['required'],
-            'jenis_kegiatan' => ['required'],
-            'jam_mulai' => ['required'],
-            'jam_selesai' => ['required'],
+            'kelompok_usia_id' => ['required', 'integer', Rule::exists('kelompok_usia', 'id')],
+            'nama_kegiatan' => ['required', 'string', 'max:100'],
+            'jenis_kegiatan' => ['required', Rule::in(array_keys(JadwalKegiatan::JENIS))],
+            'hari' => ['nullable', 'integer', Rule::in(array_keys(JadwalShift::HARI))],
+            'jam_mulai' => ['required', 'date_format:H:i'],
+            'jam_selesai' => ['required', 'date_format:H:i', 'after:jam_mulai'],
+            'catatan' => ['nullable', 'string', 'max:500'],
         ];
     }
 
@@ -85,8 +88,31 @@ class JadwalKegiatanBuat extends Component
     {
         abort_unless(auth()->user()?->can('kelola jadwal'), 403);
 
-        // Aturan lengkap dan penyimpanan menyusul di commit berikutnya (PK4-107 validasi dan penyimpanan).
-        $this->validate();
+        $data = $this->validate();
+
+        $mulai = $data['jam_mulai'].':00';
+        $selesai = $data['jam_selesai'].':00';
+        $hari = ($data['hari'] ?? '') === '' ? null : (int) $data['hari'];
+
+        if (JadwalKegiatan::bertabrakan((int) $data['kelompok_usia_id'], $hari, $mulai, $selesai)->exists()) {
+            $this->addError('jam_mulai', 'Kelompok usia ini sudah punya kegiatan yang bertabrakan pada hari dan jam tersebut.');
+
+            return;
+        }
+
+        JadwalKegiatan::create([
+            'kelompok_usia_id' => $data['kelompok_usia_id'],
+            'nama_kegiatan' => trim($data['nama_kegiatan']),
+            'jenis_kegiatan' => $data['jenis_kegiatan'],
+            'hari' => $hari,
+            'jam_mulai' => $mulai,
+            'jam_selesai' => $selesai,
+            'catatan' => filled($data['catatan'] ?? null) ? trim($data['catatan']) : null,
+        ]);
+
+        // Kelompok usia, hari, dan jam dipertahankan agar admin cepat menambah kegiatan berikutnya.
+        $this->reset('nama_kegiatan', 'jenis_kegiatan', 'catatan');
+        session()->flash('sukses', 'Jadwal kegiatan berhasil dibuat.');
     }
 
     public function render(): View

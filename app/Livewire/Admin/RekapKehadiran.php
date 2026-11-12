@@ -36,6 +36,15 @@ class RekapKehadiran extends Component
     #[Url(except: '')]
     public string $q = '';
 
+    /** catatan = satu baris per check-in; anak = ringkasan per anak. */
+    #[Url(except: 'catatan')]
+    public string $tampilan = 'catatan';
+
+    public function setTampilan(string $tampilan): void
+    {
+        $this->tampilan = $tampilan === 'anak' ? 'anak' : 'catatan';
+    }
+
     public function updated(string $properti): void
     {
         if (in_array($properti, ['dari', 'sampai', 'kelompok', 'q'], true)) {
@@ -73,8 +82,13 @@ class RekapKehadiran extends Component
             'q' => $this->q,
         ];
 
+        $perAnak = $this->tampilan === 'anak';
+
         return view('livewire.admin.rekap-kehadiran', [
-            'baris' => Kehadiran::rekap($filter)->paginate(self::PER_HALAMAN),
+            'perAnak' => $perAnak,
+            'baris' => $perAnak ? null : Kehadiran::rekap($filter)->paginate(self::PER_HALAMAN),
+            'ringkasan' => $perAnak ? Kehadiran::ringkasanPerAnak($filter) : collect(),
+            'total' => $perAnak ? Kehadiran::rekap($filter)->count() : null,
             'awal' => $dari,
             'akhir' => $sampai,
             'terbalik' => $dari->gt($sampai),

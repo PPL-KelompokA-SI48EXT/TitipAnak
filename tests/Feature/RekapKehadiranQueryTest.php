@@ -95,6 +95,51 @@ class RekapKehadiranQueryTest extends TestCase
         $this->assertSame('Aisyah Putri', $hasil->anak->nama_lengkap);
     }
 
+    public function test_ringkasan_per_anak_menghitung_hari_rata_rata_jam_dan_durasi(): void
+    {
+        $this->hadir($this->aisyah, '2026-11-02', '07:30', '15:30'); // 8 jam
+        $this->hadir($this->aisyah, '2026-11-03', '08:00', '14:00'); // 6 jam
+        $this->hadir($this->aisyah, '2026-11-04', '07:45', null);    // belum pulang
+        $this->hadir($this->bima, '2026-11-02', '09:00', '12:00');
+
+        $hasil = Kehadiran::ringkasanPerAnak()->keyBy('anak_id');
+
+        $aisyah = $hasil[$this->aisyah->id];
+        $this->assertSame('Aisyah Putri', $aisyah['nama']);
+        $this->assertSame('Batita', $aisyah['kelompok']);
+        $this->assertSame(3, $aisyah['hari_hadir']);
+        $this->assertSame(1, $aisyah['belum_pulang']);
+        $this->assertSame('07:45', $aisyah['rata_jam_datang']); // (07:30 + 08:00 + 07:45) / 3
+        $this->assertSame(420, $aisyah['rata_menit_di_tempat']); // (480 + 360) / 2, hari belum pulang tidak dihitung
+
+        $bima = $hasil[$this->bima->id];
+        $this->assertSame(1, $bima['hari_hadir']);
+        $this->assertSame(180, $bima['rata_menit_di_tempat']);
+    }
+
+    public function test_ringkasan_anak_yang_belum_pernah_pulang_tidak_punya_durasi(): void
+    {
+        $this->hadir($this->aisyah, '2026-11-02', '07:30', null);
+
+        $this->assertNull(Kehadiran::ringkasanPerAnak()->first()['rata_menit_di_tempat']);
+    }
+
+    public function test_ringkasan_urut_paling_sering_hadir_lalu_nama_dan_mengikuti_filter(): void
+    {
+        $this->hadir($this->bima, '2026-11-02');
+        $this->hadir($this->aisyah, '2026-11-02');
+        $this->hadir($this->bima, '2026-11-03');
+        $this->hadir($this->bima, '2026-11-20');
+
+        $semua = Kehadiran::ringkasanPerAnak();
+        $this->assertSame(['Bima Pratama', 'Aisyah Putri'], $semua->pluck('nama')->all());
+
+        $disaring = Kehadiran::ringkasanPerAnak(['sampai' => Carbon::parse('2026-11-10')]);
+        $this->assertSame(2, $disaring->firstWhere('nama', 'Bima Pratama')['hari_hadir']);
+
+        $this->assertTrue(Kehadiran::ringkasanPerAnak(['q' => 'tidak ada'])->isEmpty());
+    }
+
     public function test_dalam_satu_hari_diurutkan_menurut_jam_datang(): void
     {
         $siang = $this->hadir($this->aisyah, '2026-11-02', '10:00');

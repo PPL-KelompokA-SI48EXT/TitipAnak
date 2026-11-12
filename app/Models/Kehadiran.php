@@ -96,6 +96,38 @@ class Kehadiran extends Model
             ->orderBy('id');
     }
 
+    /**
+     * Ringkasan kehadiran per anak pada filter yang sama dengan rekap(): jumlah hari hadir, rata-rata jam datang,
+     * rata-rata lama di tempat (hanya hari yang sudah check-out), dan jumlah hari yang belum check-out.
+     * Diurutkan dari yang paling sering hadir, lalu nama.
+     *
+     * @param  array{dari?: ?CarbonInterface, sampai?: ?CarbonInterface, kelompok?: ?int, q?: ?string}  $filter
+     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     */
+    public static function ringkasanPerAnak(array $filter = []): \Illuminate\Support\Collection
+    {
+        return static::rekap($filter)->get()
+            ->groupBy('anak_id')
+            ->map(function ($catatan) {
+                $anak = $catatan->first()->anak;
+                $selesai = $catatan->filter(fn (Kehadiran $k) => $k->check_out_pada !== null);
+                $rataMenitDatang = $catatan->avg(fn (Kehadiran $k) => $k->check_in_pada->hour * 60 + $k->check_in_pada->minute);
+                $rataMenitDi = $selesai->avg(fn (Kehadiran $k) => $k->check_in_pada->diffInMinutes($k->check_out_pada, true));
+
+                return [
+                    'anak_id' => $anak?->id,
+                    'nama' => $anak?->nama_lengkap ?? '—',
+                    'kelompok' => $anak?->kelompokUsia?->nama,
+                    'hari_hadir' => $catatan->count(),
+                    'belum_pulang' => $catatan->count() - $selesai->count(),
+                    'rata_jam_datang' => $rataMenitDatang === null ? null : sprintf('%02d:%02d', intdiv((int) round($rataMenitDatang), 60), (int) round($rataMenitDatang) % 60),
+                    'rata_menit_di_tempat' => $rataMenitDi === null ? null : (int) round($rataMenitDi),
+                ];
+            })
+            ->sortBy([['hari_hadir', 'desc'], ['nama', 'asc']])
+            ->values();
+    }
+
     /** Anak sudah check-in tetapi belum check-out. */
     public function scopeMasihDiTempat(Builder $query): void
     {

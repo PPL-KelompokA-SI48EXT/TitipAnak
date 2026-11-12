@@ -47,12 +47,67 @@
         </div>
     @endif
 
-    <p class="-mt-3 text-sm text-muted" aria-live="polite">{{ $baris->total() }} catatan kehadiran</p>
+    {{-- Pilihan tampilan --}}
+    <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Pilih tampilan rekap">
+        @foreach (['catatan' => 'Per catatan', 'anak' => 'Ringkasan per anak'] as $kode => $label)
+            <button type="button" wire:click="setTampilan('{{ $kode }}')" aria-pressed="{{ ($perAnak ? 'anak' : 'catatan') === $kode ? 'true' : 'false' }}"
+                class="rounded-full border-[1.5px] border-ink px-4 py-2 text-sm font-semibold transition {{ ($perAnak ? 'anak' : 'catatan') === $kode ? 'bg-ink text-paper' : 'bg-paper hover:bg-cream' }}">
+                {{ $label }}
+            </button>
+        @endforeach
+    </div>
 
-    @if ($baris->isEmpty())
+    <p class="-mt-3 text-sm text-muted" aria-live="polite">
+        @if ($perAnak)
+            {{ $ringkasan->count() }} anak · {{ $total }} catatan kehadiran
+        @else
+            {{ $baris->total() }} catatan kehadiran
+        @endif
+    </p>
+
+    @if ($perAnak ? $ringkasan->isEmpty() : $baris->isEmpty())
         <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center">
             <div class="text-xl font-bold">Tidak ada data kehadiran</div>
             <p class="mt-1 text-sm text-muted">Belum ada catatan pada rentang ini. Coba ubah tanggal atau reset filter.</p>
+        </div>
+    @elseif ($perAnak)
+        <div class="overflow-x-auto rounded-ta border-[1.5px] border-ink bg-paper">
+            <table class="w-full border-collapse text-sm">
+                <thead>
+                    <tr class="bg-yellow text-left">
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Anak</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Kelompok usia</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Hari hadir</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Rata-rata datang</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Rata-rata di tempat</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Belum check-out</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($ringkasan as $r)
+                        <tr wire:key="ringkasan-{{ $r['anak_id'] }}" class="border-b border-ink last:border-b-0 even:bg-cream/50">
+                            <td class="px-4 py-3 font-semibold">{{ $r['nama'] }}</td>
+                            <td class="whitespace-nowrap px-4 py-3">{{ $r['kelompok'] ?? '—' }}</td>
+                            <td class="whitespace-nowrap px-4 py-3">{{ $r['hari_hadir'] }} hari</td>
+                            <td class="whitespace-nowrap px-4 py-3">{{ $r['rata_jam_datang'] ?? '—' }}</td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @if ($r['rata_menit_di_tempat'] === null)
+                                    —
+                                @else
+                                    {{ intdiv($r['rata_menit_di_tempat'], 60) }} j {{ $r['rata_menit_di_tempat'] % 60 }} m
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                @if ($r['belum_pulang'] > 0)
+                                    <span class="rounded-full border border-ink bg-coral px-3 py-0.5 text-xs font-semibold">{{ $r['belum_pulang'] }} hari</span>
+                                @else
+                                    0
+                                @endif
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
         </div>
     @else
         <div class="overflow-x-auto rounded-ta border-[1.5px] border-ink bg-paper">

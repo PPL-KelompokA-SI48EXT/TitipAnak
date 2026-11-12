@@ -161,6 +161,53 @@ class RekapKehadiranTest extends TestCase
         $this->assertSame(3, $komponen->viewData('baris')->count());
     }
 
+    public function test_ringkasan_per_anak_menampilkan_agregat(): void
+    {
+        $this->hadir($this->aisyah, '2026-11-02', '16:00');
+        $this->hadir($this->aisyah, '2026-11-03', null);
+        $this->hadir($this->bima, '2026-11-02');
+
+        Livewire::actingAs($this->admin)
+            ->test(RekapKehadiran::class)
+            ->set('dari', '2026-11-01')->set('sampai', '2026-11-30')
+            ->call('setTampilan', 'anak')
+            ->assertSet('tampilan', 'anak')
+            ->assertSee('2 anak · 3 catatan kehadiran')
+            ->assertSeeInOrder(['Aisyah Putri', 'Batita', '2 hari', '07:30', '8 j 30 m', '1 hari'])
+            ->assertSeeInOrder(['Bima Pratama', 'Balita', '1 hari'])
+            ->assertSee('Rata-rata di tempat');
+    }
+
+    public function test_ringkasan_mengikuti_filter_dan_menampilkan_keadaan_kosong(): void
+    {
+        $this->hadir($this->aisyah, '2026-11-02');
+        $this->hadir($this->bima, '2026-11-02');
+
+        Livewire::actingAs($this->admin)
+            ->test(RekapKehadiran::class)
+            ->set('dari', '2026-11-01')->set('sampai', '2026-11-30')
+            ->call('setTampilan', 'anak')
+            ->set('kelompok', (string) $this->balita->id)
+            ->assertSee('Bima Pratama')
+            ->assertDontSee('Aisyah Putri')
+            ->set('q', 'tidak ada')
+            ->assertSee('Tidak ada data kehadiran');
+    }
+
+    public function test_tampilan_tidak_dikenal_kembali_ke_per_catatan_dan_terbaca_dari_url(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(RekapKehadiran::class)
+            ->call('setTampilan', 'asal')
+            ->assertSet('tampilan', 'catatan');
+
+        $this->hadir($this->aisyah, today()->toDateString());
+        $this->actingAs($this->admin)
+            ->get(route('admin.kehadiran.rekap', ['tampilan' => 'anak']))
+            ->assertSee('Hari hadir')
+            ->assertSee('1 anak · 1 catatan kehadiran');
+    }
+
     public function test_pengasuh_orang_tua_dan_tamu_tidak_bisa_membuka_halaman(): void
     {
         $this->get(route('admin.kehadiran.rekap'))->assertRedirect();

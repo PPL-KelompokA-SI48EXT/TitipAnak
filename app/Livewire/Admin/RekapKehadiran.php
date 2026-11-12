@@ -4,9 +4,11 @@ namespace App\Livewire\Admin;
 
 use App\Models\Kehadiran;
 use App\Models\KelompokUsia;
+use App\Models\LogPenghapusanKehadiran;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -85,8 +87,40 @@ class RekapKehadiran extends Component
     {
         abort_unless(auth()->user()?->can('hapus data kehadiran'), 403);
 
-        // Penghapusan dan pencatatannya menyusul di commit berikutnya (PK4-118 logika hapus).
+        $this->validate(
+            ['alasan' => ['required', 'string', 'min:5', 'max:255']],
+            [],
+            ['alasan' => 'alasan penghapusan'],
+        );
+
+        $kehadiran = $this->hapusId ? Kehadiran::with('anak:id,nama_lengkap')->find($this->hapusId) : null;
+        if (! $kehadiran) {
+            $this->batalHapus();
+            session()->flash('sukses', 'Data kehadiran sudah tidak ada.');
+
+            return;
+        }
+
+        $nama = $kehadiran->anak?->nama_lengkap ?? 'anak';
+        $tanggal = $kehadiran->tanggal->format('d/m/Y');
+
+        // Hapus permanen dan catat jejaknya dalam satu transaksi: keduanya berhasil atau tidak sama sekali.
+        DB::transaction(function () use ($kehadiran) {
+            LogPenghapusanKehadiran::create([
+                'kehadiran_id' => $kehadiran->id,
+                'anak_id' => $kehadiran->anak_id,
+                'tanggal' => $kehadiran->tanggal,
+                'data' => $kehadiran->makeHidden('anak')->toArray(),
+                'alasan' => trim($this->alasan),
+                'dihapus_oleh_id' => auth()->id(),
+                'dihapus_pada' => now(),
+            ]);
+
+            $kehadiran->delete();
+        });
+
         $this->batalHapus();
+        session()->flash('sukses', "Data kehadiran {$nama} tanggal {$tanggal} berhasil dihapus.");
     }
 
     private function tanggal(string $nilai, CarbonInterface $bawaan): CarbonInterface

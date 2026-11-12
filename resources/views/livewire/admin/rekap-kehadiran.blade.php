@@ -9,6 +9,13 @@
         <p class="text-muted">Riwayat check-in dan check-out anak · {{ $fmt($awal) }} – {{ $fmt($akhir) }}</p>
     </div>
 
+    @if (session('sukses'))
+        <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
+            <span aria-hidden="true">✅</span>
+            <span><b>Berhasil.</b> {{ session('sukses') }}</span>
+        </div>
+    @endif
+
     {{-- Filter --}}
     <div class="flex flex-wrap items-end gap-3">
         <div class="grid gap-1">

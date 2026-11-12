@@ -43,7 +43,7 @@ return [
     [
         'group' => 'Pengasuh',
         'items' => [
-            ['label' => 'Jadwal Saya', 'icon' => '🗓️', 'route' => null, 'permission' => 'lihat jadwal sendiri'],
+            ['label' => 'Jadwal Saya', 'icon' => '🗓️', 'route' => 'pengasuh.jadwal-saya', 'permission' => 'lihat jadwal sendiri'],
             ['label' => 'Presensi', 'icon' => '✅', 'route' => null, 'permission' => 'presensi anak'],
             ['label' => 'Laporan Harian', 'icon' => '📒', 'route' => null, 'permission' => 'buat laporan harian'],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => null, 'permission' => 'buat laporan insiden'],

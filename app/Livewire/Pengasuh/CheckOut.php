@@ -4,6 +4,8 @@ namespace App\Livewire\Pengasuh;
 
 use App\Models\Anak;
 use App\Models\Kehadiran;
+use App\Models\PenjemputTerdaftar;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
@@ -35,9 +37,17 @@ class CheckOut extends Component
     protected function rules(): array
     {
         return [
-            'jam_pulang' => ['required'],
-            'penjemput' => ['required'],
-            'nama_penjemput' => ['nullable'],
+            'jam_pulang' => [
+                'required',
+                'date_format:H:i',
+                fn (string $attribute, mixed $value, \Closure $fail) => $value <= now()->format('H:i')
+                    ?: $fail('Jam pulang tidak boleh melewati jam sekarang.'),
+                fn (string $attribute, mixed $value, \Closure $fail) => $this->sebelumCheckIn($value)
+                    ? $fail('Jam pulang tidak boleh lebih awal dari jam datang.')
+                    : null,
+            ],
+            'penjemput' => ['required', 'string'],
+            'nama_penjemput' => [$this->penjemput === self::LAIN ? 'required' : 'nullable', 'string', 'max:100'],
         ];
     }
 
@@ -73,8 +83,65 @@ class CheckOut extends Component
     {
         abort_unless(auth()->user()?->can('presensi anak'), 403);
 
-        // Pencocokan penjemput dan penyimpanan menyusul di commit berikutnya (PK4-115 logika pencocokan).
-        $this->validate();
+        $data = $this->validate();
+
+        // Kehadiran harus masih milik anak di kelompok pengasuh dan belum check-out (cegah id dimanipulasi).
+        $kehadiran = $this->kehadiranId ? $this->kehadiranAktif()->with('anak')->whereKey($this->kehadiranId)->first() : null;
+        if (! $kehadiran) {
+            $this->batal();
+            session()->flash('galat', 'Data kehadiran tidak ditemukan atau anak sudah dicatat pulang.');
+
+            return;
+        }
+
+        $penjemput = $this->cocokkanPenjemput($kehadiran->anak, $data['penjemput'], $data['nama_penjemput'] ?? '');
+        if (! $penjemput) {
+            $this->addError('nama_penjemput', 'Nama penjemput tidak cocok dengan Penjemput Terdaftar anak ini.');
+
+            return;
+        }
+
+        $kehadiran->update([
+            'check_out_pada' => today()->setTimeFromTimeString($data['jam_pulang']),
+            'check_out_oleh_id' => auth()->id(),
+            'penjemput_terdaftar_id' => $penjemput->id,
+            'nama_penjemput' => $penjemput->nama_lengkap,
+        ]);
+
+        $nama = $kehadiran->anak->nama_lengkap;
+        $this->batal();
+        session()->flash('sukses', "Check-out {$nama} berhasil dicatat. Dijemput oleh {$penjemput->nama_lengkap}.");
+    }
+
+    /**
+     * Cocokkan penjemput dengan Penjemput Terdaftar aktif milik anak itu.
+     * Dipilih dari daftar: id harus milik anak. Penjemput lain: nama diketik dan harus sama persis (tanpa
+     * memperhatikan huruf besar-kecil dan spasi berlebih) dengan salah satu penjemput terdaftar.
+     */
+    private function cocokkanPenjemput(Anak $anak, string $pilihan, string $nama): ?PenjemputTerdaftar
+    {
+        $terdaftar = $anak->penjemputTerdaftar()->aktif();
+
+        if ($pilihan !== self::LAIN) {
+            return ctype_digit($pilihan) ? $terdaftar->whereKey((int) $pilihan)->first() : null;
+        }
+
+        $kunci = $this->normalisasi($nama);
+
+        return $terdaftar->get()->first(fn (PenjemputTerdaftar $p) => $this->normalisasi($p->nama_lengkap) === $kunci);
+    }
+
+    private function normalisasi(string $nama): string
+    {
+        return mb_strtolower(preg_replace('/\s+/', ' ', trim($nama)));
+    }
+
+    /** Apakah jam pulang (H:i) lebih awal dari jam check-in kehadiran yang sedang diisi. */
+    private function sebelumCheckIn(string $jam): bool
+    {
+        $masuk = $this->kehadiranId ? Kehadiran::query()->whereKey($this->kehadiranId)->value('check_in_pada') : null;
+
+        return $masuk !== null && $jam < Carbon::parse($masuk)->format('H:i');
     }
 
     /** Kehadiran hari ini milik anak di kelompok pengasuh yang belum check-out. */

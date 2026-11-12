@@ -143,13 +143,26 @@ class CheckOut extends Component
 
         $namaPenjemput = $izin?->nama_penjemput ?? $penjemput->nama_lengkap;
 
-        $kehadiran->update([
-            'check_out_pada' => today()->setTimeFromTimeString($data['jam_pulang']),
-            'check_out_oleh_id' => auth()->id(),
-            'penjemput_terdaftar_id' => $penjemput?->id,
-            'izin_penjemputan_id' => $izin?->id,
-            'nama_penjemput' => $namaPenjemput,
-        ]);
+        // Update bersyarat (belum check-out): bila pengasuh lain menyimpan lebih dulu di saat bersamaan,
+        // catatannya tidak ditimpa diam-diam.
+        $tersimpan = Kehadiran::query()
+            ->whereKey($kehadiran->id)
+            ->whereNull('check_out_pada')
+            ->update([
+                'check_out_pada' => today()->setTimeFromTimeString($data['jam_pulang']),
+                'check_out_oleh_id' => auth()->id(),
+                'penjemput_terdaftar_id' => $penjemput?->id,
+                'izin_penjemputan_id' => $izin?->id,
+                'nama_penjemput' => $namaPenjemput,
+                'updated_at' => now(),
+            ]);
+
+        if ($tersimpan === 0) {
+            $this->batal();
+            session()->flash('galat', 'Data kehadiran tidak ditemukan atau anak sudah dicatat pulang.');
+
+            return;
+        }
 
         $nama = $kehadiran->anak->nama_lengkap;
         $this->batal();

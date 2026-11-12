@@ -12,6 +12,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use Tests\Concerns\MembuatAnak;
 use Tests\TestCase;
@@ -154,6 +155,28 @@ class CheckOutSimpanTest extends TestCase
         $komponen->call('simpan')->assertSee('sudah dicatat pulang');
 
         $this->assertSame('15:00', $this->kehadiran->fresh()->check_out_pada->format('H:i'));
+    }
+
+    public function test_pengasuh_lain_menyimpan_lebih_dulu_di_saat_bersamaan_tidak_ditimpa(): void
+    {
+        $komponen = $this->form('15:45', (string) $this->ibu->id);
+
+        // Simulasi balapan: tepat sebelum UPDATE komponen ini dijalankan, pengasuh lain sudah check-out.
+        $sudah = false;
+        DB::beforeExecuting(function (string $query) use (&$sudah) {
+            if (! $sudah && str_starts_with($query, 'update "kehadiran"')) {
+                $sudah = true;
+                DB::table('kehadiran')->update(['check_out_pada' => today()->setTime(15, 10), 'nama_penjemput' => 'Penjemput pertama']);
+            }
+        });
+
+        $komponen->call('simpan')->assertSee('sudah dicatat pulang');
+        $this->assertTrue($sudah, 'UPDATE kehadiran seharusnya dijalankan komponen.');
+
+        $k = $this->kehadiran->fresh();
+        $this->assertSame('15:10', $k->check_out_pada->format('H:i'));
+        $this->assertSame('Penjemput pertama', $k->nama_penjemput);
+        $this->assertNull($k->penjemput_terdaftar_id);
     }
 
     public function test_pengguna_tanpa_izin_ditolak(): void

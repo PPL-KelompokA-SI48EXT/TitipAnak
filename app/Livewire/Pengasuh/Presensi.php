@@ -5,6 +5,7 @@ namespace App\Livewire\Pengasuh;
 use App\Models\Anak;
 use App\Models\Kehadiran;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -56,7 +57,7 @@ class Presensi extends Component
     public function mulaiCheckIn(int $anakId): void
     {
         $anak = $this->anakDiasuh()->whereKey($anakId)->first();
-        if (! $anak) {
+        if (! $anak || $this->sudahCheckIn($anak)) {
             return;
         }
 
@@ -94,16 +95,35 @@ class Presensi extends Component
             return;
         }
 
-        Kehadiran::create([
-            'anak_id' => $anak->id,
-            'tanggal' => today(),
-            'check_in_pada' => today()->setTimeFromTimeString($data['jam_datang']),
-            'kondisi_check_in' => trim($data['kondisi']),
-            'check_in_oleh_id' => auth()->id(),
-        ]);
+        // Satu anak hanya boleh check-in sekali per hari.
+        if ($this->sudahCheckIn($anak)) {
+            $this->batal();
+
+            return;
+        }
+
+        try {
+            Kehadiran::create([
+                'anak_id' => $anak->id,
+                'tanggal' => today(),
+                'check_in_pada' => today()->setTimeFromTimeString($data['jam_datang']),
+                'kondisi_check_in' => trim($data['kondisi']),
+                'check_in_oleh_id' => auth()->id(),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            // Pengasuh lain mencatat anak yang sama di saat bersamaan; unique(anak_id, tanggal) menjaga di level DB.
+            $this->batal();
+
+            return;
+        }
 
         $this->batal();
         session()->flash('sukses', "Check-in {$anak->nama_lengkap} berhasil dicatat.");
+    }
+
+    private function sudahCheckIn(Anak $anak): bool
+    {
+        return Kehadiran::query()->where('anak_id', $anak->id)->padaTanggal(today())->exists();
     }
 
     private function anakDiasuh()

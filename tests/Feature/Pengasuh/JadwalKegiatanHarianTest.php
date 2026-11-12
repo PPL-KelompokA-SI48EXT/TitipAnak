@@ -6,6 +6,7 @@ use App\Models\JadwalKegiatan;
 use App\Models\JadwalShift;
 use App\Models\KelompokUsia;
 use App\Models\User;
+use Carbon\Carbon;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,10 +27,19 @@ class JadwalKegiatanHarianTest extends TestCase
 
         $this->withoutVite();
         $this->seed(RolePermissionSeeder::class);
+        // Jam dibekukan agar penanda "sedang berlangsung" tidak bergantung pada kapan tes dijalankan.
+        Carbon::setTestNow(today()->setTime(10, 30));
 
         $this->siti = User::factory()->create()->assignRole('pengasuh');
         $this->batita = KelompokUsia::create(['nama' => 'Batita', 'usia_min_bulan' => 12, 'usia_maks_bulan' => 23, 'kapasitas' => 12]);
         $this->balita = KelompokUsia::create(['nama' => 'Balita', 'usia_min_bulan' => 36, 'usia_maks_bulan' => 47, 'kapasitas' => 15]);
+    }
+
+    protected function tearDown(): void
+    {
+        Carbon::setTestNow();
+
+        parent::tearDown();
     }
 
     private function shiftHariIni(KelompokUsia $k): void

@@ -49,7 +49,14 @@ class JadwalKegiatanUbah extends JadwalKegiatanBuat
             return;
         }
 
-        JadwalKegiatan::findOrFail($this->kegiatanId)->update([
+        $kegiatan = JadwalKegiatan::find($this->kegiatanId);
+        if (! $kegiatan) {
+            $this->kegiatanHilang();
+
+            return;
+        }
+
+        $kegiatan->update([
             'kelompok_usia_id' => $data['kelompok_usia_id'],
             'nama_kegiatan' => trim($data['nama_kegiatan']),
             'jenis_kegiatan' => $data['jenis_kegiatan'],
@@ -60,6 +67,13 @@ class JadwalKegiatanUbah extends JadwalKegiatanBuat
         ]);
 
         session()->flash('sukses', 'Jadwal kegiatan berhasil diubah.');
+        $this->redirectRoute('admin.jadwal-kegiatan.index');
+    }
+
+    /** Kegiatan dihapus admin lain saat form ini terbuka: kembali ke daftar dengan pesan, bukan halaman error. */
+    private function kegiatanHilang(): void
+    {
+        session()->flash('galat', 'Kegiatan ini sudah dihapus, perubahan tidak disimpan.');
         $this->redirectRoute('admin.jadwal-kegiatan.index');
     }
 

@@ -45,7 +45,14 @@ class JadwalShiftUbah extends JadwalShiftBuat
             return;
         }
 
-        JadwalShift::findOrFail($this->jadwalId)->update([
+        $jadwal = JadwalShift::find($this->jadwalId);
+        if (! $jadwal) {
+            $this->jadwalHilang();
+
+            return;
+        }
+
+        $jadwal->update([
             'pengasuh_id' => $data['pengasuh_id'],
             'kelompok_usia_id' => $data['kelompok_usia_id'],
             'hari' => $data['hari'],
@@ -57,9 +64,21 @@ class JadwalShiftUbah extends JadwalShiftBuat
         $this->redirectRoute('admin.jadwal-shift.index');
     }
 
+    /** Jadwal dihapus admin lain saat form ini terbuka: kembali ke daftar dengan pesan, bukan halaman error. */
+    private function jadwalHilang(): void
+    {
+        session()->flash('galat', 'Jadwal shift ini sudah dihapus, perubahan tidak disimpan.');
+        $this->redirectRoute('admin.jadwal-shift.index');
+    }
+
     public function render(): View
     {
-        $jadwal = JadwalShift::with('pengasuh:id,nama,aktif')->findOrFail($this->jadwalId);
+        $jadwal = JadwalShift::with('pengasuh:id,nama,aktif')->find($this->jadwalId);
+        if (! $jadwal) {
+            $this->jadwalHilang();
+
+            return view('livewire.kosong');
+        }
 
         return view('livewire.admin.jadwal-shift-ubah', [
             'pengasuh' => User::role('pengasuh')->where('aktif', true)->orderBy('nama')->get(['id', 'nama']),

@@ -36,6 +36,13 @@
                     @if (config('titipanak.dev_switcher'))
                         <x-dev.akun-switcher :current="$user" />
                     @endif
+
+                    <form method="POST" action="{{ route('logout') }}" class="border-t border-ink pt-2 mt-2">
+                        @csrf
+                        <button type="submit" class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3 py-2 text-sm font-semibold transition hover:bg-coral">
+                            Keluar
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -17,6 +17,13 @@
         </div>
     @endif
 
+    @if (session('galat'))
+        <div role="alert" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-coral px-4 py-3 text-sm">
+            <span aria-hidden="true">⚠️</span>
+            <span><b>Tidak bisa dicatat.</b> {{ session('galat') }}</span>
+        </div>
+    @endif
+
     {{-- Form check-in --}}
     @if ($terpilih)
         <form wire:submit="simpan" class="grid gap-5 rounded-ta border-[1.5px] border-ink bg-paper p-6" aria-labelledby="judul-checkin">

@@ -61,7 +61,41 @@ class CheckInGandaTest extends TestCase
         Livewire::actingAs($this->siti)
             ->test(Presensi::class)
             ->call('mulaiCheckIn', $anak->id)
-            ->assertSet('anakId', null);
+            ->assertSet('anakId', null)
+            ->assertSee('Aisyah Putri sudah check-in hari ini pukul 07:45.')
+            ->assertSee('Check-in tidak bisa dicatat dua kali.');
+    }
+
+    public function test_pesan_error_tampil_saat_simpan_ganda_dan_hilang_di_aksi_berikutnya(): void
+    {
+        $anak = $this->buatAnak('Bima Hadir', $this->batita);
+        $lain = $this->buatAnak('Citra Baru', $this->batita);
+
+        $komponen = Livewire::actingAs($this->siti)->test(Presensi::class)
+            ->call('mulaiCheckIn', $anak->id)
+            ->set('jam_datang', '07:45')
+            ->set('kondisi', 'Sehat');
+        $this->catat($anak, today()->toDateString(), '07:40');
+
+        $komponen->call('simpan')
+            ->assertSee('Tidak bisa dicatat.')
+            ->assertSee('Bima Hadir sudah check-in hari ini pukul 07:40.')
+            ->assertDontSee('berhasil dicatat');
+
+        $this->assertNotNull($lain);
+    }
+
+    public function test_tanpa_duplikasi_tidak_ada_pesan_error(): void
+    {
+        $anak = $this->buatAnak('Dimas Baru', $this->batita);
+
+        Livewire::actingAs($this->siti)->test(Presensi::class)
+            ->call('mulaiCheckIn', $anak->id)
+            ->set('jam_datang', '07:45')
+            ->set('kondisi', 'Sehat')
+            ->call('simpan')
+            ->assertDontSee('Tidak bisa dicatat.')
+            ->assertSee('Check-in Dimas Baru berhasil dicatat.');
     }
 
     public function test_simpan_kedua_pada_hari_yang_sama_tidak_membuat_baris_baru(): void

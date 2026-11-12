@@ -4,6 +4,7 @@ namespace App\Livewire\Pengasuh;
 
 use App\Models\Anak;
 use App\Models\Kehadiran;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Livewire\Attributes\Locked;
@@ -57,7 +58,13 @@ class Presensi extends Component
     public function mulaiCheckIn(int $anakId): void
     {
         $anak = $this->anakDiasuh()->whereKey($anakId)->first();
-        if (! $anak || $this->sudahCheckIn($anak)) {
+        if (! $anak) {
+            return;
+        }
+
+        if ($this->sudahCheckIn($anak)) {
+            $this->tolakCheckInGanda($anak);
+
             return;
         }
 
@@ -97,7 +104,7 @@ class Presensi extends Component
 
         // Satu anak hanya boleh check-in sekali per hari.
         if ($this->sudahCheckIn($anak)) {
-            $this->batal();
+            $this->tolakCheckInGanda($anak);
 
             return;
         }
@@ -112,13 +119,24 @@ class Presensi extends Component
             ]);
         } catch (UniqueConstraintViolationException) {
             // Pengasuh lain mencatat anak yang sama di saat bersamaan; unique(anak_id, tanggal) menjaga di level DB.
-            $this->batal();
+            $this->tolakCheckInGanda($anak);
 
             return;
         }
 
         $this->batal();
         session()->flash('sukses', "Check-in {$anak->nama_lengkap} berhasil dicatat.");
+    }
+
+    /** Tutup form dan beri tahu pengasuh bahwa anak itu sudah tercatat hari ini, lengkap dengan jam check-in-nya. */
+    private function tolakCheckInGanda(Anak $anak): void
+    {
+        $jam = Kehadiran::query()->where('anak_id', $anak->id)->padaTanggal(today())->value('check_in_pada');
+
+        $this->batal();
+        session()->flash('galat', $jam
+            ? "{$anak->nama_lengkap} sudah check-in hari ini pukul ".Carbon::parse($jam)->format('H:i').'. Check-in tidak bisa dicatat dua kali.'
+            : "{$anak->nama_lengkap} sudah check-in hari ini.");
     }
 
     private function sudahCheckIn(Anak $anak): bool

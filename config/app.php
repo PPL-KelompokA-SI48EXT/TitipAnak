@@ -61,11 +61,13 @@ return [
     |
     | Here you may specify the default timezone for your application, which
     | will be used by the PHP date and date-time functions. The timezone
-    | is set to "UTC" by default as it is suitable for most use cases.
+    | Aplikasi dipakai di Indonesia (WIB). Dengan UTC, "hari ini" baru berganti
+    | pukul 07.00 WIB dan jam default form presensi tampil mundur 7 jam.
+    | Bisa diganti lewat APP_TIMEZONE di .env.
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'Asia/Jakarta'),
 
     /*
     |--------------------------------------------------------------------------

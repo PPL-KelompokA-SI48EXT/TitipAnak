@@ -76,8 +76,8 @@ class KehadiranHariIniTest extends TestCase
         $this->actingAs($this->siti)
             ->get(route('pengasuh.kehadiran'))
             ->assertSee('Anak Kemarin')
-            ->assertSee('Belum datang')
-            ->assertDontSee('Sudah pulang');
+            ->assertSee('Belum datang · 1')
+            ->assertSee('Sudah pulang · 0');
     }
 
     public function test_keadaan_kosong_tanpa_shift(): void

@@ -41,6 +41,7 @@ return [
                 'label' => 'Jadwal Kegiatan', 'icon' => '🧸', 'permission' => 'kelola jadwal',
                 'children' => [
                     ['label' => 'Kelola Jadwal Kegiatan', 'route' => 'admin.jadwal-kegiatan.buat'],
+                    ['label' => 'Lihat Jadwal Kegiatan', 'route' => 'admin.jadwal-kegiatan.index'],
                 ],
             ],
             ['label' => 'Pengumuman', 'icon' => '📣', 'route' => null, 'permission' => 'kelola pengumuman'],

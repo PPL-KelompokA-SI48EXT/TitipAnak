@@ -5,6 +5,7 @@ use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Dashboard;
 use Illuminate\Support\Facades\Route;
+use App\Livewire\Admin\KelompokUsiaIndex;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
 Route::middleware(['web', 'auth'])->group(function () {
@@ -21,6 +22,9 @@ Route::middleware(['web', 'auth'])->group(function () {
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
+        Route::get('kelompok-usia', KelompokUsiaIndex::class)
+            ->name('kelompok-usia.index');
+
         Route::get('kelompok-usia/buat', KelompokUsiaBuat::class)
             ->name('kelompok-usia.buat');
     });

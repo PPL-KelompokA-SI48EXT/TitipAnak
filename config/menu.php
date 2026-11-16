@@ -32,6 +32,7 @@ return [
     'icon' => '🗂️',
     'permission' => 'kelola master data',
     'children' => [
+        ['label' => 'Lihat Kelompok Usia', 'route' => 'admin.kelompok-usia.index'],
         ['label' => 'Tambah Kelompok Usia', 'route' => 'admin.kelompok-usia.buat'],
     ],
 ],

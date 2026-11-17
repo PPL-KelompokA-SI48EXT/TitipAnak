@@ -53,6 +53,7 @@ return [
             ['label' => 'Laporan Harian', 'icon' => '📒', 'route' => null, 'permission' => 'buat laporan harian'],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => null, 'permission' => 'buat laporan insiden'],
             ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => null, 'permission' => 'buat penilaian bulanan'],
+            ['label' => 'Penjemput Terdaftar', 'icon' => '🚸', 'route' => 'pengasuh.penjemput.index', 'permission' => 'validasi izin penjemputan'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'validasi izin penjemputan'],
         ],
     ],

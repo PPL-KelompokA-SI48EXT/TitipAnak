@@ -20,14 +20,14 @@
     @else
         <section class="rounded-ta border-[1.5px] border-ink bg-cream p-5 sm:p-6" aria-labelledby="form-penjemput-heading">
             <div class="mb-5">
-                <h2 id="form-penjemput-heading" class="text-xl font-bold text-ink">Tambah penjemput</h2>
+                <h2 id="form-penjemput-heading" class="text-xl font-bold text-ink">{{ $edit_id ? 'Ubah penjemput' : 'Tambah penjemput' }}</h2>
                 <p class="mt-1 text-sm text-muted">Data penjemput berlaku untuk anak yang dipilih.</p>
             </div>
 
-            <form wire:submit="simpan" class="grid gap-5">
+            <form wire:submit="{{ $edit_id ? 'perbarui' : 'simpan' }}" class="grid gap-5">
                 <div class="grid gap-1.5">
                     <label for="anak_id" class="text-sm font-semibold text-ink">Anak</label>
-                    <select id="anak_id" wire:model="anak_id" class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-ink focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow">
+                    <select id="anak_id" wire:model="anak_id" @disabled($edit_id) class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-ink focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow">
                         <option value="">Pilih anak</option>
                         @foreach ($anak as $item)
                             <option value="{{ $item->id }}">{{ $item->nama_lengkap }}</option>
@@ -58,18 +58,21 @@
                     </div>
 
                     <div class="grid gap-1.5">
-                        <label for="foto_identitas" class="text-sm font-semibold text-ink">Foto identitas</label>
+                        <label for="foto_identitas" class="text-sm font-semibold text-ink">{{ $edit_id ? 'Foto identitas baru (opsional)' : 'Foto identitas' }}</label>
                         <input id="foto_identitas" type="file" wire:model="foto_identitas" accept=".jpg,.jpeg,.png,image/jpeg,image/png" class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm text-ink file:mr-3 file:rounded file:border-0 file:bg-yellow file:px-3 file:py-1.5 file:font-semibold">
-                        <span class="text-xs text-muted">JPG atau PNG, maksimal 2 MB.</span>
+                        <span class="text-xs text-muted">{{ $edit_id ? 'Kosongkan untuk mempertahankan foto lama.' : 'JPG atau PNG, maksimal 2 MB.' }}</span>
                         @error('foto_identitas') <span class="text-xs font-semibold text-[#B02E12]">{{ $message }}</span> @enderror
                     </div>
                 </div>
 
-                <div>
-                    <button type="submit" wire:loading.attr="disabled" wire:target="simpan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
-                        <span wire:loading.remove wire:target="simpan">Simpan penjemput</span>
-                        <span wire:loading wire:target="simpan">Menyimpan…</span>
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" wire:loading.attr="disabled" wire:target="simpan,perbarui" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                        <span wire:loading.remove wire:target="simpan,perbarui">{{ $edit_id ? 'Simpan perubahan' : 'Simpan penjemput' }}</span>
+                        <span wire:loading wire:target="simpan,perbarui">Menyimpan…</span>
                     </button>
+                    @if ($edit_id)
+                        <button type="button" wire:click="batalEdit" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0">Batal</button>
+                    @endif
                 </div>
             </form>
         </section>
@@ -98,6 +101,7 @@
                                 <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Hubungan</th>
                                 <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Kontak</th>
                                 <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Identitas</th>
+                                <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -108,6 +112,9 @@
                                     <td class="px-4 py-3 text-muted">{{ $item->hubungan }}</td>
                                     <td class="px-4 py-3 text-muted">{{ $item->no_hp }}</td>
                                     <td class="px-4 py-3 font-semibold text-ink">Tersimpan</td>
+                                    <td class="px-4 py-3">
+                                        <button type="button" wire:click="edit({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0">Ubah</button>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

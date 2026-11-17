@@ -73,6 +73,95 @@ class PenjemputIndexTest extends TestCase
         ];
     }
 
+    private function buatPenjemput(User $orangTua, string $nama = 'Budi Lama', string $path = 'penjemput-identitas/lama.png'): int
+    {
+        $anakId = $this->buatAnak($orangTua, 'Anak Penjemput');
+
+        return DB::table('penjemput_terdaftar')->insertGetId([
+            'anak_id' => $anakId,
+            'nama_lengkap' => $nama,
+            'hubungan' => 'Kakek',
+            'no_hp' => '081234567890',
+            'path_foto_identitas' => $path,
+            'aktif' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_orang_tua_dapat_membuka_mode_ubah_penjemput_miliknya(): void
+    {
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('edit', $penjemputId)
+            ->assertSet('edit_id', (string) $penjemputId)
+            ->assertSet('nama_lengkap', 'Budi Lama')
+            ->assertSet('hubungan', 'Kakek')
+            ->assertSet('no_hp', '081234567890')
+            ->assertSet('foto_identitas', null);
+    }
+
+    public function test_orang_tua_dapat_mengubah_data_tanpa_mengganti_foto_lama(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('penjemput-identitas/lama.png', 'foto lama');
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('edit', $penjemputId)
+            ->set([
+                'nama_lengkap' => 'Budi Baru',
+                'hubungan' => 'Paman',
+                'no_hp' => '089876543210',
+            ])
+            ->call('perbarui')
+            ->assertHasNoErrors()
+            ->assertSee('Penjemput berhasil diperbarui.');
+
+        $this->assertDatabaseHas('penjemput_terdaftar', [
+            'id' => $penjemputId,
+            'nama_lengkap' => 'Budi Baru',
+            'hubungan' => 'Paman',
+            'no_hp' => '089876543210',
+            'path_foto_identitas' => 'penjemput-identitas/lama.png',
+        ]);
+        Storage::disk('local')->assertExists('penjemput-identitas/lama.png');
+    }
+
+    public function test_orang_tua_dapat_mengganti_foto_identitas(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('penjemput-identitas/lama.png', 'foto lama');
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+        $fotoBaru = UploadedFile::fake()->image('ktp-baru.png');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('edit', $penjemputId)
+            ->set('foto_identitas', $fotoBaru)
+            ->call('perbarui')
+            ->assertHasNoErrors();
+
+        $pathBaru = DB::table('penjemput_terdaftar')->whereKey($penjemputId)->value('path_foto_identitas');
+
+        $this->assertNotSame('penjemput-identitas/lama.png', $pathBaru);
+        Storage::disk('local')->assertMissing('penjemput-identitas/lama.png');
+        Storage::disk('local')->assertExists($pathBaru);
+    }
+
+    public function test_orang_tua_tidak_dapat_mengubah_penjemput_milik_orang_tua_lain(): void
+    {
+        $penjemputId = $this->buatPenjemput($this->orangTuaLain);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('edit', $penjemputId)
+            ->assertStatus(404);
+    }
+
     public function test_orang_tua_dapat_membuka_halaman_penjemput(): void
     {
         $anakId = $this->buatAnak($this->orangTua);

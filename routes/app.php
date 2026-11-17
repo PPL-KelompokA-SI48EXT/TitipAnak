@@ -2,6 +2,7 @@
 
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
+use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Dashboard;
@@ -18,6 +19,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->group(function () {
             Route::get('jadwal-shift', JadwalShiftIndex::class)->name('jadwal-shift.index');
             Route::get('jadwal-shift/buat', JadwalShiftBuat::class)->name('jadwal-shift.buat');
+            Route::get('jadwal-shift/{jadwal}/ubah', JadwalShiftUbah::class)->name('jadwal-shift.ubah');
         });
 
     Route::middleware('permission:kelola master data')

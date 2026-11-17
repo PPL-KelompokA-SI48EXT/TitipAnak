@@ -22,6 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-/tests
 /.superpowers
 /.claude
+
+php-custom.ini

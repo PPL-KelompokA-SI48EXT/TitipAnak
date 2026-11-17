@@ -100,6 +100,25 @@ class TagihanIndex extends Component
                 ])
                 ->orderBy('p.id')
                 ->get(),
+            'tagihan' => DB::table('tagihan as t')
+                ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
+                ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
+                ->join('paket_layanan as pl', 'pl.id', '=', 'p.paket_layanan_id')
+                ->whereNull('t.deleted_at')
+                ->select([
+                    't.id',
+                    't.nomor_tagihan',
+                    't.jumlah',
+                    't.status',
+                    't.diterbitkan_pada',
+                    't.jatuh_tempo',
+                    'p.id as pendaftaran_id',
+                    'u.nama as nama_orang_tua',
+                    'pl.nama as nama_paket',
+                ])
+                ->orderByDesc('t.diterbitkan_pada')
+                ->orderByDesc('t.id')
+                ->get(),
         ]);
     }
 }

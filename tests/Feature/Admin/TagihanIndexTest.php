@@ -65,6 +65,71 @@ class TagihanIndexTest extends TestCase
             ->assertDontSee('Pendaftaran #'.$menunggu);
     }
 
+    public function test_admin_dapat_melihat_daftar_tagihan_dengan_statusnya(): void
+    {
+        $belumLunas = $this->buatPendaftaran('disetujui', 1500000);
+        $lunas = $this->buatPendaftaran('disetujui', 2750000);
+
+        DB::table('tagihan')->insert([
+            [
+                'pendaftaran_id' => $belumLunas,
+                'nomor_tagihan' => 'TGH-'.now()->format('Ym').'-0001',
+                'jumlah' => 1500000,
+                'status' => 'belum_lunas',
+                'diterbitkan_pada' => now()->subDay(),
+                'jatuh_tempo' => today()->addDays(9),
+                'lunas_pada' => null,
+                'created_at' => now()->subDay(),
+                'updated_at' => now()->subDay(),
+            ],
+            [
+                'pendaftaran_id' => $lunas,
+                'nomor_tagihan' => 'TGH-'.now()->format('Ym').'-0002',
+                'jumlah' => 2750000,
+                'status' => 'lunas',
+                'diterbitkan_pada' => now()->subDays(3),
+                'jatuh_tempo' => today()->addDays(7),
+                'lunas_pada' => now()->subDay(),
+                'created_at' => now()->subDays(3),
+                'updated_at' => now()->subDay(),
+            ],
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.tagihan.index'))
+            ->assertOk()
+            ->assertSee('Daftar Tagihan')
+            ->assertSee('TGH-'.now()->format('Ym').'-0001')
+            ->assertSee('TGH-'.now()->format('Ym').'-0002')
+            ->assertSee('Belum Lunas')
+            ->assertSee('Lunas')
+            ->assertSee('Rp 1.500.000,00')
+            ->assertSee('Rp 2.750.000,00');
+    }
+
+    public function test_tagihan_soft_deleted_tidak_tampil_di_daftar(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+
+        DB::table('tagihan')->insert([
+            'pendaftaran_id' => $pendaftaranId,
+            'nomor_tagihan' => 'TGH-'.now()->format('Ym').'-9999',
+            'jumlah' => 1500000,
+            'status' => 'belum_lunas',
+            'diterbitkan_pada' => now(),
+            'jatuh_tempo' => today()->addDays(10),
+            'deleted_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->actingAs($this->admin)
+            ->get(route('admin.tagihan.index'))
+            ->assertOk()
+            ->assertSee('Daftar Tagihan')
+            ->assertDontSee('TGH-'.now()->format('Ym').'-9999');
+    }
+
     public function test_admin_dapat_menerbitkan_tagihan_sesuai_tarif_paket(): void
     {
         $pendaftaranId = $this->buatPendaftaran('disetujui', 2750000);

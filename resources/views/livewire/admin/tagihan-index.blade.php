@@ -56,6 +56,56 @@
         @endif
     </section>
 
+    <section aria-labelledby="daftar-tagihan-heading">
+        <div class="mb-4 flex items-end justify-between gap-4">
+            <div>
+                <h2 id="daftar-tagihan-heading" class="text-xl font-bold text-ink">Daftar Tagihan</h2>
+                <p class="mt-1 text-sm text-muted">Pantau jumlah dan status tagihan yang sudah diterbitkan.</p>
+            </div>
+            <span class="inline-flex rounded-full border border-ink bg-yellow px-3 py-1 text-xs font-semibold text-ink">{{ $tagihan->count() }} tagihan</span>
+        </div>
+
+        @if ($tagihan->isEmpty())
+            <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center text-muted">
+                Belum ada tagihan yang diterbitkan.
+            </div>
+        @else
+            <div class="overflow-x-auto rounded-ta border-[1.5px] border-ink bg-paper">
+                <table class="w-full border-collapse text-sm">
+                    <caption class="sr-only">Daftar tagihan beserta statusnya</caption>
+                    <thead>
+                        <tr class="bg-yellow text-left text-ink">
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Nomor tagihan</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Orang tua</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Paket</th>
+                            <th scope="col" class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-semibold">Jumlah</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Diterbitkan</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Jatuh tempo</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($tagihan as $item)
+                            <tr wire:key="tagihan-{{ $item->id }}" class="border-b border-ink last:border-b-0 even:bg-cream">
+                                <td class="px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
+                                <td class="px-4 py-3 text-ink">{{ $item->nama_orang_tua }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $item->nama_paket }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah, 2, ',', '.') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diterbitkan_pada)->format('d/m/Y') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-muted">{{ $item->jatuh_tempo ? \Carbon\Carbon::parse($item->jatuh_tempo)->format('d/m/Y') : '—' }}</td>
+                                <td class="px-4 py-3">
+                                    <span class="inline-flex rounded-full border border-ink px-3 py-1 text-xs font-semibold text-ink {{ $item->status === 'lunas' ? 'bg-mint' : 'bg-coral' }}">
+                                        {{ $item->status === 'lunas' ? 'Lunas' : 'Belum Lunas' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </section>
+
     @if ($penerbitanId !== null)
         <div
             x-data="{

@@ -34,7 +34,7 @@ return [
                 ],
             ],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
-            ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => null, 'permission' => 'verifikasi pembayaran'],
+            ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => 'admin.tagihan.index', 'permission' => 'kelola tagihan'],
             [
                 'label' => 'Jadwal Shift', 'icon' => '🗓️', 'permission' => 'kelola jadwal',
                 'children' => [

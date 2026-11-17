@@ -62,6 +62,7 @@ class AppShellTest extends TestCase
             ->assertSee('Jadwal Shift')
             ->assertSee('Akun Pengguna')
             ->assertSee('Paket Layanan')
+            ->assertSee('Tagihan & Pembayaran')
             ->assertDontSee('Presensi')
             ->assertDontSee('Laporan Anak');
     }

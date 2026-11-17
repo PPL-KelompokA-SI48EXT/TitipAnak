@@ -52,6 +52,93 @@ class TagihanIndexTest extends TestCase
         ]);
     }
 
+    private function buatTagihan(int $pendaftaranId, int $jumlah = 1500000, string $status = 'belum_lunas'): int
+    {
+        return DB::table('tagihan')->insertGetId([
+            'pendaftaran_id' => $pendaftaranId,
+            'nomor_tagihan' => 'TGH-'.now()->format('Ym').'-'.fake()->unique()->numberBetween(1000, 9999),
+            'jumlah' => $jumlah,
+            'status' => $status,
+            'diterbitkan_pada' => now(),
+            'jatuh_tempo' => today()->addDays(10),
+            'lunas_pada' => $status === 'lunas' ? now() : null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_admin_dapat_mengubah_nominal_tagihan_belum_lunas(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('mulaiEditTagihan', $tagihanId)
+            ->assertSet('editingTagihanId', $tagihanId)
+            ->assertSet('editJumlah', '1500000.00')
+            ->assertSee('Ubah nominal tagihan')
+            ->set('editJumlah', '1750000')
+            ->call('simpanEditTagihan')
+            ->assertHasNoErrors()
+            ->assertSee('Nominal tagihan berhasil diperbarui.');
+
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'jumlah' => '1750000.00',
+            'status' => 'belum_lunas',
+        ]);
+    }
+
+    public function test_admin_dapat_membatalkan_edit_nominal(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('mulaiEditTagihan', $tagihanId)
+            ->set('editJumlah', '1750000')
+            ->call('batalEditTagihan')
+            ->assertSet('editingTagihanId', null)
+            ->assertSet('editJumlah', '')
+            ->assertSee('Daftar Tagihan');
+
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'jumlah' => '1500000.00',
+        ]);
+    }
+
+    public function test_nominal_tagihan_harus_valid(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('mulaiEditTagihan', $tagihanId)
+            ->set('editJumlah', '0')
+            ->call('simpanEditTagihan')
+            ->assertHasErrors(['editJumlah']);
+
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'jumlah' => '1500000.00',
+        ]);
+    }
+
+    public function test_tagihan_lunas_tidak_dapat_diubah_nominalnya(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'lunas');
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('mulaiEditTagihan', $tagihanId)
+            ->assertStatus(404);
+    }
+
     public function test_admin_dapat_melihat_pendaftaran_yang_disetujui(): void
     {
         $disetujui = $this->buatPendaftaran();

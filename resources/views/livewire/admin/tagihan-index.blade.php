@@ -82,6 +82,7 @@
                             <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Diterbitkan</th>
                             <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Jatuh tempo</th>
                             <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Status</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,6 +99,13 @@
                                         {{ $item->status === 'lunas' ? 'Lunas' : 'Belum Lunas' }}
                                     </span>
                                 </td>
+                                <td class="px-4 py-3">
+                                    @if ($item->status === 'belum_lunas')
+                                        <button id="ubah-tagihan-{{ $item->id }}" type="button" wire:click="mulaiEditTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="mulaiEditTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah nominal</button>
+                                    @else
+                                        <span class="text-xs text-muted">Tidak dapat diubah</span>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -105,6 +113,73 @@
             </div>
         @endif
     </section>
+
+    @if ($editingTagihanId !== null)
+        <div
+            x-data="{
+                triggerId: 'ubah-tagihan-{{ $editingTagihanId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                    document.getElementById(this.triggerId) || document.querySelector('h1')?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="ubah-tagihan-dialog-{{ $editingTagihanId }}"
+            wire:keydown.escape="batalEditTagihan">
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="ubah-tagihan-heading"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                <form wire:submit="simpanEditTagihan" class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="ubah-tagihan-heading" class="text-xl font-bold">Ubah nominal tagihan</h2>
+                        <p class="mt-2 text-sm text-muted">Perbarui nominal tagihan yang belum lunas jika terdapat kesalahan.</p>
+                    </div>
+                    <div class="grid gap-1.5">
+                        <label for="editJumlah" class="text-sm font-semibold text-ink">Nominal tagihan</label>
+                        <input id="editJumlah" type="number" wire:model="editJumlah" min="1" max="9999999999.99" step="0.01" class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-ink focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow" inputmode="decimal">
+                        @error('editJumlah') <span class="text-xs font-semibold text-[#B02E12]">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalEditTagihan" wire:loading.attr="disabled" wire:target="batalEditTagihan,simpanEditTagihan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="simpanEditTagihan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="simpanEditTagihan">Simpan perubahan</span>
+                            <span wire:loading wire:target="simpanEditTagihan">Menyimpan…</span>
+                        </button>
+                    </div>
+                </form>
+            </dialog>
+        </div>
+    @endif
 
     @if ($penerbitanId !== null)
         <div

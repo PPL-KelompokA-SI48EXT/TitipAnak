@@ -15,6 +15,59 @@ class TagihanIndex extends Component
 
     public string $penerbitanNama = '';
 
+    public ?int $editingTagihanId = null;
+
+    public string $editJumlah = '';
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function editRules(): array
+    {
+        return [
+            'editJumlah' => ['required', 'numeric', 'decimal:0,2', 'min:1', 'max:9999999999.99'],
+        ];
+    }
+
+    public function mulaiEditTagihan(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+
+        $tagihan = $this->tagihanBelumLunas($id);
+
+        $this->editingTagihanId = $tagihan->id;
+        $this->editJumlah = number_format((float) $tagihan->jumlah, 2, '.', '');
+    }
+
+    public function batalEditTagihan(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+
+        $this->reset('editingTagihanId', 'editJumlah');
+        $this->resetValidation('editJumlah');
+    }
+
+    public function simpanEditTagihan(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+        abort_if($this->editingTagihanId === null, 404);
+
+        $data = $this->validate($this->editRules());
+        $tagihan = $this->tagihanBelumLunas($this->editingTagihanId);
+        $tagihan->update(['jumlah' => $data['editJumlah']]);
+
+        $this->batalEditTagihan();
+        session()->flash('sukses', 'Nominal tagihan berhasil diperbarui.');
+    }
+
+    protected function tagihanBelumLunas(int $id): Tagihan
+    {
+        return Tagihan::query()
+            ->whereKey($id)
+            ->where('status', 'belum_lunas')
+            ->firstOrFail();
+    }
+
     public function bukaKonfirmasiPenerbitan(int $id): void
     {
         abort_unless(auth()->user()?->can('kelola tagihan'), 403);

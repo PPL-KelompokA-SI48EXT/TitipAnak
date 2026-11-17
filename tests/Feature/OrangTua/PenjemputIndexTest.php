@@ -7,9 +7,9 @@ use App\Models\PaketLayanan;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -142,7 +142,7 @@ class PenjemputIndexTest extends TestCase
             ->set($this->dataForm($anakId, ['foto_identitas' => $foto]))
             ->call('simpan')
             ->assertHasNoErrors()
-            ->assertSessionHas('sukses', 'Penjemput berhasil ditambahkan.');
+            ->assertSee('Penjemput berhasil ditambahkan.');
 
         $penjemput = DB::table('penjemput_terdaftar')->first();
 
@@ -185,6 +185,19 @@ class PenjemputIndexTest extends TestCase
             ]))
             ->call('simpan')
             ->assertHasErrors(['foto_identitas']);
+    }
+
+    public function test_hubungan_maksimal_50_karakter(): void
+    {
+        $anakId = $this->buatAnak($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->set($this->dataForm($anakId, ['hubungan' => str_repeat('A', 51)]))
+            ->call('simpan')
+            ->assertHasErrors(['hubungan']);
+
+        $this->assertDatabaseCount('penjemput_terdaftar', 0);
     }
 
     public function test_anak_milik_orang_tua_lain_ditolak(): void

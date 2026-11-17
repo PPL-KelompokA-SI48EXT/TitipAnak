@@ -20,6 +20,10 @@ class PenjemputIndex extends Component
 
     public string $edit_id = '';
 
+    public ?int $deletingId = null;
+
+    public string $deletingName = '';
+
     public string $nama_lengkap = '';
 
     public string $hubungan = '';
@@ -102,6 +106,35 @@ class PenjemputIndex extends Component
     public function batalEdit(): void
     {
         $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas');
+    }
+
+    public function bukaKonfirmasiHapus(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola penjemput'), 403);
+
+        $penjemput = $this->penjemputMilikUser($id);
+
+        $this->deletingId = $penjemput->id;
+        $this->deletingName = $penjemput->nama_lengkap;
+    }
+
+    public function batalHapus(): void
+    {
+        abort_unless(auth()->user()?->can('kelola penjemput'), 403);
+
+        $this->reset('deletingId', 'deletingName');
+    }
+
+    public function hapus(): void
+    {
+        abort_unless(auth()->user()?->can('kelola penjemput'), 403);
+        abort_if($this->deletingId === null, 404);
+
+        $penjemput = $this->penjemputMilikUser($this->deletingId);
+        $penjemput->update(['aktif' => false]);
+
+        $this->reset('deletingId', 'deletingName');
+        session()->flash('sukses', 'Penjemput berhasil dinonaktifkan.');
     }
 
     protected function penjemputMilikUser(int $id): PenjemputTerdaftar

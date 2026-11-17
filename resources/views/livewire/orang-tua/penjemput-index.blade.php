@@ -113,7 +113,10 @@
                                     <td class="px-4 py-3 text-muted">{{ $item->no_hp }}</td>
                                     <td class="px-4 py-3 font-semibold text-ink">Tersimpan</td>
                                     <td class="px-4 py-3">
-                                        <button type="button" wire:click="edit({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0">Ubah</button>
+                                        <div class="flex flex-nowrap gap-2">
+                                            <button type="button" wire:click="edit({{ $item->id }})" wire:loading.attr="disabled" wire:target="edit({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah</button>
+                                            <button id="hapus-penjemput-{{ $item->id }}" type="button" wire:click="bukaKonfirmasiHapus({{ $item->id }})" wire:loading.attr="disabled" wire:target="bukaKonfirmasiHapus({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Hapus</button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -122,5 +125,68 @@
                 </div>
             @endif
         </section>
+    @endif
+
+    @if ($deletingId !== null)
+        <div
+            x-data="{
+                triggerId: 'hapus-penjemput-{{ $deletingId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                    document.getElementById(this.triggerId) || document.querySelector('h1')?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="hapus-penjemput-dialog-{{ $deletingId }}"
+            wire:keydown.escape="batalHapus">
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="hapus-penjemput-heading"
+                aria-describedby="hapus-penjemput-description"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                <div class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="hapus-penjemput-heading" class="text-xl font-bold">Nonaktifkan penjemput?</h2>
+                        <p id="hapus-penjemput-description" class="mt-2 text-sm text-muted">Penjemput <strong>{{ $deletingName }}</strong> tidak akan dapat menjemput anak lagi. Data dan foto identitas tetap disimpan. Tekan Escape untuk membatalkan.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalHapus" wire:loading.attr="disabled" wire:target="batalHapus,hapus" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="button" wire:click="hapus" wire:loading.attr="disabled" wire:target="hapus" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="hapus">Ya, nonaktifkan</span>
+                            <span wire:loading wire:target="hapus">Menonaktifkan…</span>
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+        </div>
     @endif
 </div>

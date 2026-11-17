@@ -89,6 +89,89 @@ class PenjemputIndexTest extends TestCase
         ]);
     }
 
+    public function test_orang_tua_dapat_menonaktifkan_penjemput_miliknya(): void
+    {
+        Storage::fake('local');
+        Storage::disk('local')->put('penjemput-identitas/lama.png', 'foto lama');
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('bukaKonfirmasiHapus', $penjemputId)
+            ->assertSet('deletingId', $penjemputId)
+            ->assertSet('deletingName', 'Budi Lama')
+            ->assertSee('Nonaktifkan penjemput?')
+            ->call('hapus')
+            ->assertHasNoErrors()
+            ->assertSee('Penjemput berhasil dinonaktifkan.')
+            ->assertDontSee('Budi Lama');
+
+        $this->assertDatabaseHas('penjemput_terdaftar', [
+            'id' => $penjemputId,
+            'aktif' => false,
+            'path_foto_identitas' => 'penjemput-identitas/lama.png',
+        ]);
+        Storage::disk('local')->assertExists('penjemput-identitas/lama.png');
+    }
+
+    public function test_orang_tua_dapat_membatalkan_hapus_penjemput(): void
+    {
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('bukaKonfirmasiHapus', $penjemputId)
+            ->call('batalHapus')
+            ->assertSet('deletingId', null)
+            ->assertSet('deletingName', '')
+            ->assertSee('Budi Lama');
+
+        $this->assertDatabaseHas('penjemput_terdaftar', [
+            'id' => $penjemputId,
+            'aktif' => true,
+        ]);
+    }
+
+    public function test_orang_tua_tidak_dapat_menonaktifkan_penjemput_milik_orang_tua_lain(): void
+    {
+        $penjemputId = $this->buatPenjemput($this->orangTuaLain);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->call('bukaKonfirmasiHapus', $penjemputId)
+            ->assertStatus(404);
+    }
+
+    public function test_pengguna_tanpa_permission_tidak_dapat_menonaktifkan_penjemput(): void
+    {
+        $penjemputId = $this->buatPenjemput($this->orangTua);
+
+        Livewire::actingAs($this->pengasuh)
+            ->test(PenjemputIndex::class)
+            ->call('bukaKonfirmasiHapus', $penjemputId)
+            ->assertForbidden();
+
+        Livewire::actingAs($this->pengasuh)
+            ->test(PenjemputIndex::class)
+            ->set('deletingId', $penjemputId)
+            ->call('hapus')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('penjemput_terdaftar', [
+            'id' => $penjemputId,
+            'aktif' => true,
+        ]);
+    }
+
+    public function test_id_penjemput_yang_hilang_menghasilkan_404(): void
+    {
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->set('deletingId', 999999)
+            ->call('hapus')
+            ->assertStatus(404);
+    }
+
     public function test_orang_tua_dapat_membuka_mode_ubah_penjemput_miliknya(): void
     {
         $penjemputId = $this->buatPenjemput($this->orangTua);

@@ -67,6 +67,81 @@ class TagihanIndexTest extends TestCase
         ]);
     }
 
+    private function buatPembayaran(int $tagihanId): void
+    {
+        DB::table('pembayaran')->insert([
+            'tagihan_id' => $tagihanId,
+            'diajukan_oleh_id' => $this->orangTua->id,
+            'path_bukti' => 'pembayaran/bukti.png',
+            'jumlah' => 1500000,
+            'status' => 'menunggu',
+            'diajukan_pada' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_admin_dapat_menghapus_soft_delete_tagihan_belum_lunas_tanpa_pembayaran(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+        $nomorTagihan = DB::table('tagihan')->where('id', $tagihanId)->value('nomor_tagihan');
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusTagihan', $tagihanId)
+            ->assertSet('deletingTagihanId', $tagihanId)
+            ->assertSee('Hapus tagihan?')
+            ->call('hapusTagihan')
+            ->assertHasNoErrors()
+            ->assertSee('Tagihan berhasil dihapus.');
+
+        $this->assertNotNull(DB::table('tagihan')->where('id', $tagihanId)->value('deleted_at'));
+        $this->assertStringNotContainsString($nomorTagihan, (string) Livewire::actingAs($this->admin)->test(TagihanIndex::class)->html());
+    }
+
+    public function test_admin_dapat_membatalkan_hapus_tagihan(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusTagihan', $tagihanId)
+            ->call('batalHapusTagihan')
+            ->assertSet('deletingTagihanId', null)
+            ->assertSet('deletingTagihanNomor', '')
+            ->assertSee('Daftar Tagihan');
+
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'deleted_at' => null,
+        ]);
+    }
+
+    public function test_tagihan_lunas_tidak_dapat_dihapus(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'lunas');
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusTagihan', $tagihanId)
+            ->assertStatus(404);
+    }
+
+    public function test_tagihan_yang_memiliki_pembayaran_tidak_dapat_dihapus(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran();
+        $tagihanId = $this->buatTagihan($pendaftaranId);
+        $this->buatPembayaran($tagihanId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusTagihan', $tagihanId)
+            ->assertStatus(404);
+    }
+
     public function test_admin_dapat_mengubah_nominal_tagihan_belum_lunas(): void
     {
         $pendaftaranId = $this->buatPendaftaran();

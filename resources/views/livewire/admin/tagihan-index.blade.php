@@ -100,11 +100,19 @@
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if ($item->status === 'belum_lunas')
-                                        <button id="ubah-tagihan-{{ $item->id }}" type="button" wire:click="mulaiEditTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="mulaiEditTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah nominal</button>
-                                    @else
-                                        <span class="text-xs text-muted">Tidak dapat diubah</span>
-                                    @endif
+                                    <div class="flex flex-wrap gap-2">
+                                        @if ($item->status === 'belum_lunas')
+                                            <button id="ubah-tagihan-{{ $item->id }}" type="button" wire:click="mulaiEditTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="mulaiEditTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah nominal</button>
+
+                                            @if ((int) $item->jumlah_pembayaran === 0)
+                                                <button id="hapus-tagihan-{{ $item->id }}" type="button" wire:click="bukaKonfirmasiHapusTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="bukaKonfirmasiHapusTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Hapus</button>
+                                            @else
+                                                <span class="self-center text-xs text-muted">Memiliki pembayaran</span>
+                                            @endif
+                                        @else
+                                            <span class="self-center text-xs text-muted">Tidak dapat dihapus</span>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -113,6 +121,69 @@
             </div>
         @endif
     </section>
+
+    @if ($deletingTagihanId !== null)
+        <div
+            x-data="{
+                triggerId: 'hapus-tagihan-{{ $deletingTagihanId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                    document.getElementById(this.triggerId) || document.querySelector('h1')?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="hapus-tagihan-dialog-{{ $deletingTagihanId }}"
+            wire:keydown.escape="batalHapusTagihan">
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="hapus-tagihan-heading"
+                aria-describedby="hapus-tagihan-description"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                <div class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="hapus-tagihan-heading" class="text-xl font-bold">Hapus tagihan?</h2>
+                        <p id="hapus-tagihan-description" class="mt-2 text-sm text-muted">Tagihan <strong>{{ $deletingTagihanNomor }}</strong> akan dihapus dari daftar aktif. Data tetap disimpan sebagai riwayat. Tekan Escape untuk membatalkan.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalHapusTagihan" wire:loading.attr="disabled" wire:target="batalHapusTagihan,hapusTagihan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="button" wire:click="hapusTagihan" wire:loading.attr="disabled" wire:target="hapusTagihan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="hapusTagihan">Ya, hapus</span>
+                            <span wire:loading wire:target="hapusTagihan">Menghapus…</span>
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+        </div>
+    @endif
 
     @if ($editingTagihanId !== null)
         <div

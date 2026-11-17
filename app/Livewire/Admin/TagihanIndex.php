@@ -19,6 +19,10 @@ class TagihanIndex extends Component
 
     public string $editJumlah = '';
 
+    public ?int $deletingTagihanId = null;
+
+    public string $deletingTagihanNomor = '';
+
     /**
      * @return array<string, mixed>
      */
@@ -66,6 +70,44 @@ class TagihanIndex extends Component
             ->whereKey($id)
             ->where('status', 'belum_lunas')
             ->firstOrFail();
+    }
+
+    public function bukaKonfirmasiHapusTagihan(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+
+        $tagihan = $this->tagihanDapatDihapus($id);
+
+        $this->deletingTagihanId = $tagihan->id;
+        $this->deletingTagihanNomor = $tagihan->nomor_tagihan;
+    }
+
+    public function batalHapusTagihan(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+
+        $this->reset('deletingTagihanId', 'deletingTagihanNomor');
+    }
+
+    public function hapusTagihan(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+        abort_if($this->deletingTagihanId === null, 404);
+
+        $tagihan = $this->tagihanDapatDihapus($this->deletingTagihanId);
+        $tagihan->delete();
+
+        $this->reset('deletingTagihanId', 'deletingTagihanNomor');
+        session()->flash('sukses', 'Tagihan berhasil dihapus.');
+    }
+
+    protected function tagihanDapatDihapus(int $id): Tagihan
+    {
+        $tagihan = Tagihan::query()->whereKey($id)->where('status', 'belum_lunas')->firstOrFail();
+
+        abort_if(DB::table('pembayaran')->where('tagihan_id', $tagihan->id)->exists(), 404);
+
+        return $tagihan;
     }
 
     public function bukaKonfirmasiPenerbitan(int $id): void
@@ -169,6 +211,12 @@ class TagihanIndex extends Component
                     'u.nama as nama_orang_tua',
                     'pl.nama as nama_paket',
                 ])
+                ->selectSub(
+                    DB::table('pembayaran')
+                        ->selectRaw('count(*)')
+                        ->whereColumn('pembayaran.tagihan_id', 't.id'),
+                    'jumlah_pembayaran'
+                )
                 ->orderByDesc('t.diterbitkan_pada')
                 ->orderByDesc('t.id')
                 ->get(),

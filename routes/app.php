@@ -9,6 +9,7 @@ use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\OrangTua\PenjemputIndex;
+use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use Illuminate\Support\Facades\Route;
 
@@ -59,5 +60,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('penjemput', PenjemputIndex::class)->name('penjemput.index');
+        });
+
+    Route::middleware('permission:bayar tagihan')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('tagihan', TagihanIndexOrangTua::class)->name('tagihan.index');
         });
 });

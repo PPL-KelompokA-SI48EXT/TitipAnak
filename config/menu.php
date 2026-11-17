@@ -63,7 +63,7 @@ return [
             ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'orang-tua.paket-layanan.index', 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Data Anak', 'icon' => '🧒', 'route' => null, 'permission' => 'kelola data anak'],
-            ['label' => 'Tagihan', 'icon' => '💳', 'route' => null, 'permission' => 'bayar tagihan'],
+            ['label' => 'Tagihan', 'icon' => '💳', 'route' => 'orang-tua.tagihan.index', 'permission' => 'bayar tagihan'],
             ['label' => 'Penjemput', 'icon' => '🚸', 'route' => 'orang-tua.penjemput.index', 'permission' => 'kelola penjemput'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'ajukan izin penjemputan'],
             ['label' => 'Laporan Anak', 'icon' => '📒', 'route' => null, 'permission' => 'lihat laporan anak'],

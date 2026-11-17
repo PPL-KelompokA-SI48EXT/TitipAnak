@@ -2,11 +2,15 @@
 
 namespace Tests\Feature\OrangTua;
 
+use App\Livewire\OrangTua\TagihanIndex;
 use App\Models\PaketLayanan;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TagihanIndexTest extends TestCase
@@ -62,6 +66,23 @@ class TagihanIndexTest extends TestCase
         ]);
     }
 
+    private function buatPembayaran(int $tagihanId, string $status = 'menunggu', string $path = 'pembayaran-bukti/lama.png'): void
+    {
+        DB::table('pembayaran')->insert([
+            'tagihan_id' => $tagihanId,
+            'diajukan_oleh_id' => $this->orangTua->id,
+            'path_bukti' => $path,
+            'jumlah' => 1500000,
+            'status' => $status,
+            'diajukan_pada' => now()->subHour(),
+            'diverifikasi_oleh_id' => null,
+            'diverifikasi_pada' => null,
+            'catatan' => null,
+            'created_at' => now()->subHour(),
+            'updated_at' => now()->subHour(),
+        ]);
+    }
+
     public function test_orang_tua_dapat_melihat_rincian_dan_status_tagihan_miliknya(): void
     {
         $this->buatTagihan($this->orangTua, 'belum_lunas', 1500000, 'TGH-OWN-0001');
@@ -102,6 +123,114 @@ class TagihanIndexTest extends TestCase
             ->assertOk()
             ->assertSee('Belum ada tagihan')
             ->assertDontSee('TGH-AKTIF-0001');
+    }
+
+    public function test_orang_tua_dapat_mengunggah_bukti_jpg_png_dan_pdf(): void
+    {
+        Storage::fake('local');
+
+        $files = [
+            ['jpg', UploadedFile::fake()->image('bukti.jpg'), 'image/jpeg'],
+            ['png', UploadedFile::fake()->image('bukti.png'), 'image/png'],
+            ['pdf', UploadedFile::fake()->create('bukti.pdf', 100, 'application/pdf'), 'application/pdf'],
+        ];
+
+        foreach ($files as [$format, $file, $mime]) {
+            $tagihanId = $this->buatTagihan($this->orangTua, 'belum_lunas', 1500000, 'TGH-UPLOAD-'.$format);
+
+            Livewire::actingAs($this->orangTua)
+                ->test(TagihanIndex::class)
+                ->call('bukaFormUpload', $tagihanId)
+                ->set('buktiPembayaran', $file)
+                ->call('unggahBukti')
+                ->assertHasNoErrors()
+                ->assertSee('Bukti pembayaran berhasil diunggah.');
+
+            $pembayaran = DB::table('pembayaran')->where('tagihan_id', $tagihanId)->first();
+
+            $this->assertNotNull($pembayaran);
+            $this->assertSame($this->orangTua->id, $pembayaran->diajukan_oleh_id);
+            $this->assertSame('menunggu', $pembayaran->status);
+            $this->assertEquals(1500000, $pembayaran->jumlah);
+            $this->assertSame($mime, Storage::disk('local')->mimeType($pembayaran->path_bukti));
+            Storage::disk('local')->assertExists($pembayaran->path_bukti);
+        }
+    }
+
+    public function test_bukti_pembayaran_harus_jpg_png_atau_pdf_maksimal_2_mb(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTua);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaFormUpload', $tagihanId)
+            ->set('buktiPembayaran', UploadedFile::fake()->create('bukti.txt', 100, 'text/plain'))
+            ->call('unggahBukti')
+            ->assertHasErrors('buktiPembayaran')
+            ->set('buktiPembayaran', UploadedFile::fake()->create('bukti.pdf', 2049, 'application/pdf'))
+            ->call('unggahBukti')
+            ->assertHasErrors('buktiPembayaran');
+
+        $this->assertDatabaseCount('pembayaran', 0);
+    }
+
+    public function test_orang_tua_tidak_dapat_mengunggah_bukti_tagihan_milik_orang_lain(): void
+    {
+        $tagihanId = $this->buatTagihan($this->orangTuaLain);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaFormUpload', $tagihanId)
+            ->assertStatus(404);
+    }
+
+    public function test_tagihan_dengan_pembayaran_menunggu_atau_terverifikasi_tidak_dapat_diunggah_lagi(): void
+    {
+        foreach (['menunggu', 'terverifikasi'] as $status) {
+            $tagihanId = $this->buatTagihan($this->orangTua);
+            $this->buatPembayaran($tagihanId, $status);
+
+            Livewire::actingAs($this->orangTua)
+                ->test(TagihanIndex::class)
+                ->call('bukaFormUpload', $tagihanId)
+                ->assertStatus(404);
+        }
+    }
+
+    public function test_orang_tua_dapat_mengunggah_ulang_setelah_pembayaran_ditolak(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        $this->buatPembayaran($tagihanId, 'ditolak', 'pembayaran-bukti/ditolak.png');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaFormUpload', $tagihanId)
+            ->set('buktiPembayaran', UploadedFile::fake()->image('bukti-baru.png'))
+            ->call('unggahBukti')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('pembayaran', [
+            'tagihan_id' => $tagihanId,
+            'status' => 'ditolak',
+            'path_bukti' => 'pembayaran-bukti/ditolak.png',
+        ]);
+        $this->assertDatabaseHas('pembayaran', [
+            'tagihan_id' => $tagihanId,
+            'status' => 'menunggu',
+        ]);
+        $this->assertDatabaseCount('pembayaran', 2);
+    }
+
+    public function test_tagihan_lunas_tidak_dapat_mengunggah_bukti(): void
+    {
+        $tagihanId = $this->buatTagihan($this->orangTua, 'lunas');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaFormUpload', $tagihanId)
+            ->assertStatus(404);
     }
 
     public function test_tamu_diarahkan_ke_login(): void

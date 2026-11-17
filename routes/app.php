@@ -7,6 +7,7 @@ use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
+use App\Livewire\OrangTua\PenjemputIndex;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -35,5 +36,12 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
+        });
+
+    Route::middleware('permission:kelola penjemput')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('penjemput', PenjemputIndex::class)->name('penjemput.index');
         });
 });

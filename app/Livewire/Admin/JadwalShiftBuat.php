@@ -67,15 +67,7 @@ class JadwalShiftBuat extends Component
         $mulai = $data['jam_mulai'].':00';
         $selesai = $data['jam_selesai'].':00';
 
-        // Satu pengasuh tidak boleh punya dua shift yang saling bertabrakan di hari yang sama.
-        $bentrok = JadwalShift::query()
-            ->where('pengasuh_id', $data['pengasuh_id'])
-            ->where('hari', $data['hari'])
-            ->where('jam_mulai', '<', $selesai)
-            ->where('jam_selesai', '>', $mulai)
-            ->exists();
-
-        if ($bentrok) {
+        if ($this->bentrok($data, $mulai, $selesai)) {
             $this->addError('jam_mulai', 'Pengasuh ini sudah punya shift yang bertabrakan pada hari dan jam tersebut.');
 
             return;
@@ -91,6 +83,23 @@ class JadwalShiftBuat extends Component
 
         $this->reset('pengasuh_id', 'kelompok_usia_id', 'hari');
         session()->flash('sukses', 'Jadwal shift berhasil dibuat.');
+    }
+
+    /**
+     * Satu pengasuh tidak boleh punya dua shift yang saling bertabrakan di hari yang sama.
+     * $kecualiId: jadwal yang sedang diubah, supaya tidak dianggap bentrok dengan dirinya sendiri.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    protected function bentrok(array $data, string $mulai, string $selesai, ?int $kecualiId = null): bool
+    {
+        return JadwalShift::query()
+            ->where('pengasuh_id', $data['pengasuh_id'])
+            ->where('hari', $data['hari'])
+            ->where('jam_mulai', '<', $selesai)
+            ->where('jam_selesai', '>', $mulai)
+            ->when($kecualiId !== null, fn ($query) => $query->whereKeyNot($kecualiId))
+            ->exists();
     }
 
     public function render(): View

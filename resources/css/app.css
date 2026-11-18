@@ -25,5 +25,13 @@
     --color-lavender: #CDBDFF;
     --color-coral: #FF9E80;
 
+    /* Frontline tokens for new surfaces. */
+    --color-frontline-plum: #7e4082;
+    --color-frontline-plum-dark: #402b56;
+    --color-frontline-mint: #6bccb3;
+    --color-frontline-berry: #2b4c59;
+    --color-frontline-pepper: #2f353f;
+    --color-frontline-salt: #f1f3f5;
+
     --radius-ta: 10px;
 }

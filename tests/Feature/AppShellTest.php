@@ -24,9 +24,9 @@ class AppShellTest extends TestCase
         return User::factory()->create($attrs)->assignRole($role);
     }
 
-    public function test_tamu_diarahkan_ke_pemilih_akun(): void
+    public function test_tamu_diarahkan_ke_halaman_login(): void
     {
-        $this->get(route('dashboard'))->assertRedirect(route('dev.akun'));
+        $this->get(route('dashboard'))->assertRedirect(route('login'));
     }
 
     public function test_pemilih_akun_menampilkan_akun_per_peran(): void
@@ -61,6 +61,8 @@ class AppShellTest extends TestCase
             ->get(route('dashboard'))
             ->assertSee('Jadwal Shift')
             ->assertSee('Akun Pengguna')
+            ->assertSee('Paket Layanan')
+            ->assertSee('Tagihan & Pembayaran')
             ->assertDontSee('Presensi')
             ->assertDontSee('Laporan Anak');
     }
@@ -71,6 +73,7 @@ class AppShellTest extends TestCase
             ->get(route('dashboard'))
             ->assertSee('Presensi')
             ->assertSee('Laporan Harian')
+            ->assertSee('Penjemput Terdaftar')
             ->assertDontSee('Akun Pengguna')
             ->assertDontSee('Jadwal Shift');
     }
@@ -81,6 +84,7 @@ class AppShellTest extends TestCase
             ->get(route('dashboard'))
             ->assertSee('Laporan Anak')
             ->assertSee('Data Anak')
+            ->assertSee('Paket Layanan')
             ->assertDontSee('Presensi')
             ->assertDontSee('Akun Pengguna');
     }

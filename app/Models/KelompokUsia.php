@@ -11,6 +11,12 @@ class KelompokUsia extends Model
 {
     protected $table = 'kelompok_usia';
 
+    /** Anak aktif yang tergabung di kelompok usia ini. */
+    public function anak(): HasMany
+    {
+        return $this->hasMany(Anak::class)->where('status', 'aktif');
+    }
+
     public function jadwalShift(): HasMany
     {
         return $this->hasMany(JadwalShift::class);

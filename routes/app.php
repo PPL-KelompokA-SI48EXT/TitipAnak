@@ -5,6 +5,8 @@ use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
+use App\Livewire\Admin\PendaftaranDetail as PendaftaranDetailAdmin;
+use App\Livewire\Admin\PendaftaranIndex as PendaftaranIndexAdmin;
 use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
@@ -36,6 +38,14 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->group(function () {
             Route::get('paket-layanan', PaketLayananIndex::class)->name('paket-layanan.index');
             Route::get('paket-layanan/tambah', PaketLayananCreate::class)->name('paket-layanan.create');
+        });
+
+    Route::middleware('permission:verifikasi pendaftaran')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('pendaftaran', PendaftaranIndexAdmin::class)->name('pendaftaran.index');
+            Route::get('pendaftaran/{pendaftaran}', PendaftaranDetailAdmin::class)->whereNumber('pendaftaran')->name('pendaftaran.detail');
         });
 
     Route::middleware('permission:kelola tagihan')

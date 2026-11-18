@@ -32,7 +32,7 @@
                 </p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-3">
+            <div class="flex flex-wrap items-center gap-3 sm:shrink-0">
                 <div class="grid gap-1 sm:justify-items-end">
                     <x-pendaftaran.status-badge :status="$p->status" class="text-sm" />
                     <span class="text-xs text-muted">Tahap {{ $tahapKe }} dari {{ count(\App\Models\Pendaftaran::TAHAPAN) }}</span>
@@ -42,6 +42,14 @@
                     aria-label="Lihat status pendaftaran {{ $p->paketLayanan->nama }}">
                     Lihat status
                 </a>
+                @if ($p->bisaDihapus())
+                    {{-- PBI-11c: hanya pendaftaran Draft yang boleh dihapus. Coral = aksi merusak. --}}
+                    <button type="button" wire:click="konfirmasiHapus({{ $p->id }})"
+                        class="inline-flex min-h-11 items-center rounded-ta border-[1.5px] border-ink bg-coral px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5"
+                        aria-label="Hapus pendaftaran {{ $p->paketLayanan->nama }}">
+                        Hapus
+                    </button>
+                @endif
             </div>
         </article>
     @empty
@@ -50,4 +58,10 @@
             <p class="text-sm text-muted">Mulai dengan memilih paket layanan.</p>
         </div>
     @endforelse
+
+    @if ($hapusPendaftaran)
+        <x-konfirmasi-hapus judul="Hapus pendaftaran?" tombol="Ya, hapus">
+            <x-pendaftaran.pesan-hapus :pendaftaran="$hapusPendaftaran" />
+        </x-konfirmasi-hapus>
+    @endif
 </div>

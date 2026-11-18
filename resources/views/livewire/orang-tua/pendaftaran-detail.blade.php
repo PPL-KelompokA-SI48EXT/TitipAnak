@@ -69,4 +69,25 @@
             </div>
         </dl>
     </section>
+
+    @if ($pendaftaran->bisaDihapus())
+        {{-- PBI-11c: orang tua boleh membatalkan pendaftaran selama masih Draft. --}}
+        <section aria-labelledby="batal-heading"
+            class="grid gap-3 rounded-ta border-[1.5px] border-ink bg-paper p-6 sm:flex sm:items-center sm:justify-between">
+            <div class="grid gap-0.5">
+                <h2 id="batal-heading" class="text-xl font-bold">Batal mendaftar?</h2>
+                <p class="text-sm text-muted">Pendaftaran yang masih Draft bisa dihapus. Setelah diajukan, pendaftaran tidak bisa dihapus lagi.</p>
+            </div>
+            <button type="button" wire:click="konfirmasiHapus"
+                class="inline-flex min-h-11 w-fit shrink-0 items-center whitespace-nowrap rounded-ta border-[1.5px] border-ink bg-coral px-4 py-2 text-sm font-semibold transition hover:-translate-y-0.5">
+                Hapus pendaftaran
+            </button>
+        </section>
+    @endif
+
+    @if ($konfirmasiHapusTerbuka && $pendaftaran->bisaDihapus())
+        <x-konfirmasi-hapus judul="Hapus pendaftaran?" tombol="Ya, hapus">
+            <x-pendaftaran.pesan-hapus :pendaftaran="$pendaftaran" />
+        </x-konfirmasi-hapus>
+    @endif
 </div>

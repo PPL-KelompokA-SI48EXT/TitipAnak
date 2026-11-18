@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 #[Fillable(['orang_tua_id', 'paket_layanan_id', 'status', 'diajukan_pada', 'diverifikasi_oleh_id', 'diverifikasi_pada', 'catatan_penolakan'])]
 class Pendaftaran extends Model
@@ -53,6 +54,24 @@ class Pendaftaran extends Model
     public function labelStatus(): string
     {
         return self::STATUS[$this->status] ?? $this->status;
+    }
+
+    /** PBI-11c: orang tua hanya boleh menghapus pendaftaran yang masih Draft. */
+    public function bisaDihapus(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    /**
+     * PBI-11c: batalkan pendaftaran Draft beserta data anak yang sudah diisi.
+     * Soft delete, jadi relasi foreign key tetap utuh dan data masih bisa dipulihkan.
+     */
+    public function hapusDraft(): void
+    {
+        DB::transaction(function () {
+            $this->anak()->delete();
+            $this->delete();
+        });
     }
 
     /**

@@ -27,14 +27,9 @@ return [
         'group' => 'Admin',
         'items' => [
             ['label' => 'Akun Pengguna', 'icon' => '👥', 'route' => null, 'permission' => 'kelola akun'],
-            [
-                'label' => 'Master Data', 'icon' => '🗂️', 'permission' => 'kelola master data',
-                'children' => [
-                    ['label' => 'Paket Layanan', 'route' => 'admin.paket-layanan.index'],
-                ],
-            ],
+            ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'admin.paket-layanan.index', 'permission' => 'kelola master data'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
-            ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => null, 'permission' => 'verifikasi pembayaran'],
+            ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => 'admin.tagihan.index', 'permission' => 'kelola tagihan'],
             [
                 'label' => 'Jadwal Shift', 'icon' => '🗓️', 'permission' => 'kelola jadwal',
                 'children' => [
@@ -53,6 +48,7 @@ return [
             ['label' => 'Laporan Harian', 'icon' => '📒', 'route' => null, 'permission' => 'buat laporan harian'],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => null, 'permission' => 'buat laporan insiden'],
             ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => null, 'permission' => 'buat penilaian bulanan'],
+            ['label' => 'Penjemput Terdaftar', 'icon' => '🚸', 'route' => 'pengasuh.penjemput.index', 'permission' => 'validasi izin penjemputan'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'validasi izin penjemputan'],
         ],
     ],
@@ -62,8 +58,8 @@ return [
             ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'orang-tua.paket-layanan.index', 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'kelola pendaftaran sendiri'],
             ['label' => 'Data Anak', 'icon' => '🧒', 'route' => null, 'permission' => 'kelola data anak'],
-            ['label' => 'Tagihan', 'icon' => '💳', 'route' => null, 'permission' => 'bayar tagihan'],
-            ['label' => 'Penjemput', 'icon' => '🚸', 'route' => null, 'permission' => 'kelola penjemput'],
+            ['label' => 'Tagihan', 'icon' => '💳', 'route' => 'orang-tua.tagihan.index', 'permission' => 'bayar tagihan'],
+            ['label' => 'Penjemput', 'icon' => '🚸', 'route' => 'orang-tua.penjemput.index', 'permission' => 'kelola penjemput'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'ajukan izin penjemputan'],
             ['label' => 'Laporan Anak', 'icon' => '📒', 'route' => null, 'permission' => 'lihat laporan anak'],
         ],

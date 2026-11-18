@@ -5,8 +5,12 @@ use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
+use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
+use App\Livewire\OrangTua\PenjemputIndex;
+use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
+use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use App\Livewire\Pengasuh\JadwalSaya;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +35,20 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('paket-layanan/tambah', PaketLayananCreate::class)->name('paket-layanan.create');
         });
 
+    Route::middleware('permission:kelola tagihan')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('tagihan', TagihanIndex::class)->name('tagihan.index');
+        });
+
+    Route::middleware('permission:validasi izin penjemputan')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('penjemput', PenjemputIndexPengasuh::class)->name('penjemput.index');
+        });
+
     Route::middleware('permission:kelola pendaftaran sendiri')
         ->prefix('orang-tua')
         ->name('orang-tua.')
@@ -38,6 +56,18 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
         });
 
+    Route::middleware('permission:kelola penjemput')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('penjemput', PenjemputIndex::class)->name('penjemput.index');
+        });
+
+    Route::middleware('permission:bayar tagihan')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('tagihan', TagihanIndexOrangTua::class)->name('tagihan.index');
     Route::middleware('permission:lihat jadwal sendiri')
         ->prefix('pengasuh')
         ->name('pengasuh.')

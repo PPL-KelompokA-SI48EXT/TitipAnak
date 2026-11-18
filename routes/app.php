@@ -16,6 +16,7 @@ use App\Livewire\Admin\RekapKehadiran;
 use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\JadwalAnak;
+use App\Livewire\OrangTua\KabarHariIni;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\OrangTua\PendaftaranBuat;
 use App\Livewire\OrangTua\PendaftaranDetail;
@@ -110,6 +111,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->prefix('orang-tua')
         ->name('orang-tua.')
         ->group(function () {
+            Route::get('kabar-hari-ini', KabarHariIni::class)->name('kabar-hari-ini');
             Route::get('jadwal-anak', JadwalAnak::class)->name('jadwal-anak');
         });
 

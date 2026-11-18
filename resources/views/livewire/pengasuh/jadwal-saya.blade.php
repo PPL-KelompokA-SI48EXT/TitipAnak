@@ -69,7 +69,7 @@
                 <p class="mt-1 text-sm text-muted">Admin belum menetapkan shift untuk Anda.</p>
             </div>
         @else
-            <div class="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-3">
                 @foreach ($hariList as $nomor => $nama)
                     @php
                         $shiftHari = $pola->get($nomor, collect());
@@ -77,8 +77,7 @@
                     @endphp
                     <div wire:key="hari-{{ $nomor }}" class="flex flex-col overflow-hidden rounded-ta border-[1.5px] border-ink bg-paper {{ $hariIniIni ? 'outline-3 outline-yellow' : '' }}">
                         <div class="border-b-[1.5px] border-ink px-3 py-2 {{ $hariIniIni ? 'bg-yellow' : 'bg-cream' }}">
-                            <div class="font-bold"><x-ikon :e="$ikonHari[$nomor]" /> {{ $nama }}</div>
-                            @if ($hariIniIni)<div class="text-xs font-semibold">(hari ini)</div>@endif
+                            <div class="whitespace-nowrap font-bold"><x-ikon :e="$ikonHari[$nomor]" /> {{ $nama }}@if ($hariIniIni) <span class="text-xs font-semibold">(hari ini)</span>@endif</div>
                         </div>
                         <div class="grid flex-1 content-start gap-2 p-3">
                             @forelse ($shiftHari as $s)

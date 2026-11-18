@@ -38,4 +38,10 @@ Seeder mengisi kehadiran kemarin dan hari ini serta izin penjemputan, jadi demo 
 2. Untuk setiap anak aktif tampil **pengasuh yang menjaga hari ini** (nama dan jam shift) dan **kegiatan harian** kelompok usianya, berurutan menurut jam. Kegiatan yang sedang berlangsung ditandai.
 3. Halaman hanya baca. Orang tua hanya melihat anaknya sendiri.
 
+## 7. Orang tua melihat kabar anak hari ini (PBI-16f)
+1. Masuk sebagai orang tua, buka **Kabar Hari Ini**.
+2. Setiap anak aktif punya satu kartu: status **Belum datang / Sedang di daycare / Sudah dijemput**, jam datang dan kondisi saat tiba, kegiatan yang **sedang berlangsung** dan **berikutnya**, serta jam pulang dan nama penjemput.
+3. Untuk melihat perubahan langsung: di jendela lain masuk sebagai pengasuh, lakukan check-in atau check-out di **Presensi**, lalu tunggu hingga satu menit (halaman memperbarui diri) atau muat ulang.
+4. Halaman hanya baca, memakai data presensi dan jadwal yang sudah ada. Orang tua hanya melihat anaknya sendiri. Tidak perlu migrasi atau seeder baru.
+
 Catatan: setelah menarik kode ini, jalankan `php artisan db:seed --class=RolePermissionSeeder` (atau `migrate:fresh --seed`) agar permission `lihat jadwal anak` terdaftar.

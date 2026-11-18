@@ -11,6 +11,7 @@ use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\OrangTua\PenjemputIndex;
 use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
+use App\Livewire\Pengasuh\JadwalSaya;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -67,5 +68,10 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('tagihan', TagihanIndexOrangTua::class)->name('tagihan.index');
+    Route::middleware('permission:lihat jadwal sendiri')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('jadwal-saya', JadwalSaya::class)->name('jadwal-saya');
         });
 });

@@ -3,7 +3,9 @@
 namespace Tests\Feature\OrangTua;
 
 use App\Livewire\OrangTua\PendaftaranBuat;
+use App\Livewire\OrangTua\PendaftaranDetail;
 use App\Livewire\OrangTua\PendaftaranIndex;
+use App\Models\Anak;
 use App\Models\PaketLayanan;
 use App\Models\Pendaftaran;
 use App\Models\User;
@@ -129,5 +131,147 @@ class PendaftaranTest extends TestCase
             ->get(route('orang-tua.pendaftaran.index'))
             ->assertOk()
             ->assertSee('Belum ada pendaftaran.');
+    }
+
+    // ---------------------------------------------------------------
+    // PBI-11b: Orang tua melihat status pendaftaran (tahap saat ini)
+    // ---------------------------------------------------------------
+
+    private function pendaftaran(string $status, array $atribut = []): Pendaftaran
+    {
+        return Pendaftaran::create([
+            'orang_tua_id' => $this->orangTua->id,
+            'paket_layanan_id' => $this->paket->id,
+            'status' => $status,
+            ...$atribut,
+        ]);
+    }
+
+    public function test_daftar_menampilkan_tahap_dan_tautan_status(): void
+    {
+        $p = $this->pendaftaran('menunggu_verifikasi', ['diajukan_pada' => now()]);
+
+        $this->actingAs($this->orangTua)
+            ->get(route('orang-tua.pendaftaran.index'))
+            ->assertOk()
+            ->assertSee('Menunggu Verifikasi')
+            ->assertSee('Tahap 2 dari 3')
+            ->assertSee(route('orang-tua.pendaftaran.detail', $p));
+    }
+
+    public function test_orang_tua_dapat_membuka_halaman_status_pendaftaran(): void
+    {
+        $p = $this->pendaftaran('draft');
+
+        $this->actingAs($this->orangTua)
+            ->get(route('orang-tua.pendaftaran.detail', $p))
+            ->assertOk()
+            ->assertSee('Status Pendaftaran')
+            ->assertSee('Full Day')
+            ->assertSeeInOrder(['Draft', 'Menunggu Verifikasi', 'Disetujui'])
+            ->assertSee('Masih Draft.');
+    }
+
+    public function test_status_draft_berada_di_tahap_pertama(): void
+    {
+        $tahapan = $this->pendaftaran('draft')->tahapan();
+
+        $this->assertSame(['aktif', 'belum', 'belum'], array_column($tahapan, 'keadaan'));
+        $this->assertNotNull($tahapan[0]['waktu']);
+        $this->assertNull($tahapan[1]['waktu']);
+    }
+
+    public function test_status_menunggu_verifikasi_berada_di_tahap_kedua(): void
+    {
+        $diajukan = now()->subDay();
+        $p = $this->pendaftaran('menunggu_verifikasi', ['diajukan_pada' => $diajukan]);
+        $tahapan = $p->tahapan();
+
+        $this->assertSame(['selesai', 'aktif', 'belum'], array_column($tahapan, 'keadaan'));
+        $this->assertSame($diajukan->format('Y-m-d H:i'), $tahapan[1]['waktu']->format('Y-m-d H:i'));
+        $this->assertNull($tahapan[2]['waktu']);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('sedang diverifikasi Admin');
+    }
+
+    public function test_status_disetujui_menyelesaikan_semua_tahap(): void
+    {
+        $p = $this->pendaftaran('disetujui', [
+            'diajukan_pada' => now()->subDays(2),
+            'diverifikasi_oleh_id' => $this->admin->id,
+            'diverifikasi_pada' => now()->subDay(),
+        ]);
+
+        $this->assertSame(['selesai', 'selesai', 'selesai'], array_column($p->tahapan(), 'keadaan'));
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('Disetujui.')
+            ->assertSee('sudah diterima Admin');
+    }
+
+    public function test_status_ditolak_menampilkan_alasan_penolakan(): void
+    {
+        $p = $this->pendaftaran('ditolak', [
+            'diajukan_pada' => now()->subDays(2),
+            'diverifikasi_oleh_id' => $this->admin->id,
+            'diverifikasi_pada' => now()->subDay(),
+            'catatan_penolakan' => 'Usia anak tidak sesuai dengan paket yang dipilih.',
+        ]);
+
+        $tahapan = $p->tahapan();
+        $this->assertSame('ditolak', $tahapan[2]['status']);
+        $this->assertSame('selesai', $tahapan[2]['keadaan']);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('Ditolak.')
+            ->assertSee('Usia anak tidak sesuai dengan paket yang dipilih.');
+    }
+
+    public function test_halaman_status_menampilkan_nama_anak_jika_sudah_diisi(): void
+    {
+        $p = $this->pendaftaran('menunggu_verifikasi', ['diajukan_pada' => now()]);
+        Anak::create([
+            'pendaftaran_id' => $p->id,
+            'orang_tua_id' => $this->orangTua->id,
+            'nama_lengkap' => 'Zidan Alfarizi',
+            'tanggal_lahir' => today()->subMonths(20),
+            'jenis_kelamin' => 'L',
+        ]);
+
+        $this->actingAs($this->orangTua)
+            ->get(route('orang-tua.pendaftaran.detail', $p))
+            ->assertOk()
+            ->assertSee('Zidan Alfarizi');
+    }
+
+    public function test_orang_tua_tidak_dapat_melihat_status_pendaftaran_orang_lain(): void
+    {
+        $lainnya = User::factory()->create()->assignRole('orang_tua');
+        $milikLain = Pendaftaran::create(['orang_tua_id' => $lainnya->id, 'paket_layanan_id' => $this->paket->id, 'status' => 'draft']);
+
+        $this->actingAs($this->orangTua)
+            ->get(route('orang-tua.pendaftaran.detail', $milikLain))
+            ->assertNotFound();
+    }
+
+    public function test_admin_tidak_boleh_membuka_halaman_status_orang_tua(): void
+    {
+        $p = $this->pendaftaran('draft');
+
+        $this->actingAs($this->admin)
+            ->get(route('orang-tua.pendaftaran.detail', $p))
+            ->assertForbidden();
+    }
+
+    public function test_tamu_diarahkan_ke_login(): void
+    {
+        $p = $this->pendaftaran('draft');
+
+        $this->get(route('orang-tua.pendaftaran.detail', $p))
+            ->assertRedirect(route('login'));
     }
 }

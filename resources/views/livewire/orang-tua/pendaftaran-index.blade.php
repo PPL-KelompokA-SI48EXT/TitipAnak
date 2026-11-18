@@ -1,13 +1,3 @@
-@php
-    // Warna status: Draft netral, lalu makin ke kanan makin "selesai".
-    $warnaStatus = [
-        'draft' => 'bg-cream',
-        'menunggu_verifikasi' => 'bg-blue',
-        'disetujui' => 'bg-mint',
-        'ditolak' => 'bg-coral',
-    ];
-@endphp
-
 <div class="grid gap-6">
     <div class="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -28,17 +18,31 @@
     @endif
 
     @forelse ($pendaftaran as $p)
-        <article class="grid gap-3 rounded-ta border-[1.5px] border-ink bg-paper p-5 sm:flex sm:items-center sm:justify-between">
+        @php
+            // PBI-11b: posisi tahap (Ditolak dihitung di tahap terakhir).
+            $tahapKe = $p->status === 'ditolak' ? 3 : array_search($p->status, \App\Models\Pendaftaran::TAHAPAN, true) + 1;
+        @endphp
+        <article wire:key="pendaftaran-{{ $p->id }}"
+            class="grid gap-3 rounded-ta border-[1.5px] border-ink bg-paper p-5 sm:flex sm:items-center sm:justify-between">
             <div class="grid gap-0.5">
                 <h2 class="text-lg font-bold">{{ $p->paketLayanan->nama }}</h2>
                 <p class="text-sm text-muted">
+                    @if ($p->anak) {{ $p->anak->nama_lengkap }} · @endif
                     Rp {{ number_format($p->paketLayanan->harga, 0, ',', '.') }} · Dibuat {{ $p->created_at->format('d M Y') }}
                 </p>
             </div>
 
-            <span class="w-fit rounded-full border-[1.5px] border-ink px-3 py-1 text-sm font-semibold {{ $warnaStatus[$p->status] ?? 'bg-paper' }}">
-                {{ $p->labelStatus() }}
-            </span>
+            <div class="flex flex-wrap items-center gap-3">
+                <div class="grid gap-1 sm:justify-items-end">
+                    <x-pendaftaran.status-badge :status="$p->status" class="text-sm" />
+                    <span class="text-xs text-muted">Tahap {{ $tahapKe }} dari {{ count(\App\Models\Pendaftaran::TAHAPAN) }}</span>
+                </div>
+                <a href="{{ route('orang-tua.pendaftaran.detail', $p) }}"
+                    class="inline-flex min-h-11 items-center rounded-ta border-[1.5px] border-ink bg-paper px-4 py-2 text-sm font-semibold transition hover:bg-cream"
+                    aria-label="Lihat status pendaftaran {{ $p->paketLayanan->nama }}">
+                    Lihat status
+                </a>
+            </div>
         </article>
     @empty
         <div class="grid gap-1 rounded-ta border-[1.5px] border-dashed border-ink bg-cream p-8 text-center">

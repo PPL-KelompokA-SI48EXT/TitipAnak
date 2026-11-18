@@ -6,11 +6,11 @@
 <title>TitipAnak Frontend Guideline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* =====================================================================
    TitipAnak design tokens — diambil dari TitipAnak_Presentasi_PBI.pptx
-   (theme "TitipAnak": Poppins, accent pastel, border hitam 1.5px, flat)
+   (theme "TitipAnak": Plus Jakarta Sans, accent pastel, border hitam 1.5px, flat)
    ===================================================================== */
 :root {
   --ta-ink:        #1B1B1B;   /* dk1  – teks utama, border, tombol gelap */
@@ -30,7 +30,7 @@
   --ta-radius:     10px;
   --ta-radius-pill:999px;
 
-  --ta-font: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ta-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
   --ta-s1: 4px;  --ta-s2: 8px;  --ta-s3: 12px; --ta-s4: 16px;
   --ta-s5: 24px; --ta-s6: 32px; --ta-s7: 48px; --ta-s8: 64px;
@@ -292,7 +292,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 
 <!-- ============================ SIDEBAR ============================ -->
 <nav class="docs__nav" aria-label="Daftar isi">
-  <a class="docs__brand" href="#top"><span class="bubble">TA</span> TitipAnak</a>
+  <a class="docs__brand" href="#top"><img src="../public/images/logo-ikon-96.png" alt="Logo TitipAnak" width="44" height="44" style="border-radius:10px;display:block"> TitipAnak</a>
   <a class="link" href="#prinsip">1. Prinsip desain</a>
   <a class="link" href="#warna">2. Warna</a>
   <a class="link" href="#tipografi">3. Tipografi</a>
@@ -300,7 +300,9 @@ table.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
   <a class="link" href="#komponen">5. Komponen</a>
   <a class="link" href="#layout">6. Layout &amp; role</a>
   <a class="link" href="#implementasi">7. Implementasi Laravel</a>
-  <a class="link" href="#aturan">8. Do &amp; Don't</a>
+  <a class="link" href="#publik">8. Halaman publik &amp; gerak</a>
+  <a class="link" href="#aturan">9. Do &amp; Don't</a>
+  <a class="link" href="#logo">10. Identitas &amp; logo</a>
 </nav>
 
 <main class="docs__main" id="top">
@@ -398,7 +400,7 @@ table.table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 <!-- ============================ 3. TIPOGRAFI ============================ -->
 <section class="sec" id="tipografi">
   <h2 class="t-h1">3. Tipografi</h2>
-  <p class="t-lead">Satu keluarga font: <b>Poppins</b> (400 regular, 500, 600, 700 bold). Judul selalu bold, isi regular.</p>
+  <p class="t-lead">Satu keluarga font: <b>Plus Jakarta Sans</b> (400 regular, 500, 600, 700 bold). Judul selalu bold, isi regular.</p>
   <div class="demo stack" style="gap:var(--ta-s5)">
     <div><div class="t-caption">Display · 64px / 700 — cover &amp; hero</div><div class="t-display">TitipAnak</div></div>
     <div><div class="t-caption">H1 · 36px / 700 — judul halaman</div><div class="t-h1">Daftar Pendaftaran Anak</div></div>
@@ -671,7 +673,7 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
 
   <div class="shell">
     <aside class="shell__side" aria-label="Contoh sidebar">
-      <div class="docs__brand" style="margin-bottom:var(--ta-s3);font-size:1rem"><span class="bubble" style="width:36px;height:36px;font-size:.8rem;background:var(--ta-yellow);border-radius:8px">TA</span> TitipAnak</div>
+      <div class="docs__brand" style="margin-bottom:var(--ta-s3);font-size:1rem"><img src="../public/images/logo-ikon-96.png" alt="Logo TitipAnak" width="36" height="36" style="border-radius:8px;display:block"> TitipAnak</div>
       <div class="item on">Dashboard</div>
       <div class="item">Pendaftaran</div>
       <div class="item">Tagihan</div>
@@ -728,7 +730,7 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
 <span class="k">@import</span> <span class="s">"tailwindcss"</span>;
 
 <span class="k">@theme</span> {
-  --font-sans: <span class="s">"Poppins"</span>, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: <span class="s">"Plus Jakarta Sans"</span>, ui-sans-serif, system-ui, sans-serif;
 
   --color-ink:      #1B1B1B;
   --color-muted:    #6B6B6B;
@@ -772,14 +774,134 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
     </div>
     <div class="card card--cream stack">
       <div class="t-h3">Ikon</div>
-      <div class="t-small">Ikon digambar di dalam <b>bubble</b> putih berborder (lingkaran 56px). Pakai set ikon outline satu gaya (mis. Heroicons outline), stroke 1.75–2px, warna ink.</div>
+      <div class="t-small">Ikon memakai <b>emoji</b> (satu emoji untuk satu makna) di dalam <b>bubble</b> putih berborder (lingkaran 40–56px) atau kotak radius 10px berwarna pastel. Jangan mencampurnya dengan set ikon outline. Emoji yang hanya dekorasi diberi <code>aria-hidden="true"</code>, dan tombol berikon tetap punya <code>aria-label</code>.</div>
     </div>
   </div>
 </section>
 
-<!-- ============================ 8. DO / DON'T ============================ -->
+<!-- ============================ 8. HALAMAN PUBLIK, FOTO & GERAK ============================ -->
+<section class="sec" id="publik">
+  <h2 class="t-h1">8. Halaman publik, foto &amp; gerak</h2>
+  <p class="t-lead">Landing page (<code>/</code>) ditujukan untuk <b>orang tua</b>. Tujuannya satu: membuat mereka merasa tenang dan percaya, lalu tertarik menitipkan anak. Aturan di bagian ini berlaku untuk halaman publik, bukan dashboard.</p>
+
+  <h3 class="t-h3 sub">Isi &amp; sudut pandang</h3>
+  <div class="grid grid--3">
+    <div class="card card--cream stack">
+      <div class="t-h3">Bicara ke orang tua</div>
+      <div class="t-small">Tulis manfaat untuk orang tua: ketenangan, penjemputan aman, kegiatan anak. Jangan memuat bahasa untuk admin atau pengelola (mengelola jadwal, rekap, data master).</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Klaim harus benar</div>
+      <div class="t-small">Hanya sebut fitur yang memang ada di aplikasi. Data peragaan (misalnya "Kabar Kayla hari ini") wajib berlabel <b>Contoh</b>. Jangan membuat testimoni, angka, atau penghargaan karangan.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Ajakan yang jelas</div>
+      <div class="t-small">Satu tombol kuning utama per area. Tombol daftar paket mengarah ke login untuk tamu (belum ada halaman registrasi), ke halaman paket untuk orang tua, dan ke dashboard untuk peran lain.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Foto</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Sumber &amp; berkas</div>
+      <div class="t-small">Foto stok berlisensi bebas (Pexels). Simpan di <code>public/images/landing/</code>, lebar 1000–1200px, hasil kompres (rata-rata di bawah 200 KB). Cantumkan "Foto ilustrasi dari Pexels" karena bukan foto daycare sebenarnya. Ganti dengan foto asli daycare kalau sudah ada izin orang tua.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Bingkai</div>
+      <div class="t-small">Border ink 1.5px dan radius 10px, tanpa shadow. Boleh dimiringkan paling banyak ±3° (maks. satu foto per area). Keterangan foto ditaruh di bar di bawah foto, <b>jangan menimpa</b> wajah atau objek utama.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Memilih foto</div>
+      <div class="t-small">Anak terlihat ceria dan dekat dengan pengasuh, ruangan terang dan rapi. Pakai foto <b>landscape</b> untuk carousel dan banner. Foto portrait hanya untuk potongan kecil dan atur <code>object-position</code> ke bagian yang penting. Jangan memakai foto yang wajahnya tertutup atau ekspresinya murung.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Aksesibilitas &amp; performa</div>
+      <div class="t-small"><code>alt</code> mendeskripsikan isi foto. Foto dekoratif memakai <code>alt=""</code>. Tambahkan <code>loading="lazy"</code> kecuali foto di layar pertama. Beri rasio atau tinggi tetap supaya layout tidak melompat.</div>
+    </div>
+  </div>
+  <div class="banner" style="margin-top:var(--ta-s4)">
+    <span class="bubble bubble--sm" style="color:var(--ta-ink)">📷</span>
+    <span><b>Sebar foto</b> di setiap bagian halaman (hero, kartu fitur, langkah, keamanan, ajakan akhir). Jangan menumpuknya di satu tempat.</span>
+  </div>
+
+  <h3 class="t-h3 sub">Gerak &amp; animasi</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Yang dipakai</div>
+      <div class="t-small">
+        <b>Kartu bertumpuk</b> di hero: kartu teratas dilempar, ganti tiap 4,2 detik. Bisa digeser (sentuhan atau drag mouse); geser lebih dari 70px untuk melempar, kurang dari itu kartu kembali.<br>
+        <b>Carousel</b> (foto dan kartu): scroll-snap yang bisa digeser (swipe di layar sentuh, drag di mouse), ganti tiap 5 detik, ada tombol <b>Jeda</b>, titik penanda, dan tombol sebelumnya/berikutnya.<br>
+        <b>Pita foto</b>: berjalan pelan (55 detik per putaran).
+      </div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Aturan wajib</div>
+      <div class="t-small">
+        Gerak otomatis <b>berhenti saat disorot atau difokus</b>, dan punya tombol jeda bila lebih dari 5 detik.<br>
+        Semua animasi <b>mati</b> saat pengguna memilih <code>prefers-reduced-motion: reduce</code>; kontennya tetap terbaca.<br>
+        Animasi hanya memakai <code>transform</code> dan <code>opacity</code>, durasi 0.5–0.7 detik. Jangan menyampaikan informasi penting hanya lewat gerak.
+      </div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Kursor khusus</h3>
+  <div class="grid grid--2">
+    <div class="card card--yellow stack" style="grid-column: 1 / -1">
+      <div style="display:flex; gap:var(--ta-s5); flex-wrap:wrap; align-items:center">
+        <div style="display:flex; gap:var(--ta-s3)">
+          <div class="stack" style="text-align:center">
+      <svg viewBox="0 0 48 48" width="64" height="64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kursor beruang, ekspresi biasa">
+        <g stroke="#1B1B1B" stroke-width="2.2" stroke-linejoin="round">
+          <circle cx="10.5" cy="11" r="7.2" fill="#FFD43B"/><circle cx="37.5" cy="11" r="7.2" fill="#FFD43B"/><circle cx="24" cy="26.5" r="17.5" fill="#FFD43B"/>
+        </g>
+        <circle cx="10.5" cy="11.2" r="3.4" fill="#FF9E80"/><circle cx="37.5" cy="11.2" r="3.4" fill="#FF9E80"/>
+        <ellipse cx="24" cy="32.5" rx="8" ry="5.8" fill="#FFF6D6" stroke="#1B1B1B" stroke-width="1.4"/>
+        <ellipse cx="11.8" cy="29.5" rx="3.6" ry="2.4" fill="#FF9E80" opacity=".75"/><ellipse cx="36.2" cy="29.5" rx="3.6" ry="2.4" fill="#FF9E80" opacity=".75"/>
+        <circle cx="16.8" cy="23" r="2.6" fill="#1B1B1B"/><circle cx="31.2" cy="23" r="2.6" fill="#1B1B1B"/><circle cx="17.7" cy="22" r="0.9" fill="#FFFFFF"/><circle cx="32.1" cy="22" r="0.9" fill="#FFFFFF"/>
+        <ellipse cx="24" cy="29.6" rx="2.8" ry="2.1" fill="#1B1B1B"/>
+        <path d="M24 31.6 V33.6 M20.6 33.9 Q24 37.6 27.4 33.9" fill="none" stroke="#1B1B1B" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+            <div class="t-caption" style="color:var(--ta-ink)">Biasa</div>
+          </div>
+          <div class="stack" style="text-align:center">
+      <svg viewBox="0 0 48 48" width="64" height="64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Kursor beruang, ekspresi senang">
+        <g stroke="#1B1B1B" stroke-width="2.2" stroke-linejoin="round">
+          <circle cx="10.5" cy="11" r="7.2" fill="#FFD43B"/><circle cx="37.5" cy="11" r="7.2" fill="#FFD43B"/><circle cx="24" cy="26.5" r="17.5" fill="#FFD43B"/>
+        </g>
+        <circle cx="10.5" cy="11.2" r="3.4" fill="#FF9E80"/><circle cx="37.5" cy="11.2" r="3.4" fill="#FF9E80"/>
+        <ellipse cx="24" cy="32.5" rx="8" ry="5.8" fill="#FFF6D6" stroke="#1B1B1B" stroke-width="1.4"/>
+        <ellipse cx="11.8" cy="29.5" rx="3.6" ry="2.4" fill="#FF9E80" opacity=".75"/><ellipse cx="36.2" cy="29.5" rx="3.6" ry="2.4" fill="#FF9E80" opacity=".75"/>
+        <g fill="none" stroke="#1B1B1B" stroke-width="2.2" stroke-linecap="round"><path d="M14 24.2 Q16.8 19.8 19.6 24.2"/><path d="M28.4 24.2 Q31.2 19.8 34 24.2"/></g>
+        <ellipse cx="24" cy="29.6" rx="2.8" ry="2.1" fill="#1B1B1B"/>
+        <path d="M24 31.6 V33.6 M20.6 33.9 Q24 37.6 27.4 33.9" fill="none" stroke="#1B1B1B" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+            <div class="t-caption" style="color:var(--ta-ink)">Senang (tautan / klik)</div>
+          </div>
+        </div>
+        <div class="t-small" style="flex:1 1 280px">
+          Kepala beruang 42px buatan sendiri (SVG di <code>resources/js/cursor.js</code>). Warnanya hanya dari palet (kuning, krem, koral, ink), tanpa shadow. Di atas tautan dan tombol ia membesar 1.3× dan matanya tersenyum; saat klik ia mengecil.
+        </div>
+      </div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Efek</div>
+      <div class="t-small">Bergerak meninggalkan <b>jejak emoji</b> (🐾 ⭐ 💛 🎈 ✨ dan sejenisnya) setiap ±30px. Klik memercikkan 7 emoji. Maksimal 40 emoji tampil bersamaan.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Cakupan &amp; batas</div>
+      <div class="t-small">Aktif di seluruh halaman web TitipAnak, <b>hanya di dalam halaman</b> (tidak mengubah kursor sistem). Hanya untuk perangkat dengan mouse (<code>pointer: fine</code>). Di kolom teks kursor asli (I-beam) dipakai. Saat gerak dikurangi, jejak, percikan, dan goyangan dimatikan.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Hero setinggi layar</h3>
+  <div class="t-small" style="max-width:68ch">
+    Hero landing page mengisi tepat satu layar di bawah header supaya bagian berikutnya tidak mengintip: <code>min-h-[calc(100svh-4.1rem)]</code> di layar md ke atas (<code>100svh-7rem</code> di HP karena header memuat menu). Isinya diletakkan di tengah secara vertikal.
+  </div>
+</section>
+
+<!-- ============================ 9. DO / DON'T ============================ -->
 <section class="sec" id="aturan">
-  <h2 class="t-h1">8. Do &amp; Don't</h2>
+  <h2 class="t-h1">9. Do &amp; Don't</h2>
   <div class="grid grid--2" style="margin-top:var(--ta-s5)">
     <div class="rule rule--do">
       <span class="bubble bubble--sm">✓</span>
@@ -787,10 +909,13 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
         <ul>
           <li>Latar putih, blok warna pastel, border ink 1.5px</li>
           <li>Satu warna pastel per aktor / modul secara konsisten</li>
-          <li>Poppins bold untuk judul, regular untuk isi</li>
+          <li>Plus Jakarta Sans bold untuk judul, regular untuk isi</li>
           <li>Radius 10px di semua kartu, tombol, input</li>
           <li>Fokus keyboard terlihat jelas pada semua elemen interaktif</li>
           <li>Bahasa Indonesia yang sederhana, tanpa istilah teknis</li>
+          <li>Foto landscape dan tersebar di setiap bagian landing page, dengan <code>alt</code> yang jelas</li>
+          <li>Memberi label <b>Contoh</b> pada data peragaan dan label foto ilustrasi</li>
+          <li>Mematikan gerak otomatis saat <code>prefers-reduced-motion</code></li>
         </ul>
       </div>
     </div>
@@ -804,6 +929,10 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
           <li>Border tipis abu-abu; border selalu ink</li>
           <li>Lebih dari satu tombol kuning utama per area</li>
           <li>Memakai warna saja sebagai penanda status; tambahkan label teks</li>
+          <li>Menulis konten landing page dari sudut pandang admin atau pengelola</li>
+          <li>Membuat testimoni, angka, atau klaim fitur yang belum ada</li>
+          <li>Menaruh keterangan di atas wajah atau objek utama pada foto</li>
+          <li>Memakai panah (→) sebagai penanda daftar; pakai titik berwarna</li>
         </ul>
       </div>
     </div>
@@ -814,6 +943,93 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
     <span>Sumber gaya: TitipAnak_Presentasi_PBI.pptx · Kelompok A SI48EXT · Tugas Besar PPL</span>
   </div>
 </section>
+
+<!-- ============================ 10. IDENTITAS MEREK & LOGO ============================ -->
+<section class="sec" id="logo">
+  <h2 class="t-h1">10. Identitas merek &amp; logo</h2>
+  <p class="t-lead">Logo "Ceria" TitipAnak sudah final (<code>docs/Logo Ceria Titip Anak.png</code>). Bagian ini merangkum identitas merek dan cara memakai logo di antarmuka.</p>
+
+  <div class="card card--yellow" style="display:flex; gap:var(--ta-s5); flex-wrap:wrap; align-items:center">
+    <div style="display:flex; align-items:center; gap:14px; background:var(--ta-paper); border:var(--ta-border); border-radius:var(--ta-radius); padding:14px 20px">
+      <img src="../public/images/logo-ikon-96.png" alt="Logo TitipAnak" width="64" height="64" style="border-radius:14px;display:block">
+      <span style="font-weight:700; font-size:1.6rem; letter-spacing:-.02em">TitipAnak</span>
+    </div>
+    <div class="t-small" style="flex:1 1 280px"><b>Logo final:</b> rumah beratap kuning berisi dua orang dewasa yang memeluk seorang anak, hati koral di atas, tunas hijau di bawah, di dalam kotak biru bersudut membulat. Gaya flat dengan outline ink, selaras dengan palet. Ikon berkas: <code>public/images/logo-ikon.png</code> (256px) dan <code>logo-ikon-96.png</code>; favicon: <code>public/favicon.ico</code>.</div>
+  </div>
+
+  <h3 class="t-h3 sub">Pemakaian di antarmuka</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack"><div class="t-h3">Header &amp; halaman masuk</div><div class="t-small">Pakai <b>ikon persegi</b> 40–44px dengan sudut 10px, diikuti teks "TitipAnak" (Plus Jakarta Sans Bold). Jangan menambah border atau latar di sekeliling ikon, dan jangan meregangkan rasionya. <code>alt</code> dikosongkan karena teks merek sudah ada di sebelahnya.</div></div>
+    <div class="card card--cream stack"><div class="t-h3">Ruang &amp; latar</div><div class="t-small">Sisakan ruang kosong minimal 1/4 lebar ikon di sekelilingnya. Ikon sudah punya latar biru sendiri, jadi aman di atas putih, krem, atau kuning. Jangan mewarnai ulang atau menambahkan shadow.</div></div>
+  </div>
+
+  <h3 class="t-h3 sub">Merek</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Siapa &amp; untuk siapa</div>
+      <div class="t-small"><b>Nama:</b> TitipAnak (satu kata, huruf T dan A kapital).<br><b>Bidang:</b> aplikasi layanan penitipan anak (daycare) untuk mengelola jadwal pengasuh, kegiatan harian, kehadiran, dan penjemputan.<br><b>Audiens utama:</b> orang tua yang bekerja, lalu pengasuh dan admin daycare.<br><b>Konteks:</b> Indonesia, bahasa Indonesia.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Kesan yang dituju</div>
+      <div class="t-small"><b>Hangat, tenang, tepercaya, ramah anak.</b> Orang tua yang cemas harus merasa aman menitipkan anaknya.<br><b>Hindari kesan:</b> korporat yang kaku, medis atau rumah sakit, terlalu kekanak-kanakan, atau terlalu ramai.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Gaya visual</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Bentuk &amp; garis</div>
+      <div class="t-small">Flat dan tegas: <b>tanpa gradient, shadow, 3D, atau glassmorphism</b>. Outline ink <code>#1B1B1B</code> setebal 1.5px (proporsional saat diperbesar), sudut membulat atau lingkaran, blok warna pastel. Bentuk sederhana yang tetap terbaca di ukuran kecil.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Warna (hanya dari palet)</div>
+      <div class="t-small" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center">
+        <span class="chip" style="background:#1B1B1B; color:#fff">Ink #1B1B1B</span>
+        <span class="chip" style="background:#FFD43B">Kuning #FFD43B</span>
+        <span class="chip" style="background:#FFF6D6">Krem #FFF6D6</span>
+        <span class="chip" style="background:#A8D4FF">Biru #A8D4FF</span>
+        <span class="chip" style="background:#A8E6CF">Mint #A8E6CF</span>
+        <span class="chip" style="background:#CDBDFF">Lavender #CDBDFF</span>
+        <span class="chip" style="background:#FF9E80">Koral #FF9E80</span>
+      </div>
+      <div class="t-small">Utamakan <b>kuning + ink</b>. Pakai paling banyak 3 warna dalam satu logo.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Tipografi</div>
+      <div class="t-small"><b>Plus Jakarta Sans Bold</b> untuk wordmark, tracking sedikit rapat (<code>-0.02em</code>). Boleh digambar ulang atau dimodifikasi sedikit selama tetap bergaya Plus Jakarta Sans yang bersih dan ramah.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Arah ide (opsional)</div>
+      <div class="t-small">Asosiasi yang cocok: perlindungan dan kehangatan, misalnya atap rumah, tangan yang menggenggam, orang dewasa menggandeng anak, atau huruf <b>T</b> dan <b>A</b> yang membentuk figur. Kepala beruang kuning sudah dipakai sebagai kursor di situs, jadi boleh diangkat jadi maskot bila cocok. Jangan terlalu detail.</div>
+    </div>
+  </div>
+
+  <h3 class="t-h3 sub">Kebutuhan versi logo (acuan bila perlu varian baru)</h3>
+  <div class="grid grid--2">
+    <div class="card card--cream stack">
+      <div class="t-h3">Versi logo</div>
+      <div class="t-small">1) <b>Utama:</b> ikon + wordmark horizontal.<br>2) <b>Ikon saja:</b> persegi, untuk favicon dan avatar.<br>3) <b>Satu warna:</b> hanya ink, untuk cetak sederhana.<br>Semuanya harus terbaca di atas latar putih, krem, kuning, dan ink.</div>
+    </div>
+    <div class="card card--cream stack">
+      <div class="t-h3">Ukuran &amp; format</div>
+      <div class="t-small">Ikon masih jelas pada <b>24px</b> dan sebagai favicon <b>32px</b>. Sisakan ruang kosong di sekeliling setinggi huruf T. Format <b>SVG</b> (vektor) dan PNG latar transparan.</div>
+    </div>
+  </div>
+
+  <div class="rule rule--dont" style="margin-top:var(--ta-s4)">
+    <span class="bubble bubble--sm">✕</span>
+    <div><div class="t-h3">Jangan dalam logo</div>
+      <ul>
+        <li>Gradient, shadow, efek 3D, atau tekstur</li>
+        <li>Warna di luar palet (mis. biru tua, merah pekat, cokelat)</li>
+        <li>Foto atau ilustrasi anak yang realistis atau terlalu detail</li>
+        <li>Teks kecil atau slogan di dalam ikon</li>
+        <li>Simbol medis (palang merah, stetoskop) atau simbol yang menakutkan</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
 
 </main>
 </div>

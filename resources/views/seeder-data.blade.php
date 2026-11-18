@@ -18,9 +18,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Data Seeder TitipAnak</title>
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --ta-ink: #1B1B1B; --ta-muted: #6B6B6B; --ta-paper: #FFFFFF; --ta-cream: #FFF6D6;
@@ -28,7 +29,7 @@
   --ta-link: #1B6FD1;
   --ta-border: 1.5px solid var(--ta-ink); --ta-border-thin: 1px solid var(--ta-ink);
   --ta-radius: 10px;
-  --ta-font: "Poppins", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ta-font: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; scroll-padding-top: 24px; }
@@ -41,7 +42,7 @@ code { background: var(--ta-cream); border: 1px solid var(--ta-ink); border-radi
 .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
 .nav { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 24px; background: var(--ta-cream); border-right: var(--ta-border); }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; margin-bottom: 24px; color: var(--ta-ink); text-decoration: none; }
-.brand__mark { width: 44px; height: 44px; display: grid; place-items: center; background: var(--ta-yellow); border: var(--ta-border); border-radius: 10px; font-size: 1rem; }
+.brand__mark { width: 44px; height: 44px; border-radius: 10px; }
 .nav h2 { font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ta-muted); margin: 20px 0 6px; }
 .nav a.link { display: flex; justify-content: space-between; gap: 8px; padding: 7px 12px; border: 1.5px solid transparent; border-radius: 8px; color: var(--ta-ink); text-decoration: none; font-size: .875rem; font-weight: 500; }
 .nav a.link:hover { background: var(--ta-paper); border-color: var(--ta-ink); }
@@ -105,7 +106,7 @@ td .text { display: block; overflow: hidden; text-overflow: ellipsis; white-spac
 <div class="layout">
 
 <nav class="nav" aria-label="Daftar tabel">
-  <a class="brand" href="#top"><span class="brand__mark">TA</span> TitipAnak</a>
+  <a class="brand" href="#top"><img class="brand__mark" src="{{ asset('images/logo-ikon-96.png') }}" alt="" width="44" height="44"> TitipAnak</a>
   @foreach ($groups as $group)
     <h2>{{ $group['title'] }}</h2>
     @foreach ($group['tables'] as $t)

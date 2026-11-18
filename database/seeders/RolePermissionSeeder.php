@@ -38,6 +38,7 @@ class RolePermissionSeeder extends Seeder
             'orang_tua' => [
                 'kelola pendaftaran sendiri',
                 'kelola data anak',
+                'lihat jadwal anak',
                 'bayar tagihan',
                 'kelola penjemput',
                 'ajukan izin penjemputan',

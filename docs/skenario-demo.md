@@ -32,3 +32,10 @@ Seeder mengisi kehadiran kemarin dan hari ini serta izin penjemputan, jadi demo 
 ## 5. Rekap dan penghapusan (PBI-16)
 1. Masuk sebagai Admin, buka **Rekap Kehadiran**. Filter tanggal, kelompok, dan nama. Ganti tampilan ke **Ringkasan per anak**.
 2. **Hapus** satu catatan: wajib alasan minimal 5 karakter. Penghapusan tercatat di tabel `log_penghapusan_kehadiran`.
+
+## 6. Orang tua melihat jadwal anak (PBI-15f)
+1. Masuk sebagai orang tua (misalnya `ortu1`), buka **Jadwal Anak**.
+2. Untuk setiap anak aktif tampil **pengasuh yang menjaga hari ini** (nama dan jam shift) dan **kegiatan harian** kelompok usianya, berurutan menurut jam. Kegiatan yang sedang berlangsung ditandai.
+3. Halaman hanya baca. Orang tua hanya melihat anaknya sendiri.
+
+Catatan: setelah menarik kode ini, jalankan `php artisan db:seed --class=RolePermissionSeeder` (atau `migrate:fresh --seed`) agar permission `lihat jadwal anak` terdaftar.

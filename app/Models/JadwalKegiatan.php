@@ -76,6 +76,30 @@ class JadwalKegiatan extends Model
             ->groupBy('kelompok_usia_id');
     }
 
+    /**
+     * Kegiatan yang berlaku pada tanggal itu untuk kelompok-kelompok usia tertentu, urut jam,
+     * dikelompokkan per kelompok usia.
+     *
+     * @param  iterable<int>  $kelompokIds
+     * @return Collection<int, Collection<int, JadwalKegiatan>>
+     */
+    public static function harianUntukKelompok(iterable $kelompokIds, CarbonInterface $tanggal): Collection
+    {
+        $ids = collect($kelompokIds)->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return new Collection;
+        }
+
+        return static::query()
+            ->whereIn('kelompok_usia_id', $ids)
+            ->padaTanggal($tanggal)
+            ->orderBy('jam_mulai')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('kelompok_usia_id');
+    }
+
     public function labelHari(): string
     {
         return $this->hari === null ? 'Setiap hari' : (JadwalShift::HARI[$this->hari] ?? (string) $this->hari);

@@ -10,6 +10,7 @@ use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Admin\RekapKehadiran;
 use App\Livewire\Dashboard;
+use App\Livewire\OrangTua\JadwalAnak;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\Pengasuh\CheckOut;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
@@ -55,6 +56,13 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
+        });
+
+    Route::middleware('permission:lihat jadwal anak')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('jadwal-anak', JadwalAnak::class)->name('jadwal-anak');
         });
 
     Route::middleware('permission:lihat jadwal sendiri')

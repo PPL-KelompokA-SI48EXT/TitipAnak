@@ -54,6 +54,31 @@ class JadwalShift extends Model
     }
 
     /**
+     * Pengasuh yang bertugas pada tanggal itu di kelompok-kelompok usia tertentu, urut jam,
+     * dikelompokkan per kelompok usia. Hanya nama pengasuh yang dimuat (dipakai untuk tampilan orang tua).
+     *
+     * @param  iterable<int>  $kelompokIds
+     * @return Collection<int, Collection<int, JadwalShift>>
+     */
+    public static function bertugasUntukKelompok(iterable $kelompokIds, CarbonInterface $tanggal): Collection
+    {
+        $ids = collect($kelompokIds)->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return new Collection;
+        }
+
+        return static::query()
+            ->whereIn('kelompok_usia_id', $ids)
+            ->padaTanggal($tanggal)
+            ->with('pengasuh:id,nama')
+            ->orderBy('jam_mulai')
+            ->orderBy('id')
+            ->get()
+            ->groupBy('kelompok_usia_id');
+    }
+
+    /**
      * Seluruh pola shift mingguan pengasuh, urut hari lalu jam.
      *
      * @return Collection<int, JadwalShift>

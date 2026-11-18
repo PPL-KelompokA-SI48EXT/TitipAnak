@@ -647,4 +647,41 @@ class TagihanIndexTest extends TestCase
                 ->assertStatus(404);
         }
     }
+
+    public function test_admin_dapat_mencari_tagihan_berdasarkan_nomor_atau_nama_orang_tua(): void
+    {
+        $ortu1 = User::factory()->create(['nama' => 'Budi Santoso'])->assignRole('orang_tua');
+        $ortu2 = User::factory()->create(['nama' => 'Siti Rahma'])->assignRole('orang_tua');
+
+        $paket1 = PaketLayanan::create(['nama' => 'Paket A', 'harga' => 1500000, 'aktif' => true]);
+        $pend1 = DB::table('pendaftaran')->insertGetId([
+            'orang_tua_id' => $ortu1->id,
+            'paket_layanan_id' => $paket1->id,
+            'status' => 'disetujui',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $tagihan1 = $this->buatTagihan($pend1, 1500000, 'belum_lunas');
+        $nomor1 = DB::table('tagihan')->where('id', $tagihan1)->value('nomor_tagihan');
+
+        $paket2 = PaketLayanan::create(['nama' => 'Paket B', 'harga' => 2000000, 'aktif' => true]);
+        $pend2 = DB::table('pendaftaran')->insertGetId([
+            'orang_tua_id' => $ortu2->id,
+            'paket_layanan_id' => $paket2->id,
+            'status' => 'disetujui',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        $tagihan2 = $this->buatTagihan($pend2, 2000000, 'belum_lunas');
+        $nomor2 = DB::table('tagihan')->where('id', $tagihan2)->value('nomor_tagihan');
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->set('cariTagihan', 'Budi')
+            ->assertViewHas('tagihan', fn ($list) => $list->contains('id', $tagihan1) && ! $list->contains('id', $tagihan2))
+            ->set('cariTagihan', $nomor2)
+            ->assertViewHas('tagihan', fn ($list) => $list->contains('id', $tagihan2) && ! $list->contains('id', $tagihan1))
+            ->set('cariTagihan', '')
+            ->assertViewHas('tagihan', fn ($list) => $list->contains('id', $tagihan1) && $list->contains('id', $tagihan2));
+    }
 }

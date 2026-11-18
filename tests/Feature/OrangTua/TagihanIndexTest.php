@@ -386,4 +386,27 @@ class TagihanIndexTest extends TestCase
 
         $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId]);
     }
+
+    public function test_orang_tua_dapat_melihat_alasan_penolakan_bukti_pembayaran(): void
+    {
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        DB::table('pembayaran')->insert([
+            'tagihan_id' => $tagihanId,
+            'diajukan_oleh_id' => $this->orangTua->id,
+            'jumlah' => 1500000,
+            'status' => 'ditolak',
+            'catatan' => 'Nominal transfer kurang Rp 50.000',
+            'path_bukti' => 'pembayaran-bukti/ditolak.png',
+            'diajukan_pada' => now(),
+            'diverifikasi_pada' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->assertSee('Bukti ditolak:')
+            ->assertSee('Nominal transfer kurang Rp 50.000')
+            ->assertSee('Unggah bukti');
+    }
 }

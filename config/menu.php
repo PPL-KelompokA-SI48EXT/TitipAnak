@@ -27,12 +27,7 @@ return [
         'group' => 'Admin',
         'items' => [
             ['label' => 'Akun Pengguna', 'icon' => '👥', 'route' => null, 'permission' => 'kelola akun'],
-            [
-                'label' => 'Master Data', 'icon' => '🗂️', 'permission' => 'kelola master data',
-                'children' => [
-                    ['label' => 'Paket Layanan', 'route' => 'admin.paket-layanan.index'],
-                ],
-            ],
+            ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'admin.paket-layanan.index', 'permission' => 'kelola master data'],
             ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
             ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => 'admin.tagihan.index', 'permission' => 'kelola tagihan'],
             [

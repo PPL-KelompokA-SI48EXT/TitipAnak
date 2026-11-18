@@ -57,12 +57,21 @@
     </section>
 
     <section aria-labelledby="daftar-tagihan-heading">
-        <div class="mb-4 flex items-end justify-between gap-4">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
             <div>
                 <h2 id="daftar-tagihan-heading" class="text-xl font-bold text-ink">Daftar Tagihan</h2>
                 <p class="mt-1 text-sm text-muted">Pantau jumlah dan status tagihan yang sudah diterbitkan.</p>
             </div>
-            <span class="inline-flex rounded-full border border-ink bg-yellow px-3 py-1 text-xs font-semibold text-ink">{{ $tagihan->count() }} tagihan</span>
+            <div class="flex items-center gap-3">
+                <input
+                    type="search"
+                    wire:model.live.debounce.300ms="cariTagihan"
+                    placeholder="Cari nomor / orang tua…"
+                    aria-label="Cari tagihan"
+                    class="rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs text-ink focus-visible:bg-cream focus-visible:outline-2 focus-visible:outline-yellow"
+                >
+                <span class="inline-flex whitespace-nowrap rounded-full border border-ink bg-yellow px-3 py-1 text-xs font-semibold text-ink">{{ $tagihan->count() }} tagihan</span>
+            </div>
         </div>
 
         @if ($tagihan->isEmpty())
@@ -88,29 +97,29 @@
                     <tbody>
                         @foreach ($tagihan as $item)
                             <tr wire:key="tagihan-{{ $item->id }}" class="border-b border-ink last:border-b-0 even:bg-cream">
-                                <td class="px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
                                 <td class="px-4 py-3 text-ink">{{ $item->nama_orang_tua }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $item->nama_paket }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah, 2, ',', '.') }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diterbitkan_pada)->format('d/m/Y') }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-muted">{{ $item->jatuh_tempo ? \Carbon\Carbon::parse($item->jatuh_tempo)->format('d/m/Y') : '—' }}</td>
-                                <td class="px-4 py-3">
-                                    <span class="inline-flex rounded-full border border-ink px-3 py-1 text-xs font-semibold text-ink {{ $item->status === 'lunas' ? 'bg-mint' : 'bg-coral' }}">
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink px-3 py-1 text-xs font-semibold text-ink {{ $item->status === 'lunas' ? 'bg-mint' : 'bg-coral' }}">
                                         {{ $item->status === 'lunas' ? 'Lunas' : 'Belum Lunas' }}
                                     </span>
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex flex-wrap gap-2">
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    <div class="flex items-center gap-2">
                                         @if ($item->status === 'belum_lunas')
-                                            <button id="ubah-tagihan-{{ $item->id }}" type="button" wire:click="mulaiEditTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="mulaiEditTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah nominal</button>
+                                            <button id="ubah-tagihan-{{ $item->id }}" type="button" wire:click="mulaiEditTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="mulaiEditTagihan({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Ubah nominal</button>
 
                                             @if ((int) $item->jumlah_pembayaran === 0)
-                                                <button id="hapus-tagihan-{{ $item->id }}" type="button" wire:click="bukaKonfirmasiHapusTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="bukaKonfirmasiHapusTagihan({{ $item->id }})" class="inline-flex min-h-10 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-2 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Hapus</button>
+                                                <button id="hapus-tagihan-{{ $item->id }}" type="button" wire:click="bukaKonfirmasiHapusTagihan({{ $item->id }})" wire:loading.attr="disabled" wire:target="bukaKonfirmasiHapusTagihan({{ $item->id }})" class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Hapus</button>
                                             @else
-                                                <span class="self-center text-xs text-muted">Memiliki pembayaran</span>
+                                                <span class="text-xs font-medium text-muted">Memiliki pembayaran</span>
                                             @endif
                                         @else
-                                            <span class="self-center text-xs text-muted">Tidak dapat dihapus</span>
+                                            <span class="text-xs font-medium text-muted">Tidak dapat dihapus</span>
                                         @endif
                                     </div>
                                 </td>
@@ -167,30 +176,37 @@
                     <tbody>
                         @foreach ($daftarPembayaran as $item)
                             <tr wire:key="pembayaran-masuk-{{ $item->id }}" class="border-b border-ink last:border-b-0 even:bg-cream">
-                                <td class="px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
                                 <td class="px-4 py-3 text-ink">{{ $item->nama_orang_tua }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $item->nama_paket }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah_tagihan, 2, ',', '.') }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah_bayar, 2, ',', '.') }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diajukan_pada)->format('d/m/Y H:i') }}</td>
-                                <td class="px-4 py-3">
-                                    @if ($item->status_pembayaran === 'terverifikasi')
-                                        <span class="inline-flex rounded-full border border-ink bg-mint px-2.5 py-1 text-xs font-semibold text-ink">Terverifikasi</span>
-                                    @elseif ($item->status_pembayaran === 'ditolak')
-                                        <span class="inline-flex rounded-full border border-ink bg-coral px-2.5 py-1 text-xs font-semibold text-ink">Ditolak</span>
-                                    @else
-                                        <span class="inline-flex rounded-full border border-ink bg-yellow px-2.5 py-1 text-xs font-semibold text-ink">Menunggu</span>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">
+                                    <span>Rp {{ number_format((float) $item->jumlah_bayar, 2, ',', '.') }}</span>
+                                    @if ((float) $item->jumlah_bayar !== (float) $item->jumlah_tagihan)
+                                        <span class="ml-1 inline-flex items-center rounded border border-[#B02E12] bg-coral/20 px-1.5 py-0.5 text-[10px] font-bold text-[#B02E12]" title="Nominal bukti berbeda dengan nominal tagihan">
+                                            Beda nominal
+                                        </span>
                                     @endif
                                 </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex flex-wrap gap-2">
+                                <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diajukan_pada)->format('d/m/Y H:i') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    @if ($item->status_pembayaran === 'terverifikasi')
+                                        <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink bg-mint px-2.5 py-1 text-xs font-semibold text-ink">Terverifikasi</span>
+                                    @elseif ($item->status_pembayaran === 'ditolak')
+                                        <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink bg-coral px-2.5 py-1 text-xs font-semibold text-ink">Ditolak</span>
+                                    @else
+                                        <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink bg-yellow px-2.5 py-1 text-xs font-semibold text-ink">Menunggu</span>
+                                    @endif
+                                </td>
+                                <td class="whitespace-nowrap px-4 py-3">
+                                    <div class="grid grid-cols-2 gap-1.5 w-max">
                                         <button
                                             id="lihat-bukti-{{ $item->id }}"
                                             type="button"
                                             wire:click="lihatBukti({{ $item->id }})"
                                             wire:loading.attr="disabled"
                                             wire:target="lihatBukti({{ $item->id }})"
-                                            class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                            class="inline-flex min-h-8 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-2.5 py-1 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Lihat bukti
                                         </button>
@@ -200,7 +216,7 @@
                                             wire:click="unduhBukti({{ $item->id }})"
                                             wire:loading.attr="disabled"
                                             wire:target="unduhBukti({{ $item->id }})"
-                                            class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                            class="inline-flex min-h-8 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-2.5 py-1 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             Unduh
                                         </button>
@@ -212,7 +228,7 @@
                                                 wire:click="bukaKonfirmasiVerifikasi({{ $item->id }})"
                                                 wire:loading.attr="disabled"
                                                 wire:target="bukaKonfirmasiVerifikasi({{ $item->id }})"
-                                                class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-mint px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-mint active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                                class="inline-flex min-h-8 items-center justify-center rounded-ta border-[1.5px] border-ink bg-mint px-2.5 py-1 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-mint active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 Verifikasi
                                             </button>
@@ -222,7 +238,7 @@
                                                 wire:click="bukaKonfirmasiTolak({{ $item->id }})"
                                                 wire:loading.attr="disabled"
                                                 wire:target="bukaKonfirmasiTolak({{ $item->id }})"
-                                                class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                                class="inline-flex min-h-8 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-2.5 py-1 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
                                             >
                                                 Tolak
                                             </button>
@@ -272,7 +288,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="hapus-tagihan-dialog-{{ $deletingTagihanId }}"
             wire:keydown.escape="batalHapusTagihan">
             <dialog
@@ -282,7 +298,7 @@
                 aria-modal="true"
                 aria-labelledby="hapus-tagihan-heading"
                 aria-describedby="hapus-tagihan-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
                 <div class="grid gap-5 p-6">
                     <div>
                         <h2 id="hapus-tagihan-heading" class="text-xl font-bold">Hapus tagihan?</h2>
@@ -335,7 +351,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="ubah-tagihan-dialog-{{ $editingTagihanId }}"
             wire:keydown.escape="batalEditTagihan">
             <dialog
@@ -344,7 +360,7 @@
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="ubah-tagihan-heading"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
                 <form wire:submit="simpanEditTagihan" class="grid gap-5 p-6">
                     <div>
                         <h2 id="ubah-tagihan-heading" class="text-xl font-bold">Ubah nominal tagihan</h2>
@@ -402,7 +418,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="terbitkan-tagihan-dialog-{{ $penerbitanId }}"
             wire:keydown.escape="batalPenerbitan">
             <dialog
@@ -412,7 +428,7 @@
                 aria-modal="true"
                 aria-labelledby="terbitkan-tagihan-heading"
                 aria-describedby="terbitkan-tagihan-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
                 <div class="grid gap-5 p-6">
                     <div>
                         <h2 id="terbitkan-tagihan-heading" class="text-xl font-bold">Terbitkan tagihan?</h2>
@@ -464,7 +480,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4 overflow-y-auto"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="lihat-bukti-dialog-{{ $viewingPembayaranId }}"
             wire:keydown.escape="tutupLihatBukti"
         >
@@ -475,7 +491,7 @@
                 aria-modal="true"
                 aria-labelledby="lihat-bukti-heading"
                 aria-describedby="lihat-bukti-description"
-                class="m-0 my-8 w-full max-w-2xl rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+                class="relative m-0 mx-auto my-auto w-full max-w-2xl rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
             >
                 <div class="grid gap-5 p-6">
                     <div class="flex items-start justify-between gap-4 border-b border-ink/20 pb-4">
@@ -647,7 +663,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="verifikasi-pembayaran-dialog-{{ $verifyingPembayaranId }}"
             wire:keydown.escape="batalVerifikasi"
         >
@@ -658,7 +674,7 @@
                 aria-modal="true"
                 aria-labelledby="verifikasi-heading"
                 aria-describedby="verifikasi-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
             >
                 <form wire:submit="verifikasiPembayaran" class="grid gap-5 p-6">
                     <div>
@@ -726,7 +742,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="tolak-pembayaran-dialog-{{ $rejectingPembayaranId }}"
             wire:keydown.escape="batalTolak"
         >
@@ -737,7 +753,7 @@
                 aria-modal="true"
                 aria-labelledby="tolak-heading"
                 aria-describedby="tolak-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
             >
                 <form wire:submit="tolakPembayaran" class="grid gap-5 p-6">
                     <div>

@@ -29,6 +29,8 @@ class TagihanIndex extends Component
 
     public string $filterPembayaran = '';
 
+    public string $cariTagihan = '';
+
     public ?int $verifyingPembayaranId = null;
 
     public string $verifyingNomorTagihan = '';
@@ -443,6 +445,39 @@ class TagihanIndex extends Component
             $queryPembayaran->where('pb.status', $this->filterPembayaran);
         }
 
+        $queryTagihan = DB::table('tagihan as t')
+            ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
+            ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
+            ->join('paket_layanan as pl', 'pl.id', '=', 'p.paket_layanan_id')
+            ->whereNull('t.deleted_at')
+            ->select([
+                't.id',
+                't.nomor_tagihan',
+                't.jumlah',
+                't.status',
+                't.diterbitkan_pada',
+                't.jatuh_tempo',
+                'p.id as pendaftaran_id',
+                'u.nama as nama_orang_tua',
+                'pl.nama as nama_paket',
+            ])
+            ->selectSub(
+                DB::table('pembayaran')
+                    ->selectRaw('count(*)')
+                    ->whereColumn('pembayaran.tagihan_id', 't.id'),
+                'jumlah_pembayaran'
+            )
+            ->orderByDesc('t.diterbitkan_pada')
+            ->orderByDesc('t.id');
+
+        if ($this->cariTagihan !== '') {
+            $cari = '%'.trim($this->cariTagihan).'%';
+            $queryTagihan->where(function ($q) use ($cari) {
+                $q->where('t.nomor_tagihan', 'like', $cari)
+                    ->orWhere('u.nama', 'like', $cari);
+            });
+        }
+
         return view('livewire.admin.tagihan-index', [
             'pendaftaran' => DB::table('pendaftaran as p')
                 ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
@@ -457,31 +492,7 @@ class TagihanIndex extends Component
                 ])
                 ->orderBy('p.id')
                 ->get(),
-            'tagihan' => DB::table('tagihan as t')
-                ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
-                ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
-                ->join('paket_layanan as pl', 'pl.id', '=', 'p.paket_layanan_id')
-                ->whereNull('t.deleted_at')
-                ->select([
-                    't.id',
-                    't.nomor_tagihan',
-                    't.jumlah',
-                    't.status',
-                    't.diterbitkan_pada',
-                    't.jatuh_tempo',
-                    'p.id as pendaftaran_id',
-                    'u.nama as nama_orang_tua',
-                    'pl.nama as nama_paket',
-                ])
-                ->selectSub(
-                    DB::table('pembayaran')
-                        ->selectRaw('count(*)')
-                        ->whereColumn('pembayaran.tagihan_id', 't.id'),
-                    'jumlah_pembayaran'
-                )
-                ->orderByDesc('t.diterbitkan_pada')
-                ->orderByDesc('t.id')
-                ->get(),
+            'tagihan' => $queryTagihan->get(),
             'daftarPembayaran' => $queryPembayaran->get(),
             'detailPembayaran' => $this->viewingPembayaranId ? $this->getDetailPembayaran($this->viewingPembayaranId) : null,
         ]);

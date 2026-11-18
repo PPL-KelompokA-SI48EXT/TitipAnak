@@ -2,11 +2,14 @@
 
 namespace Tests\Feature\Pengasuh;
 
+use App\Livewire\Pengasuh\PenjemputIndex;
 use App\Models\PaketLayanan;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PenjemputIndexTest extends TestCase
@@ -113,5 +116,34 @@ class PenjemputIndexTest extends TestCase
         $this->actingAs($this->orangTua)
             ->get(route('pengasuh.penjemput.index'))
             ->assertForbidden();
+    }
+
+    public function test_pengasuh_dapat_melihat_dan_menutup_foto_identitas_penjemput(): void
+    {
+        Storage::fake('local');
+        $path = 'penjemput-identitas/budi-foto.png';
+        Storage::disk('local')->put($path, 'dummy image content');
+
+        $anak = $this->buatAnak($this->orangTua, 'Anak Asuh');
+        $penjemputId = DB::table('penjemput_terdaftar')->insertGetId([
+            'anak_id' => $anak,
+            'nama_lengkap' => 'Budi Penjemput',
+            'hubungan' => 'Kakek',
+            'no_hp' => '081234567890',
+            'path_foto_identitas' => $path,
+            'aktif' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->pengasuh)
+            ->test(PenjemputIndex::class)
+            ->assertSee('Lihat foto')
+            ->call('lihatFoto', $penjemputId)
+            ->assertSet('viewingFotoId', $penjemputId)
+            ->assertSee('Foto Identitas Penjemput')
+            ->assertSee('Budi Penjemput')
+            ->call('tutupLihatFoto')
+            ->assertSet('viewingFotoId', null);
     }
 }

@@ -43,16 +43,16 @@
                     <tbody>
                         @foreach ($tagihan as $item)
                             <tr wire:key="tagihan-{{ $item->id }}" class="border-b border-ink last:border-b-0 even:bg-cream">
-                                <td class="px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
                                 <td class="px-4 py-3 text-muted">{{ $item->nama_paket }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah, 2, ',', '.') }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diterbitkan_pada)->format('d/m/Y') }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-muted">{{ $item->jatuh_tempo ? \Carbon\Carbon::parse($item->jatuh_tempo)->format('d/m/Y') : '—' }}</td>
-                                <td class="px-4 py-3">
+                                <td class="whitespace-nowrap px-4 py-3">
                                     @if ($item->status === 'lunas')
-                                        <span class="inline-flex rounded-full border border-ink bg-green-200 px-2.5 py-1 text-xs font-semibold text-ink">Lunas</span>
+                                        <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink bg-mint px-2.5 py-1 text-xs font-semibold text-ink">Lunas</span>
                                     @else
-                                        <span class="inline-flex rounded-full border border-ink bg-coral/30 px-2.5 py-1 text-xs font-semibold text-ink">Belum Lunas</span>
+                                        <span class="inline-flex whitespace-nowrap items-center rounded-full border border-ink bg-coral/30 px-2.5 py-1 text-xs font-semibold text-ink">Belum Lunas</span>
                                     @endif
                                 </td>
                                 <td class="px-4 py-3">
@@ -75,6 +75,11 @@
                                     @elseif ((int) $item->jumlah_pembayaran_aktif > 0)
                                         <span class="text-xs font-semibold text-muted">Pembayaran terverifikasi</span>
                                     @else
+                                        @if ($item->status_pembayaran_terakhir === 'ditolak' && $item->catatan_penolakan_terakhir)
+                                            <div class="mb-2 max-w-xs rounded border border-[#B02E12] bg-coral/20 px-2.5 py-1.5 text-xs text-[#B02E12]">
+                                                <span class="font-bold">Bukti ditolak:</span> {{ $item->catatan_penolakan_terakhir }}
+                                            </div>
+                                        @endif
                                         <button
                                             id="unggah-bukti-{{ $item->id }}"
                                             type="button"
@@ -129,7 +134,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="unggah-bukti-dialog-{{ $uploadingTagihanId }}"
             wire:keydown.escape="batalUpload"
         >
@@ -140,7 +145,7 @@
                 aria-modal="true"
                 aria-labelledby="unggah-bukti-heading"
                 aria-describedby="unggah-bukti-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
             >
                 <form wire:submit="unggahBukti" class="grid gap-5 p-6">
                     <div>
@@ -200,7 +205,7 @@
             x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
             x-on:keydown="trapFocus($event)"
             x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
-            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            class="fixed inset-0 z-50 flex min-h-full items-center justify-center bg-ink/60 p-4 overflow-y-auto"
             wire:key="hapus-bukti-dialog-{{ $deletingPembayaranId }}"
             wire:keydown.escape="batalHapusPembayaran"
         >
@@ -211,7 +216,7 @@
                 aria-modal="true"
                 aria-labelledby="hapus-bukti-heading"
                 aria-describedby="hapus-bukti-description"
-                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+                class="relative m-0 mx-auto my-auto w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
             >
                 <div class="grid gap-5 p-6">
                     <div>

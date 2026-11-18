@@ -400,4 +400,34 @@ class PenjemputIndexTest extends TestCase
             ->assertSet('no_hp', '')
             ->assertSet('foto_identitas', null);
     }
+
+    public function test_orang_tua_dapat_melihat_dan_menutup_foto_identitas_penjemput(): void
+    {
+        Storage::fake('local');
+        $path = 'penjemput-identitas/budi-ktp.png';
+        Storage::disk('local')->put($path, 'dummy image content');
+
+        $penjemputId = $this->buatPenjemput($this->orangTua, 'Budi KTP', $path);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->assertSee('Lihat foto')
+            ->call('lihatFoto', $penjemputId)
+            ->assertSet('viewingFotoId', $penjemputId)
+            ->assertSee('Foto Identitas Penjemput')
+            ->assertSee('Budi KTP')
+            ->call('tutupLihatFoto')
+            ->assertSet('viewingFotoId', null);
+    }
+
+    public function test_orang_tua_dapat_membuka_dan_menutup_modal_tambah_penjemput(): void
+    {
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->assertSet('bukaModalForm', false)
+            ->call('bukaFormTambah')
+            ->assertSet('bukaModalForm', true)
+            ->call('batalEdit')
+            ->assertSet('bukaModalForm', false);
+    }
 }

@@ -198,6 +198,15 @@ class TagihanIndex extends Component
                         ->limit(1),
                     'status_pembayaran_terakhir'
                 )
+                ->selectSub(
+                    DB::table('pembayaran')
+                        ->select('catatan')
+                        ->whereColumn('pembayaran.tagihan_id', 't.id')
+                        ->where('status', 'ditolak')
+                        ->orderByDesc('id')
+                        ->limit(1),
+                    'catatan_penolakan_terakhir'
+                )
                 ->orderByDesc('t.diterbitkan_pada')
                 ->orderByDesc('t.id')
                 ->get(),

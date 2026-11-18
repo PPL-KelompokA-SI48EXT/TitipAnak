@@ -20,6 +20,8 @@ class PenjemputIndex extends Component
 
     public string $edit_id = '';
 
+    public bool $bukaModalForm = false;
+
     public ?int $deletingId = null;
 
     public string $deletingName = '';
@@ -31,6 +33,12 @@ class PenjemputIndex extends Component
     public string $no_hp = '';
 
     public $foto_identitas;
+
+    public ?int $viewingFotoId = null;
+
+    public ?string $previewFotoUrl = null;
+
+    public ?string $previewFotoNama = null;
 
     /**
      * @return array<string, mixed>
@@ -64,6 +72,15 @@ class PenjemputIndex extends Component
         ];
     }
 
+    public function bukaFormTambah(): void
+    {
+        abort_unless(auth()->user()?->can('kelola penjemput'), 403);
+
+        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas');
+        $this->resetErrorBag();
+        $this->bukaModalForm = true;
+    }
+
     public function edit(int $id): void
     {
         abort_unless(auth()->user()?->can('kelola penjemput'), 403);
@@ -76,6 +93,8 @@ class PenjemputIndex extends Component
         $this->hubungan = $penjemput->hubungan;
         $this->no_hp = $penjemput->no_hp;
         $this->foto_identitas = null;
+        $this->resetErrorBag();
+        $this->bukaModalForm = true;
     }
 
     public function perbarui(): void
@@ -99,13 +118,36 @@ class PenjemputIndex extends Component
             $penjemput->update(['path_foto_identitas' => $path]);
         }
 
-        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas');
+        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas', 'bukaModalForm');
         session()->flash('sukses', 'Penjemput berhasil diperbarui.');
     }
 
     public function batalEdit(): void
     {
-        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas');
+        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas', 'bukaModalForm');
+        $this->resetErrorBag();
+    }
+
+    public function lihatFoto(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola penjemput'), 403);
+
+        $penjemput = $this->penjemputMilikUser($id);
+
+        $this->viewingFotoId = $penjemput->id;
+        $this->previewFotoNama = $penjemput->nama_lengkap;
+        $this->previewFotoUrl = null;
+
+        if ($penjemput->path_foto_identitas && Storage::disk('local')->exists($penjemput->path_foto_identitas)) {
+            $mime = Storage::disk('local')->mimeType($penjemput->path_foto_identitas);
+            $data = base64_encode(Storage::disk('local')->get($penjemput->path_foto_identitas));
+            $this->previewFotoUrl = 'data:'.$mime.';base64,'.$data;
+        }
+    }
+
+    public function tutupLihatFoto(): void
+    {
+        $this->reset('viewingFotoId', 'previewFotoUrl', 'previewFotoNama');
     }
 
     public function bukaKonfirmasiHapus(int $id): void
@@ -162,7 +204,8 @@ class PenjemputIndex extends Component
             'aktif' => true,
         ]);
 
-        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas');
+        $this->reset('edit_id', 'anak_id', 'nama_lengkap', 'hubungan', 'no_hp', 'foto_identitas', 'bukaModalForm');
+        $this->resetErrorBag();
         session()->flash('sukses', 'Penjemput berhasil ditambahkan.');
     }
 

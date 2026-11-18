@@ -66,9 +66,9 @@ class TagihanIndexTest extends TestCase
         ]);
     }
 
-    private function buatPembayaran(int $tagihanId, string $status = 'menunggu', string $path = 'pembayaran-bukti/lama.png'): void
+    private function buatPembayaran(int $tagihanId, string $status = 'menunggu', string $path = 'pembayaran-bukti/lama.png'): int
     {
-        DB::table('pembayaran')->insert([
+        return DB::table('pembayaran')->insertGetId([
             'tagihan_id' => $tagihanId,
             'diajukan_oleh_id' => $this->orangTua->id,
             'path_bukti' => $path,
@@ -233,6 +233,128 @@ class TagihanIndexTest extends TestCase
             ->assertStatus(404);
     }
 
+    public function test_orang_tua_dapat_menghapus_bukti_pembayaran_menunggu(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        $path = 'pembayaran-bukti/salah.png';
+        Storage::disk('local')->put($path, 'bukti salah');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', $path);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->assertSee('Menunggu verifikasi')
+            ->assertSee('Hapus bukti')
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->assertSet('deletingPembayaranId', $pembayaranId)
+            ->assertSee('Hapus bukti pembayaran?')
+            ->call('hapusPembayaran')
+            ->assertHasNoErrors()
+            ->assertSee('Bukti pembayaran berhasil dihapus.')
+            ->assertSee('Unggah bukti');
+
+        $this->assertDatabaseMissing('pembayaran', ['id' => $pembayaranId]);
+        Storage::disk('local')->assertMissing($path);
+        $this->assertDatabaseHas('tagihan', ['id' => $tagihanId]);
+    }
+
+    public function test_orang_tua_dapat_mengunggah_bukti_baru_setelah_menghapus_bukti_yang_salah(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        $pathSalah = 'pembayaran-bukti/salah.png';
+        Storage::disk('local')->put($pathSalah, 'bukti salah');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', $pathSalah);
+
+        $buktiBaru = UploadedFile::fake()->image('bukti-benar.jpg');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->call('hapusPembayaran')
+            ->assertHasNoErrors()
+            ->call('bukaFormUpload', $tagihanId)
+            ->set('buktiPembayaran', $buktiBaru)
+            ->call('unggahBukti')
+            ->assertHasNoErrors()
+            ->assertSee('Bukti pembayaran berhasil diunggah.')
+            ->assertSee('Menunggu verifikasi');
+
+        $this->assertDatabaseMissing('pembayaran', ['id' => $pembayaranId]);
+        Storage::disk('local')->assertMissing($pathSalah);
+
+        $pembayaranBaru = DB::table('pembayaran')->where('tagihan_id', $tagihanId)->first();
+        $this->assertNotNull($pembayaranBaru);
+        $this->assertSame('menunggu', $pembayaranBaru->status);
+        Storage::disk('local')->assertExists($pembayaranBaru->path_bukti);
+    }
+
+    public function test_orang_tua_dapat_membatalkan_hapus_bukti_pembayaran(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        $path = 'pembayaran-bukti/salah.png';
+        Storage::disk('local')->put($path, 'bukti salah');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', $path);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->call('batalHapusPembayaran')
+            ->assertSet('deletingPembayaranId', null)
+            ->assertSee('Menunggu verifikasi');
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId, 'status' => 'menunggu']);
+        Storage::disk('local')->assertExists($path);
+    }
+
+    public function test_bukti_pembayaran_yang_sudah_diverifikasi_atau_ditolak_tidak_dapat_dihapus(): void
+    {
+        foreach (['terverifikasi', 'ditolak'] as $status) {
+            $tagihanId = $this->buatTagihan($this->orangTua);
+            $pembayaranId = $this->buatPembayaran($tagihanId, $status);
+
+            Livewire::actingAs($this->orangTua)
+                ->test(TagihanIndex::class)
+                ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+                ->assertStatus(404);
+        }
+    }
+
+    public function test_orang_tua_tidak_dapat_menghapus_bukti_milik_orang_tua_lain(): void
+    {
+        Storage::fake('local');
+        $tagihanId = $this->buatTagihan($this->orangTuaLain);
+        $pembayaranId = DB::table('pembayaran')->insertGetId([
+            'tagihan_id' => $tagihanId,
+            'diajukan_oleh_id' => $this->orangTuaLain->id,
+            'path_bukti' => 'pembayaran-bukti/orang-lain.png',
+            'jumlah' => 1500000,
+            'status' => 'menunggu',
+            'diajukan_pada' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->assertStatus(404);
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId]);
+    }
+
+    public function test_bukti_pembayaran_tagihan_lunas_tidak_dapat_dihapus(): void
+    {
+        $tagihanId = $this->buatTagihan($this->orangTua, 'lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->assertStatus(404);
+    }
+
     public function test_tamu_diarahkan_ke_login(): void
     {
         $this->get(route('orang-tua.tagihan.index'))
@@ -244,5 +366,24 @@ class TagihanIndexTest extends TestCase
         $this->actingAs($this->pengasuh)
             ->get(route('orang-tua.tagihan.index'))
             ->assertForbidden();
+    }
+
+    public function test_pengguna_tanpa_permission_tidak_dapat_menghapus_bukti_pembayaran(): void
+    {
+        $tagihanId = $this->buatTagihan($this->orangTua);
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu');
+
+        Livewire::actingAs($this->pengasuh)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiHapusPembayaran', $pembayaranId)
+            ->assertForbidden();
+
+        Livewire::actingAs($this->pengasuh)
+            ->test(TagihanIndex::class)
+            ->set('deletingPembayaranId', $pembayaranId)
+            ->call('hapusPembayaran')
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId]);
     }
 }

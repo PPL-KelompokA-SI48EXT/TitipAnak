@@ -58,10 +58,22 @@
                                 <td class="px-4 py-3">
                                     @if ($item->status === 'lunas')
                                         <span class="text-xs text-muted">Tidak diperlukan</span>
+                                    @elseif ($item->pembayaran_menunggu_id !== null)
+                                        <div class="grid justify-items-start gap-2">
+                                            <span class="text-xs font-semibold text-muted">Menunggu verifikasi</span>
+                                            <button
+                                                id="hapus-bukti-{{ $item->pembayaran_menunggu_id }}"
+                                                type="button"
+                                                wire:click="bukaKonfirmasiHapusPembayaran({{ $item->pembayaran_menunggu_id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:target="bukaKonfirmasiHapusPembayaran({{ $item->pembayaran_menunggu_id }})"
+                                                class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Hapus bukti
+                                            </button>
+                                        </div>
                                     @elseif ((int) $item->jumlah_pembayaran_aktif > 0)
-                                        <span class="text-xs font-semibold text-muted">
-                                            {{ $item->status_pembayaran_terakhir === 'terverifikasi' ? 'Pembayaran terverifikasi' : 'Menunggu verifikasi' }}
-                                        </span>
+                                        <span class="text-xs font-semibold text-muted">Pembayaran terverifikasi</span>
                                     @else
                                         <button
                                             id="unggah-bukti-{{ $item->id }}"
@@ -150,6 +162,71 @@
                         </button>
                     </div>
                 </form>
+            </dialog>
+        </div>
+    @endif
+
+    @if ($deletingPembayaranId !== null)
+        <div
+            x-data="{
+                triggerId: 'hapus-bukti-{{ $deletingPembayaranId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="hapus-bukti-dialog-{{ $deletingPembayaranId }}"
+            wire:keydown.escape="batalHapusPembayaran"
+        >
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="hapus-bukti-heading"
+                aria-describedby="hapus-bukti-description"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+            >
+                <div class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="hapus-bukti-heading" class="text-xl font-bold">Hapus bukti pembayaran?</h2>
+                        <p id="hapus-bukti-description" class="mt-2 text-sm text-muted">Bukti untuk tagihan <strong>{{ $deletingPembayaranNomor }}</strong> akan dihapus permanen dan tidak dapat dipulihkan. Anda dapat mengunggah bukti baru setelahnya.</p>
+                    </div>
+
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalHapusPembayaran" wire:loading.attr="disabled" wire:target="batalHapusPembayaran,hapusPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="button" wire:click="hapusPembayaran" wire:loading.attr="disabled" wire:target="hapusPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="hapusPembayaran">Ya, hapus</span>
+                            <span wire:loading wire:target="hapusPembayaran">Menghapus…</span>
+                        </button>
+                    </div>
+                </div>
             </dialog>
         </div>
     @endif

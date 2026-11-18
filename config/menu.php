@@ -28,7 +28,7 @@ return [
         'items' => [
             ['label' => 'Akun Pengguna', 'icon' => '👥', 'route' => null, 'permission' => 'kelola akun'],
             ['label' => 'Paket Layanan', 'icon' => '📦', 'route' => 'admin.paket-layanan.index', 'permission' => 'kelola master data'],
-            ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => null, 'permission' => 'verifikasi pendaftaran'],
+            ['label' => 'Pendaftaran', 'icon' => '📝', 'route' => 'admin.pendaftaran.index', 'permission' => 'verifikasi pendaftaran'],
             ['label' => 'Tagihan & Pembayaran', 'icon' => '💳', 'route' => 'admin.tagihan.index', 'permission' => 'kelola tagihan'],
             [
                 'label' => 'Jadwal Shift', 'icon' => '🗓️', 'permission' => 'kelola jadwal',

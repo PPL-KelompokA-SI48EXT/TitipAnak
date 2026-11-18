@@ -9,6 +9,7 @@ use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\OrangTua\PendaftaranBuat;
+use App\Livewire\OrangTua\PendaftaranDetail;
 use App\Livewire\OrangTua\PendaftaranIndex;
 use App\Livewire\OrangTua\PenjemputIndex;
 use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
@@ -58,6 +59,7 @@ Route::middleware(['web', 'auth'])->group(function () {
             Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
             Route::get('pendaftaran', PendaftaranIndex::class)->name('pendaftaran.index');
             Route::get('pendaftaran/buat', PendaftaranBuat::class)->name('pendaftaran.buat');
+            Route::get('pendaftaran/{pendaftaran}', PendaftaranDetail::class)->whereNumber('pendaftaran')->name('pendaftaran.detail');
         });
 
     Route::middleware('permission:kelola penjemput')

@@ -2,6 +2,6 @@
     <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-2">
         <span><b class="text-ink">TitipAnak</b> · Manajemen Daycare</span>
         <span>Kelompok A SI48EXT · Tugas Besar PPL · Mendukung SDG 5.4</span>
-        <span>© {{ now()->year }}</span>
+        <span>© {{ now()->year }} · Ikon <a href="https://openmoji.org" target="_blank" rel="noopener" class="underline">OpenMoji</a> (CC BY-SA 4.0)</span>
     </div>
 </footer>

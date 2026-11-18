@@ -8,7 +8,7 @@
 
         @if (session('status'))
             <div role="status" class="mb-5 flex items-center gap-2.5 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm font-medium">
-                <span aria-hidden="true">✅</span>
+                <span aria-hidden="true"><x-ikon e="✅" /></span>
                 <span>{{ session('status') }}</span>
             </div>
         @endif
@@ -53,7 +53,7 @@
                         class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-sm text-muted hover:text-ink focus-visible:outline-none"
                         :aria-label="showPass ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
                     >
-                        <span x-text="showPass ? '🙈' : '👁️'">👁️</span>
+                        <span x-show="!showPass"><x-ikon e="👁️" /></span><span x-show="showPass" x-cloak><x-ikon e="🙈" /></span>
                     </button>
                 </div>
                 @error('password')
@@ -92,7 +92,7 @@
             <!-- <div class="mt-6 border-t-[1.5px] border-ink/20 pt-4 text-center">
                 <p class="text-xs text-muted mb-2">Sedang dalam lingkungan pengembangan?</p>
                 <a href="{{ route('dev.akun') }}" class="inline-flex items-center gap-1.5 rounded-full border border-ink bg-cream px-3 py-1 text-xs font-semibold hover:bg-yellow transition">
-                    <span>⚡ Buka Pemilih Akun Dev</span>
+                    <span><x-ikon e="⚡" /> Buka Pemilih Akun Dev</span>
                 </a>
             </div> -->
         {{-- @endif --}}

@@ -1,6 +1,8 @@
 @php
     // Satu warna pastel per kelompok usia (urut dari yang termuda), sama dengan jadwal shift.
     $palet = ['bg-yellow', 'bg-blue', 'bg-mint', 'bg-lavender', 'bg-coral'];
+    $warnaJenis = ['makan' => 'bg-yellow', 'bermain' => 'bg-blue', 'belajar' => 'bg-lavender', 'tidur' => 'bg-mint', 'lainnya' => 'bg-cream'];
+    $ikonJenis = ['makan' => '🍽️', 'bermain' => '🧩', 'belajar' => '📚', 'tidur' => '😴', 'lainnya' => '⭐'];
     $jam = fn ($k) => substr($k->jam_mulai, 0, 5).' – '.substr($k->jam_selesai, 0, 5);
     $input = 'rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow';
     $adaFilter = $kelompok !== '' || $hari !== '' || $jenis !== '';
@@ -20,14 +22,14 @@
 
     @if (session('galat'))
         <div role="alert" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-coral px-4 py-3 text-sm">
-            <span aria-hidden="true">⚠️</span>
+            <span aria-hidden="true"><x-ikon e="⚠" /></span>
             <span>{{ session('galat') }}</span>
         </div>
     @endif
 
     @if (session('sukses'))
         <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
-            <span aria-hidden="true">✅</span>
+            <span aria-hidden="true"><x-ikon e="✅" /></span>
             <span><b>Berhasil.</b> {{ session('sukses') }}</span>
         </div>
     @endif
@@ -68,6 +70,14 @@
         @endif
     </p>
 
+    @if ($tampil > 0)
+        <ul class="-mt-2 flex flex-wrap items-center gap-2 text-xs" aria-label="Keterangan warna jenis kegiatan">
+            @foreach ($jenisList as $kode => $label)
+                <li class="inline-flex items-center gap-1.5 rounded-full border border-ink px-3 py-1 font-semibold {{ $warnaJenis[$kode] ?? 'bg-cream' }}"><x-ikon :e="$ikonJenis[$kode] ?? '⭐'" /> {{ $label }}</li>
+            @endforeach
+        </ul>
+    @endif
+
     @if ($semua === 0)
         <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center">
             <div class="text-xl font-bold">Belum ada jadwal kegiatan</div>
@@ -90,37 +100,34 @@
                 @if ($daftar->isEmpty())
                     <p class="px-4 py-6 text-center text-sm text-muted">{{ $adaFilter ? 'Tidak ada kegiatan yang cocok dengan filter.' : 'Belum ada kegiatan untuk kelompok usia ini.' }}</p>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse text-sm">
-                            <thead>
-                                <tr class="bg-cream text-left">
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Hari</th>
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Jam</th>
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Kegiatan</th>
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Jenis</th>
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Catatan</th>
-                                    <th class="whitespace-nowrap border-b border-ink px-4 py-2 font-bold">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($daftar as $g)
-                                    <tr wire:key="kegiatan-{{ $g->id }}" class="border-b border-ink last:border-b-0">
-                                        <td class="whitespace-nowrap px-4 py-2 font-semibold">{{ $g->labelHari() }}</td>
-                                        <td class="whitespace-nowrap px-4 py-2">{{ $jam($g) }}</td>
-                                        <td class="px-4 py-2">{{ $g->nama_kegiatan }}</td>
-                                        <td class="px-4 py-2"><span class="rounded-full border border-ink bg-cream px-3 py-0.5 text-xs font-semibold">{{ $g->labelJenis() }}</span></td>
-                                        <td class="px-4 py-2 text-muted">{{ $g->catatan ?: '—' }}</td>
-                                        <td class="whitespace-nowrap px-4 py-2">
-                                            <a href="{{ route('admin.jadwal-kegiatan.ubah', $g) }}" class="font-semibold underline"
-                                                aria-label="Ubah kegiatan {{ $g->nama_kegiatan }}">Ubah</a>
-                                            <button type="button" wire:click="konfirmasiHapus({{ $g->id }})" class="ml-3 font-semibold underline"
-                                                aria-label="Hapus kegiatan {{ $g->nama_kegiatan }}">Hapus</button>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                    <ol class="grid gap-3 p-4">
+                        @foreach ($daftar as $g)
+                            <li wire:key="kegiatan-{{ $g->id }}" class="grid gap-2 sm:grid-cols-[8.5rem_1fr] sm:gap-4">
+                                <div class="sm:pt-3">
+                                    <div class="whitespace-nowrap text-sm font-bold">{{ $jam($g) }}</div>
+                                    <div class="text-xs text-muted">{{ $g->labelHari() }}</div>
+                                </div>
+                                <div class="flex flex-wrap items-start justify-between gap-3 rounded-ta border-[1.5px] border-ink px-4 py-3 {{ $warnaJenis[$g->jenis_kegiatan] ?? 'bg-cream' }}">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span aria-hidden="true"><x-ikon :e="$ikonJenis[$g->jenis_kegiatan] ?? '⭐'" /></span>
+                                            <span class="font-bold">{{ $g->nama_kegiatan }}</span>
+                                            <span class="rounded-full border border-ink bg-paper px-3 py-0.5 text-xs font-semibold">{{ $g->labelJenis() }}</span>
+                                        </div>
+                                        @if ($g->catatan)
+                                            <p class="mt-1 text-sm">{{ $g->catatan }}</p>
+                                        @endif
+                                    </div>
+                                    <div class="flex shrink-0 items-center gap-2 text-sm">
+                                        <a href="{{ route('admin.jadwal-kegiatan.ubah', $g) }}" class="rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1 font-semibold transition hover:bg-cream"
+                                            aria-label="Ubah kegiatan {{ $g->nama_kegiatan }}">Ubah</a>
+                                        <button type="button" wire:click="konfirmasiHapus({{ $g->id }})" class="rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1 font-semibold transition hover:bg-cream"
+                                            aria-label="Hapus kegiatan {{ $g->nama_kegiatan }}">Hapus</button>
+                                    </div>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ol>
                 @endif
             </section>
         @endforeach

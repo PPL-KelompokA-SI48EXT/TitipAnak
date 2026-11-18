@@ -12,7 +12,7 @@
 
     @if (session('sukses'))
         <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
-            <span aria-hidden="true">✅</span>
+            <span aria-hidden="true"><x-ikon e="✅" /></span>
             <span><b>Berhasil.</b> {{ session('sukses') }}</span>
         </div>
     @endif

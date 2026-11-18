@@ -34,7 +34,7 @@
                     <ul class="flex flex-wrap gap-2">
                         @foreach ($daftarPengasuh as $s)
                             <li wire:key="shift-{{ $s->id }}" class="flex items-center gap-2 rounded-ta border-[1.5px] border-ink bg-blue px-3 py-1.5 text-sm">
-                                <span aria-hidden="true">🧑‍🍼</span>
+                                <span aria-hidden="true"><x-ikon e="🧑‍🍼" /></span>
                                 <span class="font-semibold">{{ $s->pengasuh?->nama ?? 'Pengasuh' }}</span>
                                 <span class="text-muted">{{ $jam($s) }}</span>
                             </li>

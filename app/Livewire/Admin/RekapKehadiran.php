@@ -149,8 +149,23 @@ class RekapKehadiran extends Component
 
         $perAnak = $this->tampilan === 'anak';
 
+        // Angka ringkas untuk kartu di atas daftar, memakai filter yang sama dengan rekap().
+        $catatan = Kehadiran::rekap($filter)->setEagerLoads([])->reorder()->get(['anak_id', 'check_in_pada', 'check_out_pada']);
+        $selesai = $catatan->whereNotNull('check_out_pada');
+        $rataDatang = $catatan->avg(fn (Kehadiran $k) => $k->check_in_pada->hour * 60 + $k->check_in_pada->minute);
+        $rataDi = $selesai->avg(fn (Kehadiran $k) => $k->check_in_pada->diffInMinutes($k->check_out_pada, true));
+        $statistik = [
+            'total' => $catatan->count(),
+            'anak' => $catatan->pluck('anak_id')->unique()->count(),
+            'pulang' => $selesai->count(),
+            'masih' => $catatan->count() - $selesai->count(),
+            'rata_datang' => $rataDatang === null ? null : sprintf('%02d:%02d', intdiv((int) round($rataDatang), 60), (int) round($rataDatang) % 60),
+            'rata_menit_di' => $rataDi === null ? null : (int) round($rataDi),
+        ];
+
         return view('livewire.admin.rekap-kehadiran', [
             'perAnak' => $perAnak,
+            'statistik' => $statistik,
             'baris' => $perAnak ? null : Kehadiran::rekap($filter)->paginate(self::PER_HALAMAN),
             'ringkasan' => $perAnak ? Kehadiran::ringkasanPerAnak($filter) : collect(),
             'total' => $perAnak ? Kehadiran::rekap($filter)->count() : null,

@@ -1,6 +1,8 @@
 @php
     $jam = fn ($j) => substr($j->jam_mulai, 0, 5).' – '.substr($j->jam_selesai, 0, 5);
     $palet = ['bg-yellow', 'bg-blue', 'bg-mint', 'bg-lavender', 'bg-coral'];
+    $sekarang = now()->format('H:i');
+    $ikonHari = [1 => '🌱', 2 => '🌼', 3 => '🌈', 4 => '🍀', 5 => '🎉', 6 => '🧸', 7 => '☀️'];
 @endphp
 
 <div class="grid gap-8">
@@ -17,15 +19,22 @@
 
         @forelse ($shiftHariIni as $s)
             @php $anak = $s->kelompokUsia?->anak ?? collect(); @endphp
-            <article wire:key="hari-ini-{{ $s->id }}" class="grid gap-4 rounded-ta border-[1.5px] border-ink bg-paper p-5">
-                <div class="flex flex-wrap items-center justify-between gap-3">
+            @php $berlangsung = $sekarang >= substr($s->jam_mulai, 0, 5) && $sekarang < substr($s->jam_selesai, 0, 5); @endphp
+            <article wire:key="hari-ini-{{ $s->id }}" class="overflow-hidden rounded-ta border-[1.5px] border-ink bg-paper">
+                <div class="flex flex-wrap items-center justify-between gap-3 border-b-[1.5px] border-ink bg-mint px-5 py-4">
                     <div>
-                        <div class="text-lg font-bold">{{ $s->kelompokUsia?->nama ?? '—' }}</div>
-                        <div class="text-sm text-muted">Shift {{ $jam($s) }}</div>
+                        <div class="text-2xl font-bold leading-tight">{{ $s->kelompokUsia?->nama ?? '—' }}</div>
+                        <div class="text-sm">Shift {{ $jam($s) }}</div>
                     </div>
-                    <span class="rounded-full border border-ink bg-yellow px-3 py-1 text-sm font-semibold">{{ $anak->count() }} anak</span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @if ($berlangsung)
+                            <span class="rounded-full border border-ink bg-yellow px-3 py-1 text-sm font-semibold">● Sedang bertugas</span>
+                        @endif
+                        <span class="rounded-full border border-ink bg-paper px-3 py-1 text-sm font-semibold">{{ $anak->count() }} anak</span>
+                    </div>
                 </div>
 
+                <div class="grid gap-4 p-5">
                 @if ($anak->isEmpty())
                     <p class="rounded-ta border-[1.5px] border-dashed border-ink bg-cream px-4 py-6 text-center text-sm text-muted">
                         Belum ada anak aktif di kelompok usia ini.
@@ -40,6 +49,7 @@
                         @endforeach
                     </ul>
                 @endif
+                </div>
             </article>
         @empty
             <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-10 text-center">
@@ -59,27 +69,29 @@
                 <p class="mt-1 text-sm text-muted">Admin belum menetapkan shift untuk Anda.</p>
             </div>
         @else
-            <div class="overflow-x-auto rounded-ta border-[1.5px] border-ink bg-paper">
-                <table class="w-full border-collapse text-sm">
-                    <thead>
-                        <tr class="bg-yellow text-left">
-                            <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Hari</th>
-                            <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Jam</th>
-                            <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Kelompok usia</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($hariList as $nomor => $nama)
-                            @foreach ($pola->get($nomor, collect()) as $s)
-                                <tr wire:key="pola-{{ $s->id }}" class="border-b border-ink last:border-b-0 {{ $nomor === $hariIni->dayOfWeekIso ? 'bg-yellow/40' : '' }}">
-                                    <td class="whitespace-nowrap px-4 py-3 font-semibold">{{ $nama }}@if ($nomor === $hariIni->dayOfWeekIso) <span class="ml-1 text-xs text-muted">(hari ini)</span>@endif</td>
-                                    <td class="whitespace-nowrap px-4 py-3">{{ $jam($s) }}</td>
-                                    <td class="px-4 py-3">{{ $s->kelompokUsia?->nama ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-3">
+                @foreach ($hariList as $nomor => $nama)
+                    @php
+                        $shiftHari = $pola->get($nomor, collect());
+                        $hariIniIni = $nomor === $hariIni->dayOfWeekIso;
+                    @endphp
+                    <div wire:key="hari-{{ $nomor }}" class="flex flex-col overflow-hidden rounded-ta border-[1.5px] border-ink bg-paper {{ $hariIniIni ? 'outline-3 outline-yellow' : '' }}">
+                        <div class="border-b-[1.5px] border-ink px-3 py-2 {{ $hariIniIni ? 'bg-yellow' : 'bg-cream' }}">
+                            <div class="font-bold"><x-ikon :e="$ikonHari[$nomor]" /> {{ $nama }}</div>
+                            @if ($hariIniIni)<div class="text-xs font-semibold">(hari ini)</div>@endif
+                        </div>
+                        <div class="grid flex-1 content-start gap-2 p-3">
+                            @forelse ($shiftHari as $s)
+                                <div wire:key="pola-{{ $s->id }}" class="rounded-ta border-[1.5px] border-ink px-3 py-2 {{ $palet[($s->kelompok_usia_id ?? 0) % count($palet)] }}">
+                                    <div class="whitespace-nowrap text-sm font-bold">{{ $jam($s) }}</div>
+                                    <div class="text-xs">{{ $s->kelompokUsia?->nama ?? '—' }}</div>
+                                </div>
+                            @empty
+                                <p class="py-2 text-center text-sm text-muted">Libur</p>
+                            @endforelse
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @endif
     </section>

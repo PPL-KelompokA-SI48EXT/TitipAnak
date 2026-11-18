@@ -131,13 +131,13 @@ td .text { display: block; overflow: hidden; text-overflow: ellipsis; white-spac
   </section>
 
   <div class="banner">
-    <span>🔑</span>
+    <span><x-ikon e="🔑" /></span>
     <span>Semua akun memakai kata sandi <code>password</code>. Contoh: <code>admin@titipanak.test</code>, <code>pengasuh1@titipanak.test</code>, <code>ortu1@titipanak.test</code></span>
   </div>
 
   <div class="toolbar">
     <label class="search">
-      <span aria-hidden="true">🔍</span>
+      <span aria-hidden="true"><x-ikon e="🔍" /></span>
       <input id="q" type="search" placeholder="Cari di semua tabel (nama, email, status, tanggal…)" autocomplete="off" aria-label="Cari di semua tabel">
     </label>
     @foreach ($groups as $i => $group)

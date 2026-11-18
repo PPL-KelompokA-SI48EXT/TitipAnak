@@ -7,8 +7,6 @@ use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
 use App\Livewire\Admin\RekapKehadiran;
-use App\Livewire\Pengasuh\CheckOut;
-use App\Livewire\Pengasuh\KehadiranHariIni;
 use App\Livewire\Pengasuh\Presensi;
 use App\Models\IzinPenjemputan;
 use App\Models\JadwalShift;
@@ -131,7 +129,7 @@ class IntegrasiPbi141516Test extends TestCase
         $this->assertDatabaseCount('kehadiran', 2);
 
         // Daftar kehadiran: 2 hadir, tidak ada yang belum datang, Citra tidak muncul.
-        Livewire::actingAs($this->siti)->test(KehadiranHariIni::class)
+        Livewire::actingAs($this->siti)->test(Presensi::class)
             ->assertSee('Hadir · 2')->assertSee('Belum datang · 0')->assertDontSee('Citra Dewi');
 
         // --- Check-out: Aisyah dijemput ibu terdaftar; Bima oleh Om Budi lewat izin; orang asing ditolak. ---
@@ -139,10 +137,10 @@ class IntegrasiPbi141516Test extends TestCase
         $kAisyah = Kehadiran::where('anak_id', $aisyah->id)->first();
         $kBima = Kehadiran::where('anak_id', $bima->id)->first();
 
-        $pulang = Livewire::actingAs($this->siti)->test(CheckOut::class);
+        $pulang = Livewire::actingAs($this->siti)->test(Presensi::class);
         $pulang->call('mulaiCheckOut', $kAisyah->id)
             ->set('jam_pulang', '15:20')
-            ->set('penjemput', CheckOut::LAIN)
+            ->set('penjemput', Presensi::LAIN)
             ->set('nama_penjemput', 'Orang Asing')
             ->call('simpan')
             ->assertSet('tidakCocok', true)
@@ -152,7 +150,7 @@ class IntegrasiPbi141516Test extends TestCase
         $pulang->set('penjemput', (string) $ibu->id)->call('simpan')->assertHasNoErrors();
         $pulang->call('mulaiCheckOut', $kBima->id)
             ->set('jam_pulang', '15:25')
-            ->set('penjemput', CheckOut::IZIN.$izinBima->id)
+            ->set('penjemput', Presensi::IZIN.$izinBima->id)
             ->call('simpan')
             ->assertHasNoErrors();
 
@@ -161,7 +159,7 @@ class IntegrasiPbi141516Test extends TestCase
         $this->assertSame('Om Budi', $kBima->fresh()->nama_penjemput);
 
         // Izin yang sudah dipakai tidak muncul lagi dan semua anak sudah pulang.
-        Livewire::actingAs($this->siti)->test(KehadiranHariIni::class)
+        Livewire::actingAs($this->siti)->test(Presensi::class)
             ->assertSee('Sudah pulang · 2')->assertSee('Hadir · 0');
 
         // --- Admin: rekap menampilkan kedua catatan dan ringkasan per anak. ---
@@ -212,14 +210,14 @@ class IntegrasiPbi141516Test extends TestCase
             ->call('konfirmasiHapus', $shift->id)->call('hapus');
 
         $this->actingAs($this->siti)->get(route('pengasuh.presensi'))
-            ->assertSee('Tidak ada anak untuk dicatat')->assertDontSee('Aisyah Putri');
+            ->assertSee('Tidak ada anak untuk hari ini')->assertDontSee('Aisyah Putri');
         $this->actingAs($this->siti)->get(route('pengasuh.jadwal-saya'))->assertSee('Tidak ada shift hari ini');
     }
 
     public function test_setiap_peran_hanya_melihat_menu_dan_halaman_miliknya(): void
     {
         $adminMenu = [route('admin.jadwal-shift.index'), route('admin.jadwal-kegiatan.index'), route('admin.kehadiran.rekap')];
-        $pengasuhMenu = [route('pengasuh.jadwal-saya'), route('pengasuh.jadwal-kegiatan'), route('pengasuh.presensi'), route('pengasuh.check-out'), route('pengasuh.kehadiran')];
+        $pengasuhMenu = [route('pengasuh.jadwal-saya'), route('pengasuh.jadwal-kegiatan'), route('pengasuh.presensi')];
 
         $halamanAdmin = $this->actingAs($this->admin)->get(route('dashboard'));
         foreach ($adminMenu as $url) {

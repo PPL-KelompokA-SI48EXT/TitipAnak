@@ -20,10 +20,8 @@ use App\Livewire\OrangTua\PendaftaranDetail;
 use App\Livewire\OrangTua\PendaftaranIndex;
 use App\Livewire\OrangTua\PenjemputIndex;
 use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
-use App\Livewire\Pengasuh\CheckOut;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
 use App\Livewire\Pengasuh\JadwalSaya;
-use App\Livewire\Pengasuh\KehadiranHariIni;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use App\Livewire\Pengasuh\Presensi;
 use Illuminate\Support\Facades\Route;
@@ -126,7 +124,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('pengasuh.')
         ->group(function () {
             Route::get('presensi', Presensi::class)->name('presensi');
-            Route::get('check-out', CheckOut::class)->name('check-out');
-            Route::get('kehadiran', KehadiranHariIni::class)->name('kehadiran');
+            // Check-out dan daftar kehadiran sekarang menyatu di halaman Presensi; tautan lama dialihkan.
+            Route::redirect('check-out', '/pengasuh/presensi')->name('check-out');
+            Route::redirect('kehadiran', '/pengasuh/presensi')->name('kehadiran');
         });
 });

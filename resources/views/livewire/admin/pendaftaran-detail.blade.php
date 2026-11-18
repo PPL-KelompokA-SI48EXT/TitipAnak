@@ -42,7 +42,7 @@
 
     @if ($alert)
         <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink px-4 py-3 text-sm {{ $alert[0] }}">
-            <span aria-hidden="true">{{ $alert[1] }}</span>
+            <x-ikon :e="$alert[1]" />
             <div class="grid gap-1">
                 <span><b>{{ $alert[2] }}</b> {{ $alert[3] }}</span>
                 @if ($pendaftaran->status === 'ditolak' && $pendaftaran->catatan_penolakan)

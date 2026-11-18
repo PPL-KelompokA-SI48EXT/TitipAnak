@@ -118,7 +118,7 @@ class JadwalKegiatanBuat extends Component
     public function render(): View
     {
         return view('livewire.admin.jadwal-kegiatan-buat', [
-            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama']),
+            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama', 'usia_min_bulan', 'usia_maks_bulan']),
             'hariList' => JadwalShift::HARI,
             'jenisList' => JadwalKegiatan::JENIS,
             'preset' => array_keys(self::PRESET),

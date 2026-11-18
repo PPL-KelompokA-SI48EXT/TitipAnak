@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Pengasuh;
 
-use App\Livewire\Pengasuh\CheckOut;
+use App\Livewire\Pengasuh\Presensi;
 use App\Models\JadwalShift;
 use App\Models\Kehadiran;
 use App\Models\KelompokUsia;
@@ -63,7 +63,7 @@ class CheckOutTidakCocokTest extends TestCase
     private function form(string $penjemput, string $nama = '')
     {
         return Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->set('jam_pulang', '15:45')
             ->set('penjemput', $penjemput)
@@ -72,7 +72,7 @@ class CheckOutTidakCocokTest extends TestCase
 
     public function test_penjemput_tidak_cocok_menampilkan_panduan_lengkap(): void
     {
-        $this->form(CheckOut::LAIN, 'Orang Asing')
+        $this->form(Presensi::LAIN, 'Orang Asing')
             ->call('simpan')
             ->assertSet('tidakCocok', true)
             ->assertSee('Penjemput tidak cocok. Jangan lepas anak ini dulu.')
@@ -88,7 +88,7 @@ class CheckOutTidakCocokTest extends TestCase
     {
         ProfilOrangTua::query()->delete();
 
-        $this->form(CheckOut::LAIN, 'Orang Asing')
+        $this->form(Presensi::LAIN, 'Orang Asing')
             ->call('simpan')
             ->assertSee('kontak orang tua belum tersedia, hubungi admin');
     }
@@ -103,7 +103,7 @@ class CheckOutTidakCocokTest extends TestCase
 
     public function test_panduan_hilang_saat_pengasuh_mengubah_penjemput_dan_mencoba_lagi(): void
     {
-        $this->form(CheckOut::LAIN, 'Orang Asing')
+        $this->form(Presensi::LAIN, 'Orang Asing')
             ->call('simpan')
             ->assertSet('tidakCocok', true)
             ->set('nama_penjemput', 'Ibu Aisyah')
@@ -122,7 +122,7 @@ class CheckOutTidakCocokTest extends TestCase
             ->assertSet('tidakCocok', false)
             ->assertDontSee('Jangan lepas anak ini dulu');
 
-        $this->form(CheckOut::LAIN, 'Orang Asing')
+        $this->form(Presensi::LAIN, 'Orang Asing')
             ->call('simpan')
             ->call('batal')
             ->assertSet('tidakCocok', false);
@@ -132,7 +132,7 @@ class CheckOutTidakCocokTest extends TestCase
     {
         PenjemputTerdaftar::query()->delete();
 
-        $this->form(CheckOut::LAIN, 'Siapa Saja')
+        $this->form(Presensi::LAIN, 'Siapa Saja')
             ->call('simpan')
             ->assertSee('belum ada yang terdaftar');
     }

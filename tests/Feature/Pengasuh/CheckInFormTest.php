@@ -60,7 +60,7 @@ class CheckInFormTest extends TestCase
 
         $this->actingAs($this->siti)
             ->get(route('pengasuh.presensi'))
-            ->assertSee('Tidak ada anak untuk dicatat')
+            ->assertSee('Tidak ada anak untuk hari ini')
             ->assertDontSee('Aisyah Putri');
     }
 

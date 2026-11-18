@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Pengasuh;
 
-use App\Livewire\Pengasuh\CheckOut;
+use App\Livewire\Pengasuh\Presensi;
 use App\Models\Anak;
 use App\Models\IzinPenjemputan;
 use App\Models\JadwalShift;
@@ -73,7 +73,7 @@ class CheckOutIzinTest extends TestCase
     private function form(string $pilihan)
     {
         return Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->set('jam_pulang', '15:45')
             ->set('penjemput', $pilihan);
@@ -89,7 +89,7 @@ class CheckOutIzinTest extends TestCase
         $this->izin('Orang Anak Lain', 'disetujui', null, $lain);
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->assertSee('Om Budi (izin)')
             ->assertSee('Izin penjemputan disetujui (hari ini)')
@@ -103,7 +103,7 @@ class CheckOutIzinTest extends TestCase
     {
         $izin = $this->izin('Om Budi');
 
-        $this->form(CheckOut::IZIN.$izin->id)
+        $this->form(Presensi::IZIN.$izin->id)
             ->call('simpan')
             ->assertHasNoErrors()
             ->assertSee('Check-out Aisyah Putri berhasil dicatat. Dijemput oleh Om Budi (izin penjemputan).');
@@ -129,7 +129,7 @@ class CheckOutIzinTest extends TestCase
         ];
 
         foreach ($kasus as [$izin, $pesan]) {
-            $this->form(CheckOut::IZIN.$izin->id)
+            $this->form(Presensi::IZIN.$izin->id)
                 ->call('simpan')
                 ->assertHasErrors(['penjemput'])
                 ->assertSet('tidakCocok', true)
@@ -144,7 +144,7 @@ class CheckOutIzinTest extends TestCase
         $besok = today()->addDay();
         $izin = $this->izin('Bu Besok', 'disetujui', $besok->toDateString());
 
-        $this->form(CheckOut::IZIN.$izin->id)
+        $this->form(Presensi::IZIN.$izin->id)
             ->call('simpan')
             ->assertSee('berlaku pada '.$besok->format('d/m/Y'));
     }
@@ -152,7 +152,7 @@ class CheckOutIzinTest extends TestCase
     public function test_izin_dibatalkan_setelah_form_dibuka_ditolak_saat_simpan(): void
     {
         $izin = $this->izin('Om Budi');
-        $komponen = $this->form(CheckOut::IZIN.$izin->id);
+        $komponen = $this->form(Presensi::IZIN.$izin->id);
 
         $izin->update(['status' => 'dibatalkan']);
 
@@ -170,20 +170,20 @@ class CheckOutIzinTest extends TestCase
             'check_out_pada' => "$tanggal 15:00:00", 'check_out_oleh_id' => $this->siti->id, 'izin_penjemputan_id' => $izin->id,
         ]);
 
-        $this->form(CheckOut::IZIN.$izin->id)
+        $this->form(Presensi::IZIN.$izin->id)
             ->call('simpan')
             ->assertHasErrors(['penjemput'])
             ->assertSee('sudah dipakai untuk check-out');
 
-        Livewire::actingAs($this->siti)->test(CheckOut::class)
+        Livewire::actingAs($this->siti)->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->assertDontSee('Om Budi (izin)');
     }
 
     public function test_pilihan_izin_dengan_id_ngawur_ditolak(): void
     {
-        $this->form(CheckOut::IZIN.'abc')->call('simpan')->assertHasErrors(['penjemput'])->assertSee('tidak ditemukan untuk anak ini');
-        $this->form(CheckOut::IZIN.'99999')->call('simpan')->assertHasErrors(['penjemput']);
+        $this->form(Presensi::IZIN.'abc')->call('simpan')->assertHasErrors(['penjemput'])->assertSee('tidak ditemukan untuk anak ini');
+        $this->form(Presensi::IZIN.'99999')->call('simpan')->assertHasErrors(['penjemput']);
     }
 
     public function test_pesan_belum_ada_penjemput_hilang_bila_ada_izin(): void
@@ -191,7 +191,7 @@ class CheckOutIzinTest extends TestCase
         $this->izin('Om Budi');
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->assertDontSee('belum mendaftarkan penjemput');
     }

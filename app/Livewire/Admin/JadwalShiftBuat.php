@@ -106,7 +106,7 @@ class JadwalShiftBuat extends Component
     {
         return view('livewire.admin.jadwal-shift-buat', [
             'pengasuh' => User::role('pengasuh')->where('aktif', true)->orderBy('nama')->get(['id', 'nama']),
-            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama']),
+            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama', 'usia_min_bulan', 'usia_maks_bulan']),
             'hariList' => JadwalShift::HARI,
         ]);
     }

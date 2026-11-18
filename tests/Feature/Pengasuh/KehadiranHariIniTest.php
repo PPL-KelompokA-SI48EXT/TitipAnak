@@ -58,7 +58,7 @@ class KehadiranHariIniTest extends TestCase
         $this->hadir($pulang, '08:00', '16:10');
 
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.kehadiran'))
+            ->get(route('pengasuh.presensi'))
             ->assertOk()
             ->assertSeeInOrder(['Anak Belum', 'Belum datang'])
             ->assertSeeInOrder(['Anak Hadir', 'Hadir', '07:45', 'Batuk ringan'])
@@ -74,7 +74,7 @@ class KehadiranHariIniTest extends TestCase
         $this->hadir($anak, '07:45', '16:00', today()->subDay()->toDateString());
 
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.kehadiran'))
+            ->get(route('pengasuh.presensi'))
             ->assertSee('Anak Kemarin')
             ->assertSee('Belum datang · 1')
             ->assertSee('Sudah pulang · 0');
@@ -86,24 +86,24 @@ class KehadiranHariIniTest extends TestCase
         $this->buatAnak('Anak Batita', $this->batita);
 
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.kehadiran'))
+            ->get(route('pengasuh.presensi'))
             ->assertSee('Tidak ada anak untuk hari ini')
             ->assertDontSee('Anak Batita');
     }
 
     public function test_admin_dan_tamu_tidak_bisa_membuka_halaman(): void
     {
-        $this->get(route('pengasuh.kehadiran'))->assertRedirect();
+        $this->get(route('pengasuh.presensi'))->assertRedirect();
 
         $admin = User::factory()->create()->assignRole('admin');
-        $this->actingAs($admin)->get(route('pengasuh.kehadiran'))->assertForbidden();
+        $this->actingAs($admin)->get(route('pengasuh.presensi'))->assertForbidden();
     }
 
     public function test_submenu_presensi_memuat_tautan_kehadiran(): void
     {
         $this->actingAs($this->siti)
             ->get(route('dashboard'))
-            ->assertSee(route('pengasuh.kehadiran'), false)
+            ->assertSee(route('pengasuh.presensi'), false)
             ->assertSee(route('pengasuh.presensi'), false);
     }
 }

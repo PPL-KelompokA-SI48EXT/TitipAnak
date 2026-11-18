@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Pengasuh;
 
-use App\Livewire\Pengasuh\CheckOut;
+use App\Livewire\Pengasuh\Presensi;
 use App\Models\Anak;
 use App\Models\JadwalShift;
 use App\Models\Kehadiran;
@@ -65,7 +65,7 @@ class CheckOutSimpanTest extends TestCase
     private function form(string $jam = '15:45', string $penjemput = '', string $nama = '')
     {
         return Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $this->kehadiran->id)
             ->set('jam_pulang', $jam)
             ->set('penjemput', $penjemput)
@@ -90,7 +90,7 @@ class CheckOutSimpanTest extends TestCase
 
     public function test_penjemput_lain_dengan_nama_yang_sama_dikenali_sebagai_terdaftar(): void
     {
-        $this->form('15:45', CheckOut::LAIN, '   ibu   AISYAH ')
+        $this->form('15:45', Presensi::LAIN, '   ibu   AISYAH ')
             ->call('simpan')
             ->assertHasNoErrors();
 
@@ -100,7 +100,7 @@ class CheckOutSimpanTest extends TestCase
 
     public function test_nama_yang_tidak_cocok_ditolak_dan_anak_tetap_di_tempat(): void
     {
-        $this->form('15:45', CheckOut::LAIN, 'Orang Asing')
+        $this->form('15:45', Presensi::LAIN, 'Orang Asing')
             ->call('simpan')
             ->assertHasErrors(['nama_penjemput'])
             ->assertSet('kehadiranId', $this->kehadiran->id);
@@ -116,8 +116,8 @@ class CheckOutSimpanTest extends TestCase
 
         $this->form('15:45', (string) $this->ibu->id)->call('simpan')->assertHasErrors(['penjemput']);
         $this->form('15:45', (string) $milikLain->id)->call('simpan')->assertHasErrors(['penjemput']);
-        $this->form('15:45', CheckOut::LAIN, 'Ayah Lain')->call('simpan')->assertHasErrors(['nama_penjemput']);
-        $this->form('15:45', CheckOut::LAIN, 'Ibu Aisyah')->call('simpan')->assertHasErrors(['nama_penjemput']);
+        $this->form('15:45', Presensi::LAIN, 'Ayah Lain')->call('simpan')->assertHasErrors(['nama_penjemput']);
+        $this->form('15:45', Presensi::LAIN, 'Ibu Aisyah')->call('simpan')->assertHasErrors(['nama_penjemput']);
 
         $this->assertNull($this->kehadiran->fresh()->check_out_pada);
     }
@@ -130,7 +130,7 @@ class CheckOutSimpanTest extends TestCase
 
     public function test_nama_wajib_diisi_untuk_penjemput_lain(): void
     {
-        $this->form('15:45', CheckOut::LAIN, '')
+        $this->form('15:45', Presensi::LAIN, '')
             ->call('simpan')
             ->assertHasErrors(['nama_penjemput']);
     }
@@ -183,6 +183,6 @@ class CheckOutSimpanTest extends TestCase
     {
         $admin = User::factory()->create()->assignRole('admin');
 
-        Livewire::actingAs($admin)->test(CheckOut::class)->assertForbidden();
+        Livewire::actingAs($admin)->test(Presensi::class)->assertForbidden();
     }
 }

@@ -774,7 +774,7 @@ public function updated($name) { if (in_array($name, ['q','paket','status'])) $t
     </div>
     <div class="card card--cream stack">
       <div class="t-h3">Ikon</div>
-      <div class="t-small">Ikon memakai <b>emoji</b> (satu emoji untuk satu makna) di dalam <b>bubble</b> putih berborder (lingkaran 40–56px) atau kotak radius 10px berwarna pastel. Jangan mencampurnya dengan set ikon outline. Emoji yang hanya dekorasi diberi <code>aria-hidden="true"</code>, dan tombol berikon tetap punya <code>aria-label</code>.</div>
+      <div class="t-small">Ikon memakai <b>OpenMoji</b> (warna datar dengan outline hitam, lisensi CC BY-SA 4.0) supaya tampil sama di semua perangkat. Satu ikon untuk satu makna, diletakkan di dalam <b>bubble</b> putih berborder (lingkaran 40–56px) atau kotak radius 10px berwarna pastel. Di kode, tulis <code>&lt;x-ikon e="🍽️" /&gt;</code>: komponen ini memuat <code>public/images/openmoji/{kode}.svg</code> dan jatuh ke emoji teks bila berkasnya belum ada. Untuk emoji baru, salin SVG-nya dari openmoji.org ke folder itu (nama berkas = kode titik Unicode tanpa FE0F). Jangan mencampurnya dengan set ikon outline lain. Ikon dekorasi otomatis <code>aria-hidden="true"</code>, dan tombol berikon tetap punya <code>aria-label</code>. Atribusi OpenMoji wajib tetap tampil di footer.</div>
     </div>
   </div>
 </section>

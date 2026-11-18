@@ -48,7 +48,7 @@
                                         :aria-expanded="open" title="{{ $item['label'] }}"
                                         class="flex w-full items-center gap-3 rounded-lg border-[1.5px] px-3 py-2 text-left text-sm font-medium transition
                                             {{ $anakAktif ? 'border-ink bg-yellow font-bold' : 'border-transparent hover:border-ink hover:bg-paper' }}">
-                                        <span class="w-6 shrink-0 text-center text-lg" aria-hidden="true">{{ $item['icon'] }}</span>
+                                        <span class="w-6 shrink-0 text-center text-lg" aria-hidden="true"><x-ikon :e="$item['icon']" class="size-6" /></span>
                                         <span class="flex-1 truncate" :class="collapsed && 'md:hidden'">{{ $item['label'] }}</span>
                                         <span class="shrink-0 text-xs transition-transform" :class="[open && 'rotate-180', collapsed && 'md:hidden']" aria-hidden="true">▾</span>
                                     </button>
@@ -81,13 +81,13 @@
                                 <a href="{{ route($item['route']) }}" title="{{ $item['label'] }}" @if ($aktif) aria-current="page" @endif
                                     class="flex items-center gap-3 rounded-lg border-[1.5px] px-3 py-2 text-sm font-medium transition
                                         {{ $aktif ? 'border-ink bg-yellow font-bold' : 'border-transparent hover:border-ink hover:bg-paper' }}">
-                                    <span class="w-6 shrink-0 text-center text-lg" aria-hidden="true">{{ $item['icon'] }}</span>
+                                    <span class="w-6 shrink-0 text-center text-lg" aria-hidden="true"><x-ikon :e="$item['icon']" class="size-6" /></span>
                                     <span class="truncate" :class="collapsed && 'md:hidden'">{{ $item['label'] }}</span>
                                 </a>
                             @else
                                 <span aria-disabled="true" title="{{ $item['label'] }} (segera)"
                                     class="flex cursor-not-allowed items-center gap-3 rounded-lg border-[1.5px] border-transparent px-3 py-2 text-sm text-muted">
-                                    <span class="w-6 shrink-0 text-center text-lg opacity-60" aria-hidden="true">{{ $item['icon'] }}</span>
+                                    <span class="w-6 shrink-0 text-center text-lg opacity-60" aria-hidden="true"><x-ikon :e="$item['icon']" class="size-6" /></span>
                                     <span class="flex-1 truncate" :class="collapsed && 'md:hidden'">{{ $item['label'] }}</span>
                                     <span class="rounded-full border border-muted px-2 py-0.5 text-[10px] font-semibold" :class="collapsed && 'md:hidden'">Segera</span>
                                 </span>

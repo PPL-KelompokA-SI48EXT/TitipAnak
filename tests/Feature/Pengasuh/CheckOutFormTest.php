@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Pengasuh;
 
-use App\Livewire\Pengasuh\CheckOut;
+use App\Livewire\Pengasuh\Presensi;
 use App\Models\Anak;
 use App\Models\JadwalShift;
 use App\Models\Kehadiran;
@@ -60,21 +60,21 @@ class CheckOutFormTest extends TestCase
         $this->datang($this->buatAnak('Anak Kemarin', $this->batita), null, today()->subDay()->toDateString());
 
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.check-out'))
+            ->get(route('pengasuh.presensi'))
             ->assertOk()
-            ->assertSee('Anak Menunggu')
-            ->assertSee('datang 07:50')
-            ->assertDontSee('Anak Sudah Pulang')
-            ->assertDontSee('Anak Belum Datang')
+            ->assertSee('Check-out Anak Menunggu')
+            ->assertSee('07:50')
+            ->assertDontSee('Check-out Anak Sudah Pulang')
+            ->assertDontSee('Check-out Anak Belum Datang')
             ->assertDontSee('Anak Kelompok Lain')
-            ->assertDontSee('Anak Kemarin');
+            ->assertDontSee('Check-out Anak Kemarin');
     }
 
     public function test_keadaan_kosong_bila_tidak_ada_yang_menunggu(): void
     {
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.check-out'))
-            ->assertSee('Tidak ada anak yang menunggu dijemput');
+            ->get(route('pengasuh.presensi'))
+            ->assertSee('Tidak ada anak untuk hari ini');
     }
 
     public function test_form_menampilkan_penjemput_terdaftar_aktif_saja(): void
@@ -87,7 +87,7 @@ class CheckOutFormTest extends TestCase
         PenjemputTerdaftar::create(['anak_id' => $lain->id, 'nama_lengkap' => 'Orang Asing', 'hubungan' => 'Ayah', 'no_hp' => '0813']);
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $k->id)
             ->assertSet('kehadiranId', $k->id)
             ->assertSet('jam_pulang', now()->format('H:i'))
@@ -103,10 +103,10 @@ class CheckOutFormTest extends TestCase
         $k = $this->datang($this->buatAnak('Aisyah Putri', $this->batita));
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $k->id)
             ->assertDontSee('Nama penjemput')
-            ->set('penjemput', CheckOut::LAIN)
+            ->set('penjemput', Presensi::LAIN)
             ->assertSee('Nama penjemput')
             ->assertSee('belum mendaftarkan penjemput');
     }
@@ -117,7 +117,7 @@ class CheckOutFormTest extends TestCase
         $asing = $this->datang($this->buatAnak('Anak Asing', $this->balita));
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $pulang->id)
             ->assertSet('kehadiranId', null)
             ->call('mulaiCheckOut', $asing->id)
@@ -129,9 +129,9 @@ class CheckOutFormTest extends TestCase
         $k = $this->datang($this->buatAnak('Aisyah Putri', $this->batita));
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $k->id)
-            ->set('penjemput', CheckOut::LAIN)
+            ->set('penjemput', Presensi::LAIN)
             ->call('batal')
             ->assertSet('kehadiranId', null)
             ->assertSet('penjemput', '')
@@ -143,7 +143,7 @@ class CheckOutFormTest extends TestCase
         $k = $this->datang($this->buatAnak('Aisyah Putri', $this->batita));
 
         Livewire::actingAs($this->siti)
-            ->test(CheckOut::class)
+            ->test(Presensi::class)
             ->call('mulaiCheckOut', $k->id)
             ->set('jam_pulang', '')
             ->call('simpan')
@@ -152,16 +152,16 @@ class CheckOutFormTest extends TestCase
 
     public function test_admin_dan_tamu_tidak_bisa_membuka_halaman(): void
     {
-        $this->get(route('pengasuh.check-out'))->assertRedirect();
+        $this->get(route('pengasuh.presensi'))->assertRedirect();
 
         $admin = User::factory()->create()->assignRole('admin');
-        $this->actingAs($admin)->get(route('pengasuh.check-out'))->assertForbidden();
+        $this->actingAs($admin)->get(route('pengasuh.presensi'))->assertForbidden();
     }
 
     public function test_menu_presensi_memuat_tautan_check_out(): void
     {
         $this->actingAs($this->siti)
             ->get(route('dashboard'))
-            ->assertSee(route('pengasuh.check-out'), false);
+            ->assertSee(route('pengasuh.presensi'), false);
     }
 }

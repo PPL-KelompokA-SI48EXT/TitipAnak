@@ -11,7 +11,7 @@
 
     @if (session('sukses'))
         <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
-            <span aria-hidden="true">✅</span>
+            <span aria-hidden="true"><x-ikon e="✅" /></span>
             <span><b>Berhasil.</b> {{ session('sukses') }}</span>
         </div>
     @endif
@@ -36,7 +36,7 @@
 
         <label class="relative min-w-52 flex-1">
             <span class="sr-only">Cari nama anak</span>
-            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true">🔍</span>
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true"><x-ikon e="🔍" /></span>
             <input type="search" wire:model.live.debounce.300ms="q" placeholder="Cari nama anak…" autocomplete="off"
                 class="{{ $input }} w-full pl-10">
         </label>
@@ -49,9 +49,31 @@
 
     @if ($terbalik)
         <div role="alert" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-coral px-4 py-3 text-sm">
-            <span aria-hidden="true">⚠️</span>
+            <span aria-hidden="true"><x-ikon e="⚠" /></span>
             <span>Tanggal mulai lebih akhir dari tanggal selesai, jadi tidak ada data yang cocok. Periksa rentang tanggal.</span>
         </div>
+    @endif
+
+    {{-- Kartu ringkasan --}}
+    @if ($statistik['total'] > 0)
+        <div class="grid grid-cols-2 gap-3 lg:grid-cols-5" aria-label="Ringkasan kehadiran">
+            @foreach ([
+                ['bg-yellow', '📋', 'Total check-in', $statistik['total'], 'catatan'],
+                ['bg-blue', '🧒', 'Anak berbeda', $statistik['anak'], 'anak'],
+                ['bg-mint', '🏠', 'Sudah dijemput', $statistik['pulang'], 'catatan'],
+                ['bg-coral', '⏳', 'Masih di tempat', $statistik['masih'], 'catatan'],
+                ['bg-lavender', '🕗', 'Rata-rata datang', $statistik['rata_datang'] ?? '—', ''],
+            ] as [$warna, $ikon, $nama, $nilai, $satuan])
+                <div class="rounded-ta border-[1.5px] border-ink px-4 py-3 {{ $warna }}">
+                    <div class="text-xs font-semibold uppercase tracking-wide"><span aria-hidden="true"><x-ikon :e="$ikon" /></span> {{ $nama }}</div>
+                    <div class="mt-1 text-3xl font-bold leading-none">{{ $nilai }}</div>
+                    @if ($satuan !== '')<div class="mt-1 text-xs">{{ $satuan }}</div>@endif
+                </div>
+            @endforeach
+        </div>
+        @if ($statistik['rata_menit_di'] !== null)
+            <p class="-mt-3 text-sm text-muted">Rata-rata lama di tempat: <b class="text-ink">{{ intdiv($statistik['rata_menit_di'], 60) }} j {{ $statistik['rata_menit_di'] % 60 }} m</b> (dari hari yang sudah dijemput).</p>
+        @endif
     @endif
 
     {{-- Pilihan tampilan --}}

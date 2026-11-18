@@ -33,14 +33,14 @@
 
     @if (session('galat'))
         <div role="alert" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-coral px-4 py-3 text-sm">
-            <span aria-hidden="true">⚠️</span>
+            <span aria-hidden="true"><x-ikon e="⚠" /></span>
             <span>{{ session('galat') }}</span>
         </div>
     @endif
 
     @if (session('sukses'))
         <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
-            <span aria-hidden="true">✅</span>
+            <span aria-hidden="true"><x-ikon e="✅" /></span>
             <span><b>Berhasil.</b> {{ session('sukses') }}</span>
         </div>
     @endif
@@ -59,7 +59,7 @@
     <div class="flex flex-wrap items-center gap-3">
         <label class="relative min-w-56 flex-1">
             <span class="sr-only">Cari pengasuh</span>
-            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true">🔍</span>
+            <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true"><x-ikon e="🔍" /></span>
             <input type="search" wire:model.live.debounce.300ms="q" placeholder="Cari nama pengasuh…" autocomplete="off"
                 class="{{ $input }} w-full pl-10">
         </label>

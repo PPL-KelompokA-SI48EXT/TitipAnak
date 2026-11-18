@@ -565,7 +565,7 @@
                         @elseif ($detailPembayaran->is_pdf)
                             <div class="flex items-center justify-between rounded-ta border border-ink bg-paper p-4">
                                 <div class="flex items-center gap-3">
-                                    <span class="text-2xl">📄</span>
+                                    <span class="text-2xl"><x-ikon e="📄" /></span>
                                     <div>
                                         <p class="text-sm font-semibold text-ink">Dokumen Bukti PDF</p>
                                         <p class="text-xs text-muted">Berkas bukti diunggah dalam format dokumen PDF.</p>

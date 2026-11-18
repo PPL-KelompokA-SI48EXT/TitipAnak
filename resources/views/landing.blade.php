@@ -156,7 +156,7 @@
                             <div class="grid gap-3 p-5">
                                 @foreach ($momen as [$ikon, $jam, $judul, $ket, $warna])
                                     <div style="--i: {{ $loop->index }}" class="kabar-item flex items-center gap-3 rounded-ta border-[1.5px] border-ink bg-cream px-3 py-2.5">
-                                        <span class="grid size-10 shrink-0 place-items-center rounded-full border border-ink text-lg {{ $warna }}">{{ $ikon }}</span>
+                                        <span class="grid size-10 shrink-0 place-items-center rounded-full border border-ink text-lg {{ $warna }}"><x-ikon :e="$ikon" /></span>
                                         <div class="min-w-0 flex-1">
                                             <div class="font-semibold">{{ $judul }}</div>
                                             <div class="truncate text-xs text-muted">{{ $ket }}</div>
@@ -196,7 +196,7 @@
                             @endif
                             <div class="grid content-start gap-4 px-6 pb-6 {{ $ada($gambar[$kunciFoto][0]) ? '' : 'pt-6' }}">
                                 <div class="flex items-center gap-3">
-                                    <span class="grid size-12 place-items-center rounded-ta border-[1.5px] border-ink text-2xl {{ $warna }}" aria-hidden="true">{{ $ikon }}</span>
+                                    <span class="grid size-12 place-items-center rounded-ta border-[1.5px] border-ink text-2xl {{ $warna }}" aria-hidden="true"><x-ikon :e="$ikon" /></span>
                                     <h3 class="text-xl font-bold">{{ $judul }}</h3>
                                 </div>
                                 <ul class="grid gap-2.5 text-sm">
@@ -305,7 +305,7 @@
             <div data-track tabindex="0" aria-label="Daftar komitmen" class="relative flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth pb-2 [scrollbar-width:none] focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-yellow [&::-webkit-scrollbar]:hidden">
                 @foreach ($komitmen as [$ikon, $judul, $isi, $warna])
                     <article role="group" aria-roledescription="slide" aria-label="{{ $loop->iteration }} dari {{ $loop->count }}" class="grid w-[82%] shrink-0 snap-start content-start gap-3 rounded-ta border-[1.5px] border-ink p-6 sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.7rem)] {{ $warna }}">
-                        <span class="grid size-14 place-items-center rounded-ta border-[1.5px] border-ink bg-paper text-3xl" aria-hidden="true">{{ $ikon }}</span>
+                        <span class="grid size-14 place-items-center rounded-ta border-[1.5px] border-ink bg-paper text-3xl" aria-hidden="true"><x-ikon :e="$ikon" /></span>
                         <h3 class="text-xl font-bold">{{ $judul }}</h3>
                         <p class="text-sm">{{ $isi }}</p>
                     </article>
@@ -319,7 +319,7 @@
                 @if ($ada($gambar['aman'][0]))
                     <img src="{{ asset('images/landing/'.$gambar['aman'][0]) }}" alt="{{ $gambar['aman'][1] }}" loading="lazy" decoding="async" class="aspect-[4/5] w-44 -rotate-3 rounded-ta border-[1.5px] border-ink object-cover sm:w-56">
                 @else
-                    <span class="grid size-20 place-items-center rounded-ta border-[1.5px] border-ink bg-paper text-4xl" aria-hidden="true">🪪</span>
+                    <span class="grid size-20 place-items-center rounded-ta border-[1.5px] border-ink bg-paper text-4xl" aria-hidden="true"><x-ikon e="🪪" /></span>
                 @endif
                 <div>
                     <h2 id="judul-aman" class="text-2xl font-bold tracking-tight sm:text-3xl">Anak hanya pulang bersama orang yang tepat</h2>
@@ -335,7 +335,7 @@
         @if ($pita->isNotEmpty())
             <section class="overflow-hidden border-y-[1.5px] border-ink bg-yellow py-10" aria-labelledby="judul-pita">
                 <div class="mx-auto mb-6 max-w-6xl px-4 sm:px-6">
-                    <h2 id="judul-pita" class="text-2xl font-bold tracking-tight sm:text-3xl">Momen kecil, senyum besar 😊</h2>
+                    <h2 id="judul-pita" class="text-2xl font-bold tracking-tight sm:text-3xl">Momen kecil, senyum besar <x-ikon e="😊" /></h2>
                 </div>
                 <div class="overflow-hidden motion-reduce:overflow-x-auto">
                     <div class="pita-jalan flex w-max gap-4 pr-4 py-2">
@@ -414,7 +414,7 @@
                         <ul class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             @foreach ($termasuk as [$ikon, $judul, $isi, $warna])
                                 <li class="flex gap-3">
-                                    <span class="grid size-11 shrink-0 place-items-center rounded-ta border-[1.5px] border-ink text-xl {{ $warna }}" aria-hidden="true">{{ $ikon }}</span>
+                                    <span class="grid size-11 shrink-0 place-items-center rounded-ta border-[1.5px] border-ink text-xl {{ $warna }}" aria-hidden="true"><x-ikon :e="$ikon" /></span>
                                     <div>
                                         <div class="font-semibold leading-tight">{{ $judul }}</div>
                                         <p class="mt-0.5 text-sm text-muted">{{ $isi }}</p>
@@ -438,7 +438,7 @@
                                     <p class="text-sm">{{ $p->deskripsi ?: 'Hubungi kami untuk rincian paket ini.' }}</p>
                                     @if ($cocok)
                                         <p class="flex gap-2 rounded-ta border border-dashed border-ink bg-paper px-3 py-2 text-xs text-muted">
-                                            <span aria-hidden="true">{{ $cocok[0] }}</span>
+                                            <span aria-hidden="true"><x-ikon :e="$cocok[0]" /></span>
                                             <span>{{ $cocok[1] }}</span>
                                         </p>
                                     @endif

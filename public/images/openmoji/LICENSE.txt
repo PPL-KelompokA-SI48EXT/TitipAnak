@@ -1,0 +1,9 @@
+OpenMoji — https://openmoji.org
+Ikon-ikon di folder ini adalah subset OpenMoji (versi 15.1.0, gaya "color"), diambil dari paket npm "openmoji".
+
+Hak cipta: HfG Schwäbisch Gmünd dan kontributor OpenMoji.
+Lisensi: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
+          https://creativecommons.org/licenses/by-sa/4.0/
+
+Aplikasi TitipAnak memakai berkas-berkas ini tanpa perubahan pada gambarnya. Atribusi ditampilkan di footer aplikasi.
+Berkas diberi nama sesuai kode titik Unicode emoji (tanpa penanda variasi FE0F), misalnya 1F37D.svg untuk 🍽.

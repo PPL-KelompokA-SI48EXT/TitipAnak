@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Pengasuh;
 
-use App\Livewire\Pengasuh\KehadiranHariIni;
+use App\Livewire\Pengasuh\Presensi;
 use App\Models\JadwalShift;
 use App\Models\Kehadiran;
 use App\Models\KelompokUsia;
@@ -51,7 +51,7 @@ class KehadiranFilterTest extends TestCase
     public function test_ringkasan_jumlah_per_status(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->assertSee('Belum datang · 1')
             ->assertSee('Hadir · 1')
             ->assertSee('Sudah pulang · 1')
@@ -61,7 +61,7 @@ class KehadiranFilterTest extends TestCase
     public function test_filter_status_hanya_menampilkan_status_itu(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->call('pilihStatus', 'hadir')
             ->assertSet('status', 'hadir')
             ->assertSee('Bima Hadir')
@@ -73,7 +73,7 @@ class KehadiranFilterTest extends TestCase
     public function test_klik_status_yang_sama_lagi_mematikan_filter(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->call('pilihStatus', 'pulang')
             ->call('pilihStatus', 'pulang')
             ->assertSet('status', '')
@@ -83,7 +83,7 @@ class KehadiranFilterTest extends TestCase
     public function test_status_tidak_dikenal_diabaikan(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->call('pilihStatus', 'asal')
             ->assertSet('status', '')
             ->assertSee('Menampilkan 3 dari 3 anak');
@@ -92,7 +92,7 @@ class KehadiranFilterTest extends TestCase
     public function test_cari_nama_tanpa_memperhatikan_huruf_besar_kecil(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->set('q', 'cItRa')
             ->assertSee('Citra Pulang')
             ->assertDontSee('Bima Hadir');
@@ -101,7 +101,7 @@ class KehadiranFilterTest extends TestCase
     public function test_kombinasi_tanpa_hasil_dan_reset(): void
     {
         Livewire::actingAs($this->siti)
-            ->test(KehadiranHariIni::class)
+            ->test(Presensi::class)
             ->call('pilihStatus', 'hadir')
             ->set('q', 'Aisyah')
             ->assertSee('Tidak ada hasil')
@@ -114,7 +114,7 @@ class KehadiranFilterTest extends TestCase
     public function test_filter_terbaca_dari_url(): void
     {
         $this->actingAs($this->siti)
-            ->get(route('pengasuh.kehadiran', ['status' => 'pulang']))
+            ->get(route('pengasuh.presensi', ['status' => 'pulang']))
             ->assertSee('Citra Pulang')
             ->assertDontSee('Bima Hadir');
     }

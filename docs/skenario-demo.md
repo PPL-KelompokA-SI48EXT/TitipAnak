@@ -20,11 +20,11 @@ Seeder mengisi kehadiran kemarin dan hari ini serta izin penjemputan, jadi demo 
 1. Masuk sebagai `pengasuh1`. Buka **Jadwal Saya** (pola mingguan) dan **Jadwal Kegiatan** (hari ini, kegiatan berlangsung ditandai).
 
 ## 3. Presensi anak (PBI-15)
-1. Masih sebagai pengasuh, buka **Presensi, lalu Check-in**. Catat kedatangan anak dengan kondisi. Anak yang sudah check-in tidak bisa dicatat dua kali.
-2. Buka **Kehadiran Hari Ini**: status belum datang, hadir, dan pulang beserta hitungannya.
+1. Masih sebagai pengasuh, buka **Presensi**. Setiap anak tampil sebagai kartu dengan status belum datang, hadir, atau sudah pulang beserta hitungannya (bisa disaring dan dicari).
+2. Pada kartu anak yang belum datang, klik **Check-in** lalu catat jam dan kondisinya. Anak yang sudah check-in tidak bisa dicatat dua kali.
 
 ## 4. Check-out dengan pencocokan penjemput (PBI-16)
-1. Buka **Presensi, lalu Check-out**, pilih anak yang masih di tempat.
+1. Di halaman **Presensi**, klik **Check-out** pada kartu anak yang berstatus hadir.
 2. Pilih penjemput terdaftar: check-out berhasil.
 3. Pilih penjemput lain dan ketik nama yang tidak terdaftar: ditolak, anak tidak dilepas, muncul panduan dan kontak orang tua.
 4. Anak dengan izin penjemputan yang disetujui hari ini: izin muncul sebagai pilihan dan dapat dipakai sekali.

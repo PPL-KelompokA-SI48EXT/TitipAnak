@@ -84,7 +84,7 @@ class JadwalShiftUbah extends JadwalShiftBuat
             'pengasuh' => User::role('pengasuh')->where('aktif', true)->orderBy('nama')->get(['id', 'nama']),
             // Pengasuh lama yang sudah nonaktif tetap ditampilkan agar jelas siapa yang diganti.
             'pengasuhLama' => $jadwal->pengasuh,
-            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama']),
+            'kelompok' => KelompokUsia::orderBy('usia_min_bulan')->get(['id', 'nama', 'usia_min_bulan', 'usia_maks_bulan']),
             'hariList' => JadwalShift::HARI,
         ]);
     }

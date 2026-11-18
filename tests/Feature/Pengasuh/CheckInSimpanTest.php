@@ -68,7 +68,8 @@ class CheckInSimpanTest extends TestCase
             ->assertHasNoErrors()
             ->assertSet('anakId', null)
             ->assertSee('Check-in Aisyah Putri berhasil dicatat.')
-            ->assertSee('Sudah check-in 07:45');
+            ->assertSee('Jam datang')
+            ->assertSee('07:45');
 
         $this->assertDatabaseHas('kehadiran', [
             'anak_id' => $anak->id, 'kondisi_check_in' => 'Batuk ringan', 'check_in_oleh_id' => $this->siti->id,

@@ -8,7 +8,7 @@ Aplikasi web untuk layanan penitipan anak (daycare). Orang tua dapat menitipkan 
 - **Tampilan kalender**: jadwal shift ditampilkan per minggu dan per bulan.
 - **Kelompok usia**: anak dikelompokkan berdasarkan rentang usia.
 - **Jadwal kegiatan** per kelompok usia (admin) dan tampilan harian untuk pengasuh.
-- **Presensi anak**: check-in, check-out dengan pencocokan Penjemput Terdaftar/izin penjemputan, dan kehadiran hari ini.
+- **Presensi anak**: satu halaman berisi kehadiran hari ini; check-in dan check-out (dengan pencocokan Penjemput Terdaftar/izin penjemputan) dibuka sebagai dialog dari kartu anak.
 - **Rekap kehadiran** untuk admin dengan filter, ringkasan per anak, dan penghapusan beralasan yang tercatat di log.
 - **Hak akses per peran** menggunakan Spatie Laravel Permission.
 

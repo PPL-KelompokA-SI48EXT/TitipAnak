@@ -17,6 +17,7 @@
             : $bulan.' bulan';
     }
 
+    $input = 'w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow';
     $kartu = 'grid content-start gap-4 rounded-ta border-[1.5px] border-ink bg-paper p-6';
     $kosong = 'rounded-ta border-[1.5px] border-dashed border-ink bg-cream px-4 py-6 text-center text-sm text-muted';
 @endphp
@@ -46,6 +47,12 @@
                 <span><b>{{ $alert[2] }}</b> {{ $alert[3] }}</span>
                 @if ($pendaftaran->status === 'ditolak' && $pendaftaran->catatan_penolakan)
                     <span><b>Alasan:</b> {{ $pendaftaran->catatan_penolakan }}</span>
+                @endif
+                @if ($bisaDisetujui)
+                    <a href="#persetujuan-heading" class="w-fit font-semibold underline underline-offset-4">Periksa data di bawah, lalu tetapkan kelompok usia untuk menyetujui</a>
+                @endif
+                @if ($pendaftaran->status === 'disetujui' && $anak?->kelompokUsia)
+                    <span>{{ $anak->nama_lengkap }} aktif di kelompok <b>{{ $anak->kelompokUsia->nama }}</b>.</span>
                 @endif
             </div>
         </div>
@@ -206,4 +213,47 @@
             <p class="{{ $kosong }}">Belum ada penjemput terdaftar.</p>
         @endif
     </section>
+
+    {{-- PBI-11f: Admin menyetujui pendaftaran sekaligus menetapkan kelompok usia anak. --}}
+    @if ($bisaDisetujui)
+        <section aria-labelledby="persetujuan-heading" class="{{ $kartu }} scroll-mt-6">
+            <div class="grid gap-1">
+                <h2 id="persetujuan-heading" class="text-xl font-bold">Persetujuan</h2>
+                <p class="text-sm text-muted">
+                    Tetapkan kelompok usia {{ $anak->nama_lengkap }}@if ($usia) (usia {{ $usia }})@endif.
+                    Setelah disetujui, anak berstatus aktif dan tagihan bisa diterbitkan.
+                </p>
+            </div>
+
+            <form wire:submit="setujui" class="grid gap-4">
+                <div class="grid gap-1.5 sm:max-w-md">
+                    <label for="kelompok_usia_id" class="text-sm font-semibold">Kelompok usia</label>
+                    <select id="kelompok_usia_id" wire:model="kelompok_usia_id"
+                        aria-describedby="kelompok_usia_id-hint @error('kelompok_usia_id') kelompok_usia_id-error @enderror"
+                        @error('kelompok_usia_id') aria-invalid="true" @enderror
+                        class="{{ $input }} @error('kelompok_usia_id') border-[#C2371A] bg-[#FFF1EC] @enderror">
+                        <option value="">Pilih kelompok usia</option>
+                        @foreach ($kelompokUsia as $kelompok)
+                            @php $penuh = $kelompok->anak_count >= $kelompok->kapasitas; @endphp
+                            <option value="{{ $kelompok->id }}" wire:key="kelompok-{{ $kelompok->id }}" @disabled($penuh)>
+                                {{ $kelompok->nama }} · {{ $kelompok->usia_min_bulan }}–{{ $kelompok->usia_maks_bulan }} bulan · {{ $kelompok->anak_count }}/{{ $kelompok->kapasitas }} anak{{ $penuh ? ' (penuh)' : '' }}{{ $kelompok->id === $saranKelompokUsiaId ? ' (sesuai usia)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span id="kelompok_usia_id-hint" class="text-xs text-muted">Pilihan awal mengikuti usia anak. Angka menunjukkan anak aktif dari kapasitas kelompok.</span>
+                    @error('kelompok_usia_id')
+                        <span id="kelompok_usia_id-error" class="text-xs font-semibold text-[#B02E12]">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <button type="submit" wire:loading.attr="disabled" wire:target="setujui"
+                        class="inline-flex min-h-11 items-center justify-center gap-2 rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold transition hover:-translate-y-0.5 disabled:translate-y-0 disabled:opacity-50">
+                        <span wire:loading.remove wire:target="setujui">Setujui pendaftaran</span>
+                        <span wire:loading wire:target="setujui">Menyimpan…</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+    @endif
 </div>

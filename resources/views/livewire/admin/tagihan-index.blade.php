@@ -204,6 +204,29 @@
                                         >
                                             Unduh
                                         </button>
+
+                                        @if ($item->status_pembayaran === 'menunggu')
+                                            <button
+                                                id="verifikasi-pembayaran-{{ $item->id }}"
+                                                type="button"
+                                                wire:click="bukaKonfirmasiVerifikasi({{ $item->id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:target="bukaKonfirmasiVerifikasi({{ $item->id }})"
+                                                class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-mint px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-mint active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Verifikasi
+                                            </button>
+                                            <button
+                                                id="tolak-pembayaran-{{ $item->id }}"
+                                                type="button"
+                                                wire:click="bukaKonfirmasiTolak({{ $item->id }})"
+                                                wire:loading.attr="disabled"
+                                                wire:target="bukaKonfirmasiTolak({{ $item->id }})"
+                                                class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                Tolak
+                                            </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
@@ -543,26 +566,208 @@
                         @endif
                     </div>
 
-                    <div class="flex flex-wrap justify-end gap-3 border-t border-ink/20 pt-4">
-                        @if ($detailPembayaran->file_exists)
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-ink/20 pt-4">
+                        <div class="flex flex-wrap gap-2">
+                            @if ($detailPembayaran->status_pembayaran === 'menunggu')
+                                <button
+                                    type="button"
+                                    wire:click="bukaKonfirmasiVerifikasi({{ $detailPembayaran->id }})"
+                                    wire:loading.attr="disabled"
+                                    class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-mint px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-mint active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Verifikasi pembayaran
+                                </button>
+                                <button
+                                    type="button"
+                                    wire:click="bukaKonfirmasiTolak({{ $detailPembayaran->id }})"
+                                    wire:loading.attr="disabled"
+                                    class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Tolak pembayaran
+                                </button>
+                            @endif
+                        </div>
+
+                        <div class="flex flex-wrap justify-end gap-3">
+                            @if ($detailPembayaran->file_exists)
+                                <button
+                                    type="button"
+                                    wire:click="unduhBukti({{ $detailPembayaran->id }})"
+                                    wire:loading.attr="disabled"
+                                    class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    Unduh berkas bukti
+                                </button>
+                            @endif
                             <button
                                 type="button"
-                                wire:click="unduhBukti({{ $detailPembayaran->id }})"
-                                wire:loading.attr="disabled"
-                                class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                wire:click="tutupLihatBukti"
+                                class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0"
                             >
-                                Unduh berkas bukti
+                                Tutup
                             </button>
-                        @endif
-                        <button
-                            type="button"
-                            wire:click="tutupLihatBukti"
-                            class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0"
-                        >
-                            Tutup
-                        </button>
+                        </div>
                     </div>
                 </div>
+            </dialog>
+        </div>
+    @endif
+
+    @if ($verifyingPembayaranId !== null)
+        <div
+            x-data="{
+                triggerId: 'verifikasi-pembayaran-{{ $verifyingPembayaranId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="verifikasi-pembayaran-dialog-{{ $verifyingPembayaranId }}"
+            wire:keydown.escape="batalVerifikasi"
+        >
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="verifikasi-heading"
+                aria-describedby="verifikasi-description"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+            >
+                <form wire:submit="verifikasiPembayaran" class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="verifikasi-heading" class="text-xl font-bold">Verifikasi pembayaran?</h2>
+                        <p id="verifikasi-description" class="mt-2 text-sm text-muted">
+                            Pembayaran untuk tagihan <strong>{{ $verifyingNomorTagihan }}</strong> sebesar <strong>Rp {{ number_format((float) $verifyingJumlah, 2, ',', '.') }}</strong> akan diverifikasi. Status tagihan akan otomatis berubah menjadi <strong>Lunas</strong>.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-1.5">
+                        <label for="verifyingCatatan" class="text-sm font-semibold text-ink">Catatan verifikasi (opsional)</label>
+                        <input
+                            id="verifyingCatatan"
+                            type="text"
+                            wire:model="verifyingCatatan"
+                            maxlength="255"
+                            placeholder="Contoh: Pembayaran telah dicocokkan dengan mutasi rekening"
+                            class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm text-ink focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow"
+                        >
+                    </div>
+
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalVerifikasi" wire:loading.attr="disabled" wire:target="batalVerifikasi,verifikasiPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="verifikasiPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-mint px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-mint active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="verifikasiPembayaran">Ya, verifikasi & lunaskan</span>
+                            <span wire:loading wire:target="verifikasiPembayaran">Memproses…</span>
+                        </button>
+                    </div>
+                </form>
+            </dialog>
+        </div>
+    @endif
+
+    @if ($rejectingPembayaranId !== null)
+        <div
+            x-data="{
+                triggerId: 'tolak-pembayaran-{{ $rejectingPembayaranId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4"
+            wire:key="tolak-pembayaran-dialog-{{ $rejectingPembayaranId }}"
+            wire:keydown.escape="batalTolak"
+        >
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="tolak-heading"
+                aria-describedby="tolak-description"
+                class="m-0 w-full max-w-lg rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+            >
+                <form wire:submit="tolakPembayaran" class="grid gap-5 p-6">
+                    <div>
+                        <h2 id="tolak-heading" class="text-xl font-bold">Tolak bukti pembayaran?</h2>
+                        <p id="tolak-description" class="mt-2 text-sm text-muted">
+                            Bukti pembayaran untuk tagihan <strong>{{ $rejectingNomorTagihan }}</strong> akan ditolak. Orang tua dapat melihat alasan penolakan dan mengunggah bukti baru.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-1.5">
+                        <label for="rejectingCatatan" class="text-sm font-semibold text-ink">Alasan penolakan <span class="text-[#B02E12]">*</span></label>
+                        <textarea
+                            id="rejectingCatatan"
+                            wire:model="rejectingCatatan"
+                            rows="3"
+                            maxlength="500"
+                            placeholder="Contoh: Nominal transfer kurang atau bukti tidak terbaca jelas"
+                            class="w-full rounded-ta border-[1.5px] border-ink bg-paper px-3.5 py-2.5 text-sm text-ink focus-visible:bg-cream focus-visible:outline-3 focus-visible:outline-yellow"
+                        ></textarea>
+                        @error('rejectingCatatan') <span class="text-xs font-semibold text-[#B02E12]">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button type="button" wire:click="batalTolak" wire:loading.attr="disabled" wire:target="batalTolak,tolakPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="tolakPembayaran" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-coral px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-coral active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span wire:loading.remove wire:target="tolakPembayaran">Ya, tolak pembayaran</span>
+                            <span wire:loading wire:target="tolakPembayaran">Memproses…</span>
+                        </button>
+                    </div>
+                </form>
             </dialog>
         </div>
     @endif

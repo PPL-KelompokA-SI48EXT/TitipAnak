@@ -518,4 +518,133 @@ class TagihanIndexTest extends TestCase
             ->get(route('admin.tagihan.index'))
             ->assertForbidden();
     }
+
+    public function test_admin_dapat_memverifikasi_pembayaran_dan_status_tagihan_otomatis_menjadi_lunas(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiVerifikasi', $pembayaranId)
+            ->assertSet('verifyingPembayaranId', $pembayaranId)
+            ->assertSee('Verifikasi pembayaran?')
+            ->set('verifyingCatatan', 'Pembayaran klir')
+            ->call('verifikasiPembayaran')
+            ->assertHasNoErrors()
+            ->assertSee('Pembayaran berhasil diverifikasi. Status tagihan otomatis menjadi Lunas.');
+
+        $this->assertDatabaseHas('pembayaran', [
+            'id' => $pembayaranId,
+            'status' => 'terverifikasi',
+            'diverifikasi_oleh_id' => $this->admin->id,
+            'catatan' => 'Pembayaran klir',
+        ]);
+        $this->assertNotNull(DB::table('pembayaran')->where('id', $pembayaranId)->value('diverifikasi_pada'));
+
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'status' => 'lunas',
+        ]);
+        $this->assertNotNull(DB::table('tagihan')->where('id', $tagihanId)->value('lunas_pada'));
+    }
+
+    public function test_admin_dapat_membatalkan_verifikasi_pembayaran(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiVerifikasi', $pembayaranId)
+            ->call('batalVerifikasi')
+            ->assertSet('verifyingPembayaranId', null)
+            ->assertSet('verifyingNomorTagihan', '');
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId, 'status' => 'menunggu']);
+        $this->assertDatabaseHas('tagihan', ['id' => $tagihanId, 'status' => 'belum_lunas']);
+    }
+
+    public function test_admin_dapat_menolak_pembayaran_dengan_alasan(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiTolak', $pembayaranId)
+            ->assertSet('rejectingPembayaranId', $pembayaranId)
+            ->assertSee('Tolak bukti pembayaran?')
+            ->set('rejectingCatatan', 'Nominal transfer kurang Rp 50.000')
+            ->call('tolakPembayaran')
+            ->assertHasNoErrors()
+            ->assertSee('Pembayaran ditolak. Orang tua dapat mengunggah bukti pembayaran baru.');
+
+        $this->assertDatabaseHas('pembayaran', [
+            'id' => $pembayaranId,
+            'status' => 'ditolak',
+            'diverifikasi_oleh_id' => $this->admin->id,
+            'catatan' => 'Nominal transfer kurang Rp 50.000',
+        ]);
+        $this->assertDatabaseHas('tagihan', [
+            'id' => $tagihanId,
+            'status' => 'belum_lunas',
+            'lunas_pada' => null,
+        ]);
+    }
+
+    public function test_alasan_penolakan_pembayaran_wajib_diisi(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiTolak', $pembayaranId)
+            ->set('rejectingCatatan', '')
+            ->call('tolakPembayaran')
+            ->assertHasErrors(['rejectingCatatan']);
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId, 'status' => 'menunggu']);
+    }
+
+    public function test_admin_dapat_membatalkan_penolakan_pembayaran(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('bukaKonfirmasiTolak', $pembayaranId)
+            ->call('batalTolak')
+            ->assertSet('rejectingPembayaranId', null)
+            ->assertSet('rejectingNomorTagihan', '');
+
+        $this->assertDatabaseHas('pembayaran', ['id' => $pembayaranId, 'status' => 'menunggu']);
+    }
+
+    public function test_pembayaran_yang_sudah_terverifikasi_atau_ditolak_tidak_dapat_diproses_lagi(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000, 'belum_lunas');
+
+        foreach (['terverifikasi', 'ditolak'] as $status) {
+            $pembayaranId = $this->buatPembayaran($tagihanId, $status, 1500000);
+
+            Livewire::actingAs($this->admin)
+                ->test(TagihanIndex::class)
+                ->call('bukaKonfirmasiVerifikasi', $pembayaranId)
+                ->assertStatus(404);
+
+            Livewire::actingAs($this->admin)
+                ->test(TagihanIndex::class)
+                ->call('bukaKonfirmasiTolak', $pembayaranId)
+                ->assertStatus(404);
+        }
+    }
 }

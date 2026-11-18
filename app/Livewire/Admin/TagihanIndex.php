@@ -29,6 +29,20 @@ class TagihanIndex extends Component
 
     public string $filterPembayaran = '';
 
+    public ?int $verifyingPembayaranId = null;
+
+    public string $verifyingNomorTagihan = '';
+
+    public float $verifyingJumlah = 0;
+
+    public string $verifyingCatatan = '';
+
+    public ?int $rejectingPembayaranId = null;
+
+    public string $rejectingNomorTagihan = '';
+
+    public string $rejectingCatatan = '';
+
     /**
      * @return array<string, mixed>
      */
@@ -211,6 +225,122 @@ class TagihanIndex extends Component
         $namaFile = 'bukti-pembayaran-'.$pembayaran->nomor_tagihan.'.'.$ext;
 
         return Storage::disk('local')->download($pembayaran->path_bukti, $namaFile);
+    }
+
+    public function bukaKonfirmasiVerifikasi(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $pembayaran = $this->pembayaranMenungguVerifikasi($id);
+
+        $this->verifyingPembayaranId = $pembayaran->id;
+        $this->verifyingNomorTagihan = $pembayaran->nomor_tagihan;
+        $this->verifyingJumlah = (float) $pembayaran->jumlah_bayar;
+        $this->verifyingCatatan = '';
+        $this->reset('viewingPembayaranId');
+    }
+
+    public function batalVerifikasi(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $this->reset('verifyingPembayaranId', 'verifyingNomorTagihan', 'verifyingJumlah', 'verifyingCatatan');
+    }
+
+    public function verifikasiPembayaran(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+        abort_if($this->verifyingPembayaranId === null, 404);
+
+        $pembayaran = $this->pembayaranMenungguVerifikasi($this->verifyingPembayaranId);
+
+        DB::transaction(function () use ($pembayaran) {
+            DB::table('pembayaran')
+                ->where('id', $pembayaran->id)
+                ->update([
+                    'status' => 'terverifikasi',
+                    'diverifikasi_oleh_id' => auth()->id(),
+                    'diverifikasi_pada' => now(),
+                    'catatan' => $this->verifyingCatatan ?: null,
+                    'updated_at' => now(),
+                ]);
+
+            DB::table('tagihan')
+                ->where('id', $pembayaran->tagihan_id)
+                ->update([
+                    'status' => 'lunas',
+                    'lunas_pada' => now(),
+                    'updated_at' => now(),
+                ]);
+        });
+
+        $this->batalVerifikasi();
+        session()->flash('sukses', 'Pembayaran berhasil diverifikasi. Status tagihan otomatis menjadi Lunas.');
+    }
+
+    public function bukaKonfirmasiTolak(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $pembayaran = $this->pembayaranMenungguVerifikasi($id);
+
+        $this->rejectingPembayaranId = $pembayaran->id;
+        $this->rejectingNomorTagihan = $pembayaran->nomor_tagihan;
+        $this->rejectingCatatan = '';
+        $this->resetValidation('rejectingCatatan');
+        $this->reset('viewingPembayaranId');
+    }
+
+    public function batalTolak(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $this->reset('rejectingPembayaranId', 'rejectingNomorTagihan', 'rejectingCatatan');
+        $this->resetValidation('rejectingCatatan');
+    }
+
+    public function tolakPembayaran(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+        abort_if($this->rejectingPembayaranId === null, 404);
+
+        $this->validate([
+            'rejectingCatatan' => ['required', 'string', 'max:500'],
+        ], [
+            'rejectingCatatan.required' => 'Alasan penolakan wajib diisi.',
+            'rejectingCatatan.max' => 'Alasan penolakan maksimal 500 karakter.',
+        ]);
+
+        $pembayaran = $this->pembayaranMenungguVerifikasi($this->rejectingPembayaranId);
+
+        DB::table('pembayaran')
+            ->where('id', $pembayaran->id)
+            ->update([
+                'status' => 'ditolak',
+                'diverifikasi_oleh_id' => auth()->id(),
+                'diverifikasi_pada' => now(),
+                'catatan' => $this->rejectingCatatan,
+                'updated_at' => now(),
+            ]);
+
+        $this->batalTolak();
+        session()->flash('sukses', 'Pembayaran ditolak. Orang tua dapat mengunggah bukti pembayaran baru.');
+    }
+
+    protected function pembayaranMenungguVerifikasi(int $id): object
+    {
+        $pembayaran = DB::table('pembayaran as pb')
+            ->join('tagihan as t', 't.id', '=', 'pb.tagihan_id')
+            ->where('pb.id', $id)
+            ->where('pb.status', 'menunggu')
+            ->where('t.status', 'belum_lunas')
+            ->whereNull('t.deleted_at')
+            ->select(['pb.id', 'pb.tagihan_id', 'pb.jumlah as jumlah_bayar', 't.nomor_tagihan', 't.jumlah as jumlah_tagihan'])
+            ->first();
+
+        abort_if($pembayaran === null, 404);
+
+        return $pembayaran;
     }
 
     protected function pembayaranValid(int $id): object

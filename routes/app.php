@@ -6,6 +6,8 @@ use App\Livewire\Admin\JadwalKegiatanUbah;
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
+use App\Livewire\Admin\KelompokUsiaBuat;
+use App\Livewire\Admin\KelompokUsiaIndex;
 use App\Livewire\Admin\PaketLayananCreate;
 use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Admin\PendaftaranDetail as PendaftaranDetailAdmin;
@@ -127,5 +129,13 @@ Route::middleware(['web', 'auth'])->group(function () {
             // Check-out dan daftar kehadiran sekarang menyatu di halaman Presensi; tautan lama dialihkan.
             Route::redirect('check-out', '/pengasuh/presensi')->name('check-out');
             Route::redirect('kehadiran', '/pengasuh/presensi')->name('kehadiran');
+        });
+
+    Route::middleware('permission:kelola master data')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('kelompok-usia', KelompokUsiaIndex::class)->name('kelompok-usia.index');
+            Route::get('kelompok-usia/buat', KelompokUsiaBuat::class)->name('kelompok-usia.buat');
         });
 });

@@ -11,7 +11,7 @@
             @click="sidebarOpen = !sidebarOpen" aria-label="Buka menu" :aria-expanded="sidebarOpen">☰</button>
 
         <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5">
-            <span class="grid size-10 place-items-center rounded-ta border-[1.5px] border-ink bg-yellow font-bold">TA</span>
+            <img src="{{ asset('images/logo-ikon-96.png') }}" alt="" width="96" height="96" class="size-10 shrink-0 rounded-ta">
             <span class="hidden text-lg font-bold sm:inline">TitipAnak</span>
         </a>
 

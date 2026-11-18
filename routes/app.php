@@ -4,14 +4,17 @@ use App\Livewire\Admin\JadwalKegiatanBuat;
 use App\Livewire\Admin\JadwalKegiatanIndex;
 use App\Livewire\Admin\JadwalKegiatanUbah;
 use App\Livewire\Admin\JadwalShiftBuat;
-use App\Livewire\Admin\RekapKehadiran;
 use App\Livewire\Admin\JadwalShiftIndex;
 use App\Livewire\Admin\JadwalShiftUbah;
+use App\Livewire\Admin\PaketLayananCreate;
+use App\Livewire\Admin\PaketLayananIndex;
+use App\Livewire\Admin\RekapKehadiran;
 use App\Livewire\Dashboard;
+use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\Pengasuh\CheckOut;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
-use App\Livewire\Pengasuh\KehadiranHariIni;
 use App\Livewire\Pengasuh\JadwalSaya;
+use App\Livewire\Pengasuh\KehadiranHariIni;
 use App\Livewire\Pengasuh\Presensi;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +40,21 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('kehadiran', RekapKehadiran::class)->name('kehadiran.rekap');
+        });
+
+    Route::middleware('permission:kelola master data')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('paket-layanan', PaketLayananIndex::class)->name('paket-layanan.index');
+            Route::get('paket-layanan/tambah', PaketLayananCreate::class)->name('paket-layanan.create');
+        });
+
+    Route::middleware('permission:kelola pendaftaran sendiri')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
         });
 
     Route::middleware('permission:lihat jadwal sendiri')

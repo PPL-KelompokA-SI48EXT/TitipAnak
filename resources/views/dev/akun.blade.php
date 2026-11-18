@@ -12,12 +12,17 @@
 <body class="grid min-h-screen place-items-center bg-cream px-4 py-10 font-sans text-ink antialiased">
     {{-- Sementara halaman login (PBI-01) belum ada. Hanya muncul saat dev_switcher aktif. --}}
     <div class="w-full max-w-md rounded-ta border-[1.5px] border-ink bg-paper p-6">
-        <div class="mb-4 flex items-center gap-3">
-            <span class="grid size-11 place-items-center rounded-ta border-[1.5px] border-ink bg-yellow font-bold">TA</span>
-            <div>
-                <h1 class="text-xl font-bold leading-tight">Pilih akun</h1>
-                <p class="text-sm text-muted">Masuk sebagai peran apa saja untuk mencoba aplikasi.</p>
+        <div class="mb-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="grid size-11 place-items-center rounded-ta border-[1.5px] border-ink bg-yellow font-bold">TA</span>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight">Pilih akun</h1>
+                    <p class="text-sm text-muted">Masuk sebagai peran apa saja untuk mencoba aplikasi.</p>
+                </div>
             </div>
+        </div>
+        <div class="mb-4">
+            <a href="{{ route('login') }}" class="text-xs font-semibold text-muted hover:text-ink underline">← Buka Form Login Utama</a>
         </div>
 
         <x-dev.akun-switcher />

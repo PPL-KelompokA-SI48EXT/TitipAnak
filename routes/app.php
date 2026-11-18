@@ -3,7 +3,21 @@
 use App\Livewire\Admin\KelompokUsiaBuat;
 use App\Livewire\Admin\JadwalShiftBuat;
 use App\Livewire\Admin\JadwalShiftIndex;
+use App\Livewire\Admin\JadwalShiftUbah;
+use App\Livewire\Admin\PaketLayananCreate;
+use App\Livewire\Admin\PaketLayananIndex;
+use App\Livewire\Admin\PendaftaranDetail as PendaftaranDetailAdmin;
+use App\Livewire\Admin\PendaftaranIndex as PendaftaranIndexAdmin;
+use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
+use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
+use App\Livewire\OrangTua\PendaftaranBuat;
+use App\Livewire\OrangTua\PendaftaranDetail;
+use App\Livewire\OrangTua\PendaftaranIndex;
+use App\Livewire\OrangTua\PenjemputIndex;
+use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
+use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
+use App\Livewire\Pengasuh\JadwalSaya;
 use Illuminate\Support\Facades\Route;
 use App\Livewire\Admin\KelompokUsiaIndex;
 
@@ -17,6 +31,68 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->group(function () {
             Route::get('jadwal-shift', JadwalShiftIndex::class)->name('jadwal-shift.index');
             Route::get('jadwal-shift/buat', JadwalShiftBuat::class)->name('jadwal-shift.buat');
+            Route::get('jadwal-shift/{jadwal}/ubah', JadwalShiftUbah::class)->name('jadwal-shift.ubah');
+        });
+
+    Route::middleware('permission:kelola master data')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('paket-layanan', PaketLayananIndex::class)->name('paket-layanan.index');
+            Route::get('paket-layanan/tambah', PaketLayananCreate::class)->name('paket-layanan.create');
+        });
+
+    Route::middleware('permission:verifikasi pendaftaran')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('pendaftaran', PendaftaranIndexAdmin::class)->name('pendaftaran.index');
+            Route::get('pendaftaran/{pendaftaran}', PendaftaranDetailAdmin::class)->whereNumber('pendaftaran')->name('pendaftaran.detail');
+        });
+
+    Route::middleware('permission:kelola tagihan')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('tagihan', TagihanIndex::class)->name('tagihan.index');
+        });
+
+    Route::middleware('permission:validasi izin penjemputan')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('penjemput', PenjemputIndexPengasuh::class)->name('penjemput.index');
+        });
+
+    Route::middleware('permission:kelola pendaftaran sendiri')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
+            Route::get('pendaftaran', PendaftaranIndex::class)->name('pendaftaran.index');
+            Route::get('pendaftaran/buat', PendaftaranBuat::class)->name('pendaftaran.buat');
+            Route::get('pendaftaran/{pendaftaran}', PendaftaranDetail::class)->whereNumber('pendaftaran')->name('pendaftaran.detail');
+        });
+
+    Route::middleware('permission:kelola penjemput')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('penjemput', PenjemputIndex::class)->name('penjemput.index');
+        });
+
+    Route::middleware('permission:bayar tagihan')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('tagihan', TagihanIndexOrangTua::class)->name('tagihan.index');
+        });
+
+    Route::middleware('permission:lihat jadwal sendiri')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('jadwal-saya', JadwalSaya::class)->name('jadwal-saya');
         });
     Route::middleware('permission:kelola master data')
     ->prefix('admin')

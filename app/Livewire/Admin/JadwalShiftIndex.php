@@ -43,6 +43,9 @@ class JadwalShiftIndex extends Component
     #[Url(except: '')]
     public string $hari = '';
 
+    /** Jadwal yang sedang menunggu konfirmasi hapus (null = dialog tertutup). */
+    public ?int $hapusId = null;
+
     public function setMode(string $mode): void
     {
         $this->mode = in_array($mode, self::MODE, true) ? $mode : 'minggu';
@@ -69,6 +72,22 @@ class JadwalShiftIndex extends Component
     {
         $this->tanggal = Carbon::parse($tanggal)->toDateString();
         $this->mode = 'minggu';
+    }
+
+    public function konfirmasiHapus(int $id): void
+    {
+        $this->hapusId = JadwalShift::whereKey($id)->value('id');
+    }
+
+    public function batalHapus(): void
+    {
+        $this->hapusId = null;
+    }
+
+    public function hapus(): void
+    {
+        // Logika penghapusan menyusul di commit berikutnya (PK4-105 backend).
+        $this->batalHapus();
     }
 
     public function resetFilter(): void
@@ -121,6 +140,7 @@ class JadwalShiftIndex extends Component
             'jadwal' => $jadwal,
             'perHari' => $jadwal->groupBy('hari'),
             'semua' => JadwalShift::count(),
+            'hapusJadwal' => $this->hapusId ? JadwalShift::with(['pengasuh:id,nama', 'kelompokUsia:id,nama'])->find($this->hapusId) : null,
             'pekan' => $pekan,
             'grid' => $grid,
             'bulanList' => self::BULAN,

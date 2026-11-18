@@ -31,6 +31,13 @@
         </a>
     </div>
 
+    @if (session('sukses'))
+        <div role="status" class="flex gap-3 rounded-ta border-[1.5px] border-ink bg-mint px-4 py-3 text-sm">
+            <span aria-hidden="true">✅</span>
+            <span><b>Berhasil.</b> {{ session('sukses') }}</span>
+        </div>
+    @endif
+
     {{-- Pilihan tampilan --}}
     <div class="flex flex-wrap items-center gap-2" role="group" aria-label="Pilih tampilan">
         @foreach (['minggu' => 'Minggu', 'bulan' => 'Bulan', 'daftar' => 'Daftar'] as $kode => $label)
@@ -126,6 +133,10 @@
                                 <div class="font-bold">{{ $jam($j) }}</div>
                                 <div class="mt-0.5 break-words">{{ $j->pengasuh?->nama ?? '—' }}</div>
                                 <div class="mt-1 font-semibold">{{ $j->kelompokUsia?->nama ?? '—' }}</div>
+                                <a href="{{ route('admin.jadwal-shift.ubah', $j) }}" class="mt-1 inline-block font-semibold underline"
+                                    aria-label="Ubah shift {{ $j->pengasuh?->nama }} {{ $jam($j) }}">Ubah</a>
+                                <button type="button" wire:click="konfirmasiHapus({{ $j->id }})" class="ml-2 mt-1 inline-block font-semibold underline"
+                                    aria-label="Hapus shift {{ $j->pengasuh?->nama }} {{ $jam($j) }}">Hapus</button>
                             </article>
                         @empty
                             <p class="py-4 text-center text-xs text-muted">Tidak ada shift</p>
@@ -187,6 +198,7 @@
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Jam</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Pengasuh</th>
                         <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Kelompok usia</th>
+                        <th class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-bold">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -198,10 +210,26 @@
                             <td class="px-4 py-3">
                                 <span class="rounded-full border border-ink px-3 py-1 text-xs font-semibold {{ $warna[$j->kelompok_usia_id] ?? 'bg-cream' }}">{{ $j->kelompokUsia?->nama ?? '—' }}</span>
                             </td>
+                            <td class="whitespace-nowrap px-4 py-3">
+                                <a href="{{ route('admin.jadwal-shift.ubah', $j) }}" class="font-semibold underline"
+                                    aria-label="Ubah shift {{ $j->pengasuh?->nama }} {{ $hariList[$j->hari] ?? '' }}">Ubah</a>
+                                <button type="button" wire:click="konfirmasiHapus({{ $j->id }})" class="ml-3 font-semibold underline"
+                                    aria-label="Hapus shift {{ $j->pengasuh?->nama }} {{ $hariList[$j->hari] ?? '' }}">Hapus</button>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
+    @endif
+
+    @if ($hapusJadwal)
+        <x-konfirmasi-hapus judul="Hapus jadwal shift?" tombol="Ya, hapus">
+            <p>
+                Shift <b>{{ $hapusJadwal->pengasuh?->nama ?? '—' }}</b> untuk <b>{{ $hapusJadwal->kelompokUsia?->nama ?? '—' }}</b>
+                pada hari <b>{{ $hariList[$hapusJadwal->hari] ?? $hapusJadwal->hari }}</b>
+                ({{ substr($hapusJadwal->jam_mulai, 0, 5) }} – {{ substr($hapusJadwal->jam_selesai, 0, 5) }}) akan dihapus dan tidak berlaku lagi.
+            </p>
+        </x-konfirmasi-hapus>
     @endif
 </div>

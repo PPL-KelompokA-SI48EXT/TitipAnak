@@ -14,7 +14,9 @@ class PenjemputTerdaftar extends Model
 
     protected function casts(): array
     {
-        return ['aktif' => 'boolean'];
+        return [
+            'aktif' => 'boolean',
+        ];
     }
 
     public function anak(): BelongsTo

@@ -5,8 +5,10 @@ namespace App\Livewire\Admin;
 use App\Models\Tagihan;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Title('Tagihan')]
 class TagihanIndex extends Component
@@ -22,6 +24,10 @@ class TagihanIndex extends Component
     public ?int $deletingTagihanId = null;
 
     public string $deletingTagihanNomor = '';
+
+    public ?int $viewingPembayaranId = null;
+
+    public string $filterPembayaran = '';
 
     /**
      * @return array<string, mixed>
@@ -177,9 +183,135 @@ class TagihanIndex extends Component
         return $nomor;
     }
 
+    public function lihatBukti(int $id): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $this->pembayaranValid($id);
+
+        $this->viewingPembayaranId = $id;
+    }
+
+    public function tutupLihatBukti(): void
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $this->reset('viewingPembayaranId');
+    }
+
+    public function unduhBukti(int $id): StreamedResponse
+    {
+        abort_unless(auth()->user()?->can('kelola tagihan') || auth()->user()?->can('verifikasi pembayaran'), 403);
+
+        $pembayaran = $this->pembayaranValid($id);
+
+        abort_unless(Storage::disk('local')->exists($pembayaran->path_bukti), 404);
+
+        $ext = pathinfo($pembayaran->path_bukti, PATHINFO_EXTENSION) ?: 'jpg';
+        $namaFile = 'bukti-pembayaran-'.$pembayaran->nomor_tagihan.'.'.$ext;
+
+        return Storage::disk('local')->download($pembayaran->path_bukti, $namaFile);
+    }
+
+    protected function pembayaranValid(int $id): object
+    {
+        $pembayaran = DB::table('pembayaran as pb')
+            ->join('tagihan as t', 't.id', '=', 'pb.tagihan_id')
+            ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
+            ->where('pb.id', $id)
+            ->whereNull('t.deleted_at')
+            ->whereNull('p.deleted_at')
+            ->select(['pb.id', 'pb.path_bukti', 't.nomor_tagihan'])
+            ->first();
+
+        abort_if($pembayaran === null, 404);
+
+        return $pembayaran;
+    }
+
+    protected function getDetailPembayaran(int $id): ?object
+    {
+        $pembayaran = DB::table('pembayaran as pb')
+            ->join('tagihan as t', 't.id', '=', 'pb.tagihan_id')
+            ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
+            ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
+            ->join('paket_layanan as pl', 'pl.id', '=', 'p.paket_layanan_id')
+            ->where('pb.id', $id)
+            ->whereNull('t.deleted_at')
+            ->whereNull('p.deleted_at')
+            ->select([
+                'pb.id',
+                'pb.tagihan_id',
+                'pb.path_bukti',
+                'pb.jumlah as jumlah_bayar',
+                'pb.status as status_pembayaran',
+                'pb.diajukan_pada',
+                'pb.catatan',
+                't.nomor_tagihan',
+                't.jumlah as jumlah_tagihan',
+                't.status as status_tagihan',
+                'u.nama as nama_orang_tua',
+                'u.email as email_orang_tua',
+                'pl.nama as nama_paket',
+            ])
+            ->first();
+
+        if ($pembayaran === null) {
+            return null;
+        }
+
+        $exists = Storage::disk('local')->exists($pembayaran->path_bukti);
+        $mime = $exists ? Storage::disk('local')->mimeType($pembayaran->path_bukti) : null;
+        $isImage = $mime && str_starts_with($mime, 'image/');
+        $isPdf = $mime === 'application/pdf' || str_ends_with(strtolower($pembayaran->path_bukti), '.pdf');
+        $previewUrl = null;
+
+        if ($exists && $isImage) {
+            $content = Storage::disk('local')->get($pembayaran->path_bukti);
+            $previewUrl = 'data:'.$mime.';base64,'.base64_encode($content);
+        }
+
+        return (object) [
+            ...((array) $pembayaran),
+            'file_exists' => $exists,
+            'is_image' => $isImage,
+            'is_pdf' => $isPdf,
+            'preview_url' => $previewUrl,
+            'mime' => $mime,
+        ];
+    }
+
     public function render(): View
     {
         abort_unless(auth()->user()?->can('kelola tagihan'), 403);
+
+        $queryPembayaran = DB::table('pembayaran as pb')
+            ->join('tagihan as t', 't.id', '=', 'pb.tagihan_id')
+            ->join('pendaftaran as p', 'p.id', '=', 't.pendaftaran_id')
+            ->join('pengguna as u', 'u.id', '=', 'p.orang_tua_id')
+            ->join('paket_layanan as pl', 'pl.id', '=', 'p.paket_layanan_id')
+            ->whereNull('t.deleted_at')
+            ->whereNull('p.deleted_at')
+            ->select([
+                'pb.id',
+                'pb.tagihan_id',
+                'pb.path_bukti',
+                'pb.jumlah as jumlah_bayar',
+                'pb.status as status_pembayaran',
+                'pb.diajukan_pada',
+                'pb.catatan',
+                't.nomor_tagihan',
+                't.jumlah as jumlah_tagihan',
+                't.status as status_tagihan',
+                'u.nama as nama_orang_tua',
+                'pl.nama as nama_paket',
+            ])
+            ->orderByDesc('pb.diajukan_pada')
+            ->orderByDesc('pb.id');
+
+        if ($this->filterPembayaran !== '') {
+            $queryPembayaran->where('pb.status', $this->filterPembayaran);
+        }
 
         return view('livewire.admin.tagihan-index', [
             'pendaftaran' => DB::table('pendaftaran as p')
@@ -220,6 +352,8 @@ class TagihanIndex extends Component
                 ->orderByDesc('t.diterbitkan_pada')
                 ->orderByDesc('t.id')
                 ->get(),
+            'daftarPembayaran' => $queryPembayaran->get(),
+            'detailPembayaran' => $this->viewingPembayaranId ? $this->getDetailPembayaran($this->viewingPembayaranId) : null,
         ]);
     }
 }

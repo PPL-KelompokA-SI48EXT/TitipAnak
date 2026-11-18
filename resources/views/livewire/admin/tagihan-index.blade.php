@@ -122,6 +122,98 @@
         @endif
     </section>
 
+    <section aria-labelledby="daftar-pembayaran-heading">
+        <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h2 id="daftar-pembayaran-heading" class="text-xl font-bold text-ink">Bukti Pembayaran Masuk</h2>
+                <p class="mt-1 text-sm text-muted">Periksa dan cocokkan bukti pembayaran yang diunggah oleh orang tua.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <label for="filter-pembayaran" class="text-xs font-semibold text-ink">Status:</label>
+                <select
+                    id="filter-pembayaran"
+                    wire:model.live="filterPembayaran"
+                    class="rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink focus-visible:outline-3 focus-visible:outline-yellow"
+                >
+                    <option value="">Semua status</option>
+                    <option value="menunggu">Menunggu verifikasi</option>
+                    <option value="terverifikasi">Terverifikasi</option>
+                    <option value="ditolak">Ditolak</option>
+                </select>
+                <span class="inline-flex rounded-full border border-ink bg-yellow px-3 py-1 text-xs font-semibold text-ink">{{ $daftarPembayaran->count() }} pembayaran</span>
+            </div>
+        </div>
+
+        @if ($daftarPembayaran->isEmpty())
+            <div class="rounded-ta border-[1.5px] border-ink bg-cream px-4 py-12 text-center text-muted">
+                Belum ada bukti pembayaran yang masuk.
+            </div>
+        @else
+            <div class="overflow-x-auto rounded-ta border-[1.5px] border-ink bg-paper">
+                <table class="w-full border-collapse text-sm">
+                    <caption class="sr-only">Daftar bukti pembayaran yang masuk</caption>
+                    <thead>
+                        <tr class="bg-yellow text-left text-ink">
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Nomor tagihan</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Orang tua</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Paket</th>
+                            <th scope="col" class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-semibold">Nominal tagihan</th>
+                            <th scope="col" class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-semibold">Nominal bayar</th>
+                            <th scope="col" class="whitespace-nowrap border-b-[1.5px] border-ink px-4 py-3 font-semibold">Diajukan</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Status</th>
+                            <th scope="col" class="border-b-[1.5px] border-ink px-4 py-3 font-semibold">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($daftarPembayaran as $item)
+                            <tr wire:key="pembayaran-masuk-{{ $item->id }}" class="border-b border-ink last:border-b-0 even:bg-cream">
+                                <td class="px-4 py-3 font-semibold text-ink">{{ $item->nomor_tagihan }}</td>
+                                <td class="px-4 py-3 text-ink">{{ $item->nama_orang_tua }}</td>
+                                <td class="px-4 py-3 text-muted">{{ $item->nama_paket }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah_tagihan, 2, ',', '.') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 font-semibold text-ink">Rp {{ number_format((float) $item->jumlah_bayar, 2, ',', '.') }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-muted">{{ \Carbon\Carbon::parse($item->diajukan_pada)->format('d/m/Y H:i') }}</td>
+                                <td class="px-4 py-3">
+                                    @if ($item->status_pembayaran === 'terverifikasi')
+                                        <span class="inline-flex rounded-full border border-ink bg-mint px-2.5 py-1 text-xs font-semibold text-ink">Terverifikasi</span>
+                                    @elseif ($item->status_pembayaran === 'ditolak')
+                                        <span class="inline-flex rounded-full border border-ink bg-coral px-2.5 py-1 text-xs font-semibold text-ink">Ditolak</span>
+                                    @else
+                                        <span class="inline-flex rounded-full border border-ink bg-yellow px-2.5 py-1 text-xs font-semibold text-ink">Menunggu</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-3">
+                                    <div class="flex flex-wrap gap-2">
+                                        <button
+                                            id="lihat-bukti-{{ $item->id }}"
+                                            type="button"
+                                            wire:click="lihatBukti({{ $item->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="lihatBukti({{ $item->id }})"
+                                            class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Lihat bukti
+                                        </button>
+                                        <button
+                                            id="unduh-bukti-{{ $item->id }}"
+                                            type="button"
+                                            wire:click="unduhBukti({{ $item->id }})"
+                                            wire:loading.attr="disabled"
+                                            wire:target="unduhBukti({{ $item->id }})"
+                                            class="inline-flex min-h-9 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-3 py-1.5 text-xs font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            Unduh
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </section>
+
     @if ($deletingTagihanId !== null)
         <div
             x-data="{
@@ -308,6 +400,166 @@
                         <button type="button" wire:click="terbitkan" wire:loading.attr="disabled" wire:target="terbitkan" class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50">
                             <span wire:loading.remove wire:target="terbitkan">Ya, terbitkan</span>
                             <span wire:loading wire:target="terbitkan">Menerbitkan…</span>
+                        </button>
+                    </div>
+                </div>
+            </dialog>
+        </div>
+    @endif
+
+    @if ($viewingPembayaranId !== null && $detailPembayaran !== null)
+        <div
+            x-data="{
+                triggerId: 'lihat-bukti-{{ $viewingPembayaranId }}',
+                focusables() {
+                    return [...$refs.dialog.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex=\"-1\"])')];
+                },
+                focusFirst() {
+                    this.focusables()[0]?.focus();
+                },
+                restoreFocus() {
+                    document.getElementById(this.triggerId)?.focus();
+                },
+                trapFocus(event) {
+                    if (event.key !== 'Tab') return;
+
+                    const elements = this.focusables();
+                    if (! elements.length) return;
+
+                    const first = elements[0];
+                    const last = elements[elements.length - 1];
+
+                    if (event.shiftKey && document.activeElement === first) {
+                        event.preventDefault();
+                        last.focus();
+                    } else if (! event.shiftKey && document.activeElement === last) {
+                        event.preventDefault();
+                        first.focus();
+                    }
+                },
+            }
+            x-init="$nextTick(() => focusFirst()); return () => restoreFocus()"
+            x-on:keydown="trapFocus($event)"
+            x-on:focusout.window="if (! $el.contains($event.relatedTarget)) focusFirst()"
+            class="fixed inset-0 z-50 grid place-items-center bg-ink/60 p-4 overflow-y-auto"
+            wire:key="lihat-bukti-dialog-{{ $viewingPembayaranId }}"
+            wire:keydown.escape="tutupLihatBukti"
+        >
+            <dialog
+                x-ref="dialog"
+                open
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="lihat-bukti-heading"
+                aria-describedby="lihat-bukti-description"
+                class="m-0 my-8 w-full max-w-2xl rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl"
+            >
+                <div class="grid gap-5 p-6">
+                    <div class="flex items-start justify-between gap-4 border-b border-ink/20 pb-4">
+                        <div>
+                            <h2 id="lihat-bukti-heading" class="text-xl font-bold">Bukti Pembayaran Masuk</h2>
+                            <p id="lihat-bukti-description" class="mt-1 text-sm text-muted">Rincian pembayaran untuk tagihan <strong>{{ $detailPembayaran->nomor_tagihan }}</strong>.</p>
+                        </div>
+                        <button
+                            type="button"
+                            wire:click="tutupLihatBukti"
+                            class="rounded-ta border border-ink p-1 text-ink hover:bg-cream focus-visible:outline-2 focus-visible:outline-yellow"
+                            aria-label="Tutup dialog"
+                        >
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    {{-- Data Rincian untuk Pencocokan --}}
+                    <div class="grid grid-cols-1 gap-3 rounded-ta border border-ink bg-cream p-4 text-xs sm:grid-cols-2">
+                        <div>
+                            <span class="text-muted">Orang Tua:</span>
+                            <p class="font-semibold text-ink">{{ $detailPembayaran->nama_orang_tua }} ({{ $detailPembayaran->email_orang_tua }})</p>
+                        </div>
+                        <div>
+                            <span class="text-muted">Paket Layanan:</span>
+                            <p class="font-semibold text-ink">{{ $detailPembayaran->nama_paket }}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted">Nominal Tagihan:</span>
+                            <p class="font-bold text-ink">Rp {{ number_format((float) $detailPembayaran->jumlah_tagihan, 2, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted">Nominal Bukti Pembayaran:</span>
+                            <p class="font-bold text-ink">Rp {{ number_format((float) $detailPembayaran->jumlah_bayar, 2, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted">Waktu Pengajuan:</span>
+                            <p class="font-semibold text-ink">{{ \Carbon\Carbon::parse($detailPembayaran->diajukan_pada)->format('d F Y, H:i') }}</p>
+                        </div>
+                        <div>
+                            <span class="text-muted">Status Pembayaran:</span>
+                            <p class="font-semibold">
+                                @if ($detailPembayaran->status_pembayaran === 'terverifikasi')
+                                    <span class="inline-flex rounded-full border border-ink bg-mint px-2 py-0.5 text-xs font-semibold text-ink">Terverifikasi</span>
+                                @elseif ($detailPembayaran->status_pembayaran === 'ditolak')
+                                    <span class="inline-flex rounded-full border border-ink bg-coral px-2 py-0.5 text-xs font-semibold text-ink">Ditolak</span>
+                                @else
+                                    <span class="inline-flex rounded-full border border-ink bg-yellow px-2 py-0.5 text-xs font-semibold text-ink">Menunggu Verifikasi</span>
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    {{-- Pratinjau Berkas --}}
+                    <div class="grid gap-2">
+                        <span class="text-sm font-semibold text-ink">Berkas Bukti Transfer:</span>
+                        @if (! $detailPembayaran->file_exists)
+                            <div class="rounded-ta border border-dashed border-ink bg-paper p-8 text-center text-sm text-muted">
+                                Berkas bukti pembayaran fisik tidak ditemukan di penyimpanan lokal.
+                            </div>
+                        @elseif ($detailPembayaran->is_image)
+                            <div class="overflow-hidden rounded-ta border-[1.5px] border-ink bg-paper p-2 text-center">
+                                <img
+                                    src="{{ $detailPembayaran->preview_url }}"
+                                    alt="Bukti pembayaran tagihan {{ $detailPembayaran->nomor_tagihan }}"
+                                    class="mx-auto max-h-96 w-auto max-w-full rounded object-contain"
+                                >
+                            </div>
+                        @elseif ($detailPembayaran->is_pdf)
+                            <div class="flex items-center justify-between rounded-ta border border-ink bg-paper p-4">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-2xl">📄</span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-ink">Dokumen Bukti PDF</p>
+                                        <p class="text-xs text-muted">Berkas bukti diunggah dalam format dokumen PDF.</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    wire:click="unduhBukti({{ $detailPembayaran->id }})"
+                                    class="inline-flex min-h-9 items-center justify-center rounded-ta border border-ink bg-yellow px-3 py-1.5 text-xs font-semibold text-ink hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-yellow"
+                                >
+                                    Unduh dokumen
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="flex flex-wrap justify-end gap-3 border-t border-ink/20 pt-4">
+                        @if ($detailPembayaran->file_exists)
+                            <button
+                                type="button"
+                                wire:click="unduhBukti({{ $detailPembayaran->id }})"
+                                wire:loading.attr="disabled"
+                                class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-yellow px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                                Unduh berkas bukti
+                            </button>
+                        @endif
+                        <button
+                            type="button"
+                            wire:click="tutupLihatBukti"
+                            class="inline-flex min-h-11 items-center justify-center rounded-ta border-[1.5px] border-ink bg-paper px-5 py-2.5 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-3 focus-visible:outline-yellow active:translate-y-0"
+                        >
+                            Tutup
                         </button>
                     </div>
                 </div>

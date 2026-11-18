@@ -8,6 +8,7 @@ use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -67,15 +68,18 @@ class TagihanIndexTest extends TestCase
         ]);
     }
 
-    private function buatPembayaran(int $tagihanId): void
+    private function buatPembayaran(int $tagihanId, string $status = 'menunggu', int $jumlah = 1500000, string $path = 'pembayaran-bukti/bukti.png'): int
     {
-        DB::table('pembayaran')->insert([
+        return DB::table('pembayaran')->insertGetId([
             'tagihan_id' => $tagihanId,
             'diajukan_oleh_id' => $this->orangTua->id,
-            'path_bukti' => 'pembayaran/bukti.png',
-            'jumlah' => 1500000,
-            'status' => 'menunggu',
+            'path_bukti' => $path,
+            'jumlah' => $jumlah,
+            'status' => $status,
             'diajukan_pada' => now(),
+            'diverifikasi_oleh_id' => null,
+            'diverifikasi_pada' => null,
+            'catatan' => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -370,6 +374,146 @@ class TagihanIndexTest extends TestCase
 
     public function test_pengguna_tanpa_permission_ditolak(): void
     {
+        $this->actingAs($this->pengasuh)
+            ->get(route('admin.tagihan.index'))
+            ->assertForbidden();
+    }
+
+    public function test_admin_dapat_melihat_daftar_bukti_pembayaran_yang_masuk(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $nomorTagihan = DB::table('tagihan')->where('id', $tagihanId)->value('nomor_tagihan');
+        $this->buatPembayaran($tagihanId, 'menunggu', 1500000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->assertOk()
+            ->assertSee('Bukti Pembayaran Masuk')
+            ->assertSee($nomorTagihan)
+            ->assertSee($this->orangTua->nama)
+            ->assertSee('Rp 1.500.000,00')
+            ->assertSee('Menunggu')
+            ->assertSee('Lihat bukti')
+            ->assertSee('Unduh');
+    }
+
+    public function test_admin_dapat_memfilter_bukti_pembayaran_berdasarkan_status(): void
+    {
+        $pendaftaran1 = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihan1 = $this->buatTagihan($pendaftaran1, 1500000);
+        $nomor1 = DB::table('tagihan')->where('id', $tagihan1)->value('nomor_tagihan');
+        $this->buatPembayaran($tagihan1, 'menunggu', 1500000);
+
+        $pendaftaran2 = $this->buatPendaftaran('disetujui', 2000000);
+        $tagihan2 = $this->buatTagihan($pendaftaran2, 2000000);
+        $nomor2 = DB::table('tagihan')->where('id', $tagihan2)->value('nomor_tagihan');
+        $this->buatPembayaran($tagihan2, 'terverifikasi', 2000000);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->assertViewHas('daftarPembayaran', fn ($list) => $list->count() === 2)
+            ->set('filterPembayaran', 'menunggu')
+            ->assertViewHas('daftarPembayaran', fn ($list) => $list->count() === 1 && $list->first()->nomor_tagihan === $nomor1)
+            ->set('filterPembayaran', 'terverifikasi')
+            ->assertViewHas('daftarPembayaran', fn ($list) => $list->count() === 1 && $list->first()->nomor_tagihan === $nomor2);
+    }
+
+    public function test_admin_dapat_melihat_detail_dan_pratinjau_bukti_pembayaran_gambar(): void
+    {
+        Storage::fake('local');
+        $path = 'pembayaran-bukti/transfer.png';
+        Storage::disk('local')->put($path, 'konten gambar tiruan');
+
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $nomorTagihan = DB::table('tagihan')->where('id', $tagihanId)->value('nomor_tagihan');
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000, $path);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('lihatBukti', $pembayaranId)
+            ->assertSet('viewingPembayaranId', $pembayaranId)
+            ->assertSee('Bukti Pembayaran Masuk')
+            ->assertSee($nomorTagihan)
+            ->assertSee($this->orangTua->nama)
+            ->assertSee('Nominal Tagihan:')
+            ->assertSee('Nominal Bukti Pembayaran:')
+            ->assertSee('Unduh berkas bukti');
+    }
+
+    public function test_admin_dapat_melihat_detail_bukti_pembayaran_pdf(): void
+    {
+        Storage::fake('local');
+        $path = 'pembayaran-bukti/dokumen.pdf';
+        Storage::disk('local')->put($path, '%PDF-1.4 konten pdf');
+
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000, $path);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('lihatBukti', $pembayaranId)
+            ->assertSet('viewingPembayaranId', $pembayaranId)
+            ->assertSee('Dokumen Bukti PDF')
+            ->assertSee('Unduh dokumen');
+    }
+
+    public function test_admin_dapat_mengunduh_berkas_bukti_pembayaran(): void
+    {
+        Storage::fake('local');
+        $path = 'pembayaran-bukti/transfer.png';
+        Storage::disk('local')->put($path, 'konten berkas');
+
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $pembayaranId = $this->buatPembayaran($tagihanId, 'menunggu', 1500000, $path);
+
+        $response = Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('unduhBukti', $pembayaranId);
+
+        $response->assertFileDownloaded();
+    }
+
+    public function test_admin_dapat_menutup_modal_lihat_bukti(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $pembayaranId = $this->buatPembayaran($tagihanId);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('lihatBukti', $pembayaranId)
+            ->assertSet('viewingPembayaranId', $pembayaranId)
+            ->call('tutupLihatBukti')
+            ->assertSet('viewingPembayaranId', null);
+    }
+
+    public function test_melihat_atau_mengunduh_bukti_pembayaran_yang_tidak_ada_menghasilkan_404(): void
+    {
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('lihatBukti', 99999)
+            ->assertStatus(404);
+
+        Livewire::actingAs($this->admin)
+            ->test(TagihanIndex::class)
+            ->call('unduhBukti', 99999)
+            ->assertStatus(404);
+    }
+
+    public function test_pengguna_tanpa_permission_tidak_dapat_melihat_atau_mengunduh_bukti(): void
+    {
+        $pendaftaranId = $this->buatPendaftaran('disetujui', 1500000);
+        $tagihanId = $this->buatTagihan($pendaftaranId, 1500000);
+        $this->buatPembayaran($tagihanId);
+
+        $this->actingAs($this->orangTua)
+            ->get(route('admin.tagihan.index'))
+            ->assertForbidden();
+
         $this->actingAs($this->pengasuh)
             ->get(route('admin.tagihan.index'))
             ->assertForbidden();

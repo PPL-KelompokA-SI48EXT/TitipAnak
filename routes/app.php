@@ -8,6 +8,8 @@ use App\Livewire\Admin\PaketLayananIndex;
 use App\Livewire\Admin\TagihanIndex;
 use App\Livewire\Dashboard;
 use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
+use App\Livewire\OrangTua\PendaftaranBuat;
+use App\Livewire\OrangTua\PendaftaranIndex;
 use App\Livewire\OrangTua\PenjemputIndex;
 use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
@@ -54,6 +56,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('paket-layanan', PaketLayananIndexOrangTua::class)->name('paket-layanan.index');
+            Route::get('pendaftaran', PendaftaranIndex::class)->name('pendaftaran.index');
+            Route::get('pendaftaran/buat', PendaftaranBuat::class)->name('pendaftaran.buat');
         });
 
     Route::middleware('permission:kelola penjemput')
@@ -68,6 +72,8 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('tagihan', TagihanIndexOrangTua::class)->name('tagihan.index');
+        });
+
     Route::middleware('permission:lihat jadwal sendiri')
         ->prefix('pengasuh')
         ->name('pengasuh.')

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['nama', 'deskripsi', 'harga', 'aktif'])]
 class PaketLayanan extends Model
@@ -16,5 +17,10 @@ class PaketLayanan extends Model
             'harga' => 'decimal:2',
             'aktif' => 'boolean',
         ];
+    }
+
+    public function pendaftaran(): HasMany
+    {
+        return $this->hasMany(Pendaftaran::class);
     }
 }

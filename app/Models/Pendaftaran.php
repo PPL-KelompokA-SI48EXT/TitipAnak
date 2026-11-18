@@ -75,6 +75,75 @@ class Pendaftaran extends Model
     }
 
     /**
+     * PBI-11d: syarat kelengkapan sebelum pendaftaran diajukan ke Admin.
+     * Dibaca langsung dari database (bukan relasi yang sudah dimuat) agar selalu terkini.
+     *
+     * @return array<'anak'|'kesehatan'|'penjemput', array{label: string, lengkap: bool}>
+     */
+    public function kelengkapan(): array
+    {
+        $anak = $this->anak()->first();
+
+        $adaAnak = $anak !== null
+            && filled($anak->nama_lengkap)
+            && $anak->tanggal_lahir !== null
+            && filled($anak->jenis_kelamin);
+
+        return [
+            'anak' => [
+                'label' => 'Data anak',
+                'lengkap' => $adaAnak,
+            ],
+            'kesehatan' => [
+                'label' => 'Catatan kesehatan',
+                'lengkap' => $anak !== null && CatatanKesehatan::where('anak_id', $anak->id)->exists(),
+            ],
+            'penjemput' => [
+                'label' => 'Penjemput terdaftar',
+                'lengkap' => $anak !== null && PenjemputTerdaftar::where('anak_id', $anak->id)->where('aktif', true)->exists(),
+            ],
+        ];
+    }
+
+    /** PBI-11d: data anak, catatan kesehatan, dan minimal satu penjemput aktif sudah diisi. */
+    public function dataLengkap(): bool
+    {
+        return collect($this->kelengkapan())->every(fn (array $syarat) => $syarat['lengkap']);
+    }
+
+    /**
+     * PBI-11d: ubah Draft menjadi Menunggu Verifikasi begitu datanya lengkap, agar Admin bisa memprosesnya.
+     * Selain Draft tidak disentuh. Update bersyarat status = draft supaya aman bila status
+     * sudah berubah (atau pendaftaran dihapus) sejak model dimuat.
+     *
+     * @return bool true jika status berubah.
+     */
+    public function ajukanJikaLengkap(): bool
+    {
+        if ($this->status !== 'draft' || ! $this->dataLengkap()) {
+            return false;
+        }
+
+        $diajukanPada = now();
+
+        $berubah = static::query()
+            ->whereKey($this->getKey())
+            ->where('status', 'draft')
+            ->update([
+                'status' => 'menunggu_verifikasi',
+                'diajukan_pada' => $diajukanPada,
+                'updated_at' => $diajukanPada,
+            ]) > 0;
+
+        if ($berubah) {
+            $this->forceFill(['status' => 'menunggu_verifikasi', 'diajukan_pada' => $diajukanPada, 'updated_at' => $diajukanPada])
+                ->syncOriginal();
+        }
+
+        return $berubah;
+    }
+
+    /**
      * PBI-11b: tahapan pendaftaran untuk ditampilkan ke orang tua.
      *
      * @return list<array{status: string, label: string, keadaan: string, waktu: ?Carbon}>

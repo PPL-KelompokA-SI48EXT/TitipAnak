@@ -12,6 +12,7 @@ use Livewire\Component;
  * PBI-11b: Orang tua melihat status pendaftarannya (Draft, Menunggu Verifikasi, Disetujui)
  * agar tahu sudah sampai tahap mana.
  * PBI-11c: Pendaftaran yang masih Draft bisa dihapus dari halaman ini.
+ * PBI-11d: Selama Draft, halaman ini menampilkan data apa saja yang belum lengkap.
  */
 #[Title('Status Pendaftaran')]
 class PendaftaranDetail extends Component
@@ -66,8 +67,12 @@ class PendaftaranDetail extends Component
 
     public function render(): View
     {
+        $pendaftaran = $this->pendaftaranMilikSendiri($this->pendaftaranId);
+
         return view('livewire.orang-tua.pendaftaran-detail', [
-            'pendaftaran' => $this->pendaftaranMilikSendiri($this->pendaftaranId),
+            'pendaftaran' => $pendaftaran,
+            // PBI-11d: daftar syarat yang harus lengkap sebelum diajukan. Hanya relevan selama Draft.
+            'kelengkapan' => $pendaftaran->status === 'draft' ? $pendaftaran->kelengkapan() : null,
         ]);
     }
 }

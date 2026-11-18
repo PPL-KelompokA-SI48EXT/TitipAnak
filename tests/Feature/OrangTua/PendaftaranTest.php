@@ -5,12 +5,17 @@ namespace Tests\Feature\OrangTua;
 use App\Livewire\OrangTua\PendaftaranBuat;
 use App\Livewire\OrangTua\PendaftaranDetail;
 use App\Livewire\OrangTua\PendaftaranIndex;
+use App\Livewire\OrangTua\PenjemputIndex;
 use App\Models\Anak;
+use App\Models\CatatanKesehatan;
 use App\Models\PaketLayanan;
 use App\Models\Pendaftaran;
+use App\Models\PenjemputTerdaftar;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -425,5 +430,184 @@ class PendaftaranTest extends TestCase
         $this->actingAs($this->orangTua)
             ->get(route('orang-tua.pendaftaran.detail', $p))
             ->assertNotFound();
+    }
+
+    // ---------------------------------------------------------------
+    // PBI-11d: Draft otomatis menjadi Menunggu Verifikasi saat data anak,
+    // catatan kesehatan, dan penjemput terdaftar sudah lengkap
+    // ---------------------------------------------------------------
+
+    private function kesehatanUntuk(Anak $anak): CatatanKesehatan
+    {
+        return CatatanKesehatan::create(['anak_id' => $anak->id, 'alergi' => 'Susu sapi']);
+    }
+
+    private function penjemputUntuk(Anak $anak, bool $aktif = true): PenjemputTerdaftar
+    {
+        return PenjemputTerdaftar::create([
+            'anak_id' => $anak->id, 'nama_lengkap' => 'Budi Santoso', 'hubungan' => 'Ayah',
+            'no_hp' => '081234567890', 'aktif' => $aktif,
+        ]);
+    }
+
+    public function test_draft_tetap_draft_jika_baru_data_anak_yang_diisi(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $this->anakUntuk($p);
+
+        $this->assertSame('draft', $p->fresh()->status);
+        $this->assertNull($p->fresh()->diajukan_pada);
+    }
+
+    public function test_draft_tetap_draft_jika_penjemput_belum_ada(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $this->kesehatanUntuk($this->anakUntuk($p));
+
+        $this->assertSame('draft', $p->fresh()->status);
+    }
+
+    public function test_draft_tetap_draft_jika_catatan_kesehatan_belum_ada(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $this->penjemputUntuk($this->anakUntuk($p));
+
+        $this->assertSame('draft', $p->fresh()->status);
+    }
+
+    public function test_penjemput_nonaktif_tidak_dihitung_lengkap(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+        $this->penjemputUntuk($anak, aktif: false);
+
+        $this->assertSame('draft', $p->fresh()->status);
+        $this->assertFalse($p->kelengkapan()['penjemput']['lengkap']);
+    }
+
+    public function test_status_otomatis_menunggu_verifikasi_saat_semua_data_lengkap(): void
+    {
+        $this->travelTo(now()->setTime(9, 30));
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+
+        $this->penjemputUntuk($anak);
+
+        $p->refresh();
+        $this->assertSame('menunggu_verifikasi', $p->status);
+        $this->assertTrue($p->diajukan_pada->equalTo(now()));
+        $this->assertNull($p->diverifikasi_pada);
+    }
+
+    public function test_urutan_pengisian_tidak_berpengaruh(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->penjemputUntuk($anak);
+        $this->assertSame('draft', $p->fresh()->status);
+
+        // Catatan kesehatan diisi paling akhir.
+        $this->kesehatanUntuk($anak);
+
+        $this->assertSame('menunggu_verifikasi', $p->fresh()->status);
+    }
+
+    public function test_penjemput_yang_diaktifkan_kembali_melengkapi_pendaftaran(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+        $penjemput = $this->penjemputUntuk($anak, aktif: false);
+
+        $penjemput->update(['aktif' => true]);
+
+        $this->assertSame('menunggu_verifikasi', $p->fresh()->status);
+    }
+
+    public function test_menambah_penjemput_dari_halaman_penjemput_mengajukan_pendaftaran(): void
+    {
+        Storage::fake('local');
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PenjemputIndex::class)
+            ->set('anak_id', (string) $anak->id)
+            ->set('nama_lengkap', 'Rina Santoso')
+            ->set('hubungan', 'Ibu')
+            ->set('no_hp', '081298765432')
+            ->set('foto_identitas', UploadedFile::fake()->create('ktp.png', 100, 'image/png'))
+            ->call('simpan')
+            ->assertHasNoErrors();
+
+        $this->assertSame('menunggu_verifikasi', $p->fresh()->status);
+    }
+
+    public function test_status_selain_draft_tidak_diubah(): void
+    {
+        foreach (['menunggu_verifikasi', 'disetujui', 'ditolak'] as $status) {
+            $diajukan = now()->subDays(3)->startOfSecond();
+            $p = $this->pendaftaran($status, ['diajukan_pada' => $diajukan]);
+            $anak = $this->anakUntuk($p);
+            $this->kesehatanUntuk($anak);
+            $this->penjemputUntuk($anak);
+
+            $p->refresh();
+            $this->assertSame($status, $p->status);
+            $this->assertTrue($p->diajukan_pada->equalTo($diajukan), "diajukan_pada {$status} tidak boleh berubah");
+        }
+    }
+
+    public function test_draft_yang_sudah_dihapus_tidak_diajukan(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+        $p->hapusDraft();
+
+        $this->assertFalse($p->ajukanJikaLengkap());
+        $this->assertSame('draft', Pendaftaran::withTrashed()->find($p->id)->status);
+    }
+
+    public function test_halaman_status_draft_menampilkan_kelengkapan_data(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $this->kesehatanUntuk($this->anakUntuk($p));
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('Kelengkapan data')
+            ->assertSee('2 dari 3 lengkap')
+            ->assertSeeInOrder(['Data anak', 'Lengkap', 'Catatan kesehatan', 'Lengkap', 'Penjemput terdaftar', 'Belum diisi'])
+            ->assertSee('otomatis berubah menjadi Menunggu Verifikasi')
+            ->assertSeeHtml('href="'.route('orang-tua.penjemput.index').'"');
+    }
+
+    public function test_halaman_status_draft_tanpa_anak_tidak_menawarkan_tambah_penjemput(): void
+    {
+        $p = $this->pendaftaran('draft');
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('0 dari 3 lengkap')
+            ->assertDontSee('Tambah penjemput');
+    }
+
+    public function test_halaman_status_setelah_lengkap_menampilkan_menunggu_verifikasi(): void
+    {
+        $p = $this->pendaftaran('draft');
+        $anak = $this->anakUntuk($p);
+        $this->kesehatanUntuk($anak);
+        $this->penjemputUntuk($anak);
+
+        Livewire::actingAs($this->orangTua)
+            ->test(PendaftaranDetail::class, ['pendaftaran' => $p->id])
+            ->assertSee('Pendaftaran Anda sedang diverifikasi Admin.')
+            ->assertSee('Data lengkap dan diajukan ke Admin.')
+            ->assertDontSee('Kelengkapan data')
+            ->assertDontSee('Hapus pendaftaran');
     }
 }

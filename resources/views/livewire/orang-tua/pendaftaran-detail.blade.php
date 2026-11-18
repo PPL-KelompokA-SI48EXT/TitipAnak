@@ -43,6 +43,59 @@
         <x-pendaftaran.tahapan :pendaftaran="$pendaftaran" />
     </section>
 
+    @if ($kelengkapan)
+        {{-- PBI-11d: syarat agar Draft otomatis menjadi Menunggu Verifikasi. --}}
+        @php
+            $petunjuk = [
+                'anak' => 'Nama, tanggal lahir, dan jenis kelamin anak.',
+                'kesehatan' => 'Riwayat medis, alergi, dan pantangan makanan anak.',
+                'penjemput' => 'Minimal satu orang yang boleh menjemput anak.',
+            ];
+            $jumlahLengkap = collect($kelengkapan)->where('lengkap', true)->count();
+        @endphp
+        <section aria-labelledby="kelengkapan-heading" class="grid gap-4 rounded-ta border-[1.5px] border-ink bg-paper p-6">
+            <div class="flex flex-wrap items-start justify-between gap-2">
+                <div class="grid gap-0.5">
+                    <h2 id="kelengkapan-heading" class="text-xl font-bold">Kelengkapan data</h2>
+                    <p class="text-sm text-muted">Setelah ketiganya lengkap, status otomatis berubah menjadi Menunggu Verifikasi dan pendaftaran diteruskan ke Admin.</p>
+                </div>
+                <span class="text-sm font-semibold">{{ $jumlahLengkap }} dari {{ count($kelengkapan) }} lengkap</span>
+            </div>
+
+            <ul class="grid gap-2">
+                @foreach ($kelengkapan as $kunci => $syarat)
+                    {{-- Mobile: ikon | teks | badge, tombol turun ke baris sendiri. Layar >= sm: satu baris. --}}
+                    <li wire:key="kelengkapan-{{ $kunci }}"
+                        class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-ta border border-ink bg-paper px-4 py-3 sm:flex">
+                        <span aria-hidden="true" @class([
+                            'grid size-8 flex-none place-items-center rounded-full border-[1.5px] border-ink text-sm font-bold',
+                            'bg-mint' => $syarat['lengkap'],
+                            'border-dashed bg-paper text-muted' => ! $syarat['lengkap'],
+                        ])>{{ $syarat['lengkap'] ? '✓' : '!' }}</span>
+
+                        <div class="grid min-w-0 flex-1 gap-0.5">
+                            <p class="font-semibold">{{ $syarat['label'] }}</p>
+                            <p class="text-xs text-muted">{{ $petunjuk[$kunci] }}</p>
+                        </div>
+
+                        @if (! $syarat['lengkap'] && $kunci === 'penjemput' && $pendaftaran->anak && auth()->user()->can('kelola penjemput'))
+                            <a href="{{ route('orang-tua.penjemput.index') }}"
+                                class="col-span-3 row-start-2 inline-flex min-h-11 w-fit items-center whitespace-nowrap rounded-ta border-[1.5px] border-ink bg-paper px-4 py-2 text-sm font-semibold transition hover:bg-cream sm:shrink-0">
+                                Tambah penjemput
+                            </a>
+                        @endif
+
+                        <span @class([
+                            'inline-flex w-fit flex-none items-center whitespace-nowrap rounded-full border border-ink px-3 py-1 text-xs font-semibold sm:order-last',
+                            'bg-mint' => $syarat['lengkap'],
+                            'bg-paper' => ! $syarat['lengkap'],
+                        ])>{{ $syarat['lengkap'] ? 'Lengkap' : 'Belum diisi' }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </section>
+    @endif
+
     <section aria-labelledby="rincian-heading" class="grid gap-4 rounded-ta border-[1.5px] border-ink bg-paper p-6">
         <h2 id="rincian-heading" class="text-xl font-bold">Rincian</h2>
 

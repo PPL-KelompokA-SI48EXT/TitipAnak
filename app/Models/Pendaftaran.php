@@ -143,6 +143,63 @@ class Pendaftaran extends Model
         return $berubah;
     }
 
+    /** PBI-11f: Admin hanya bisa menyetujui pendaftaran yang sedang Menunggu Verifikasi. */
+    public function bisaDisetujui(): bool
+    {
+        return $this->status === 'menunggu_verifikasi';
+    }
+
+    /**
+     * PBI-11f: Admin menyetujui pendaftaran sekaligus menetapkan kelompok usia anak,
+     * sehingga anak berstatus aktif.
+     *
+     * Satu database transaction (NFR-06): status pendaftaran dan data anak berubah bersama,
+     * atau tidak sama sekali. Update bersyarat status = menunggu_verifikasi supaya pendaftaran
+     * yang sudah diproses (mis. dibuka di dua tab) tidak disetujui dua kali.
+     *
+     * @return bool true jika pendaftaran berhasil disetujui.
+     */
+    public function setujui(KelompokUsia $kelompokUsia, User $admin): bool
+    {
+        $disetujui = DB::transaction(function () use ($kelompokUsia, $admin) {
+            $anak = $this->anak()->lockForUpdate()->first();
+
+            if ($anak === null) {
+                return false;
+            }
+
+            $waktu = now();
+
+            $berubah = static::query()
+                ->whereKey($this->getKey())
+                ->where('status', 'menunggu_verifikasi')
+                ->update([
+                    'status' => 'disetujui',
+                    'diverifikasi_oleh_id' => $admin->id,
+                    'diverifikasi_pada' => $waktu,
+                    'catatan_penolakan' => null,
+                    'updated_at' => $waktu,
+                ]) > 0;
+
+            if (! $berubah) {
+                return false;
+            }
+
+            $anak->update([
+                'kelompok_usia_id' => $kelompokUsia->id,
+                'status' => 'aktif',
+            ]);
+
+            return true;
+        });
+
+        if ($disetujui) {
+            $this->refresh();
+        }
+
+        return $disetujui;
+    }
+
     /**
      * PBI-11b: tahapan pendaftaran untuk ditampilkan ke orang tua.
      *

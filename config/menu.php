@@ -73,7 +73,7 @@ return [
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => null, 'permission' => 'buat laporan insiden'],
             ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => null, 'permission' => 'buat penilaian bulanan'],
             ['label' => 'Penjemput Terdaftar', 'icon' => '🚸', 'route' => 'pengasuh.penjemput.index', 'permission' => 'validasi izin penjemputan'],
-            ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'validasi izin penjemputan'],
+            ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => 'pengasuh.izin-penjemputan.index', 'permission' => 'validasi izin penjemputan'],
         ],
     ],
     [
@@ -86,7 +86,7 @@ return [
             ['label' => 'Jadwal Anak', 'icon' => '🧸', 'route' => 'orang-tua.jadwal-anak', 'permission' => 'lihat jadwal anak'],
             ['label' => 'Tagihan', 'icon' => '💳', 'route' => 'orang-tua.tagihan.index', 'permission' => 'bayar tagihan'],
             ['label' => 'Penjemput', 'icon' => '🚸', 'route' => 'orang-tua.penjemput.index', 'permission' => 'kelola penjemput'],
-            ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => null, 'permission' => 'ajukan izin penjemputan'],
+            ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => 'orang-tua.izin-penjemputan.index', 'permission' => 'ajukan izin penjemputan'],
             ['label' => 'Laporan Anak', 'icon' => '📒', 'route' => null, 'permission' => 'lihat laporan anak'],
         ],
     ],

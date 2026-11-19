@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'anak_id', 'diajukan_oleh_id', 'nama_penjemput', 'path_foto_identitas', 'alasan', 'tanggal_jemput',
@@ -40,6 +41,17 @@ class IzinPenjemputan extends Model
     public function diajukanOleh(): BelongsTo
     {
         return $this->belongsTo(User::class, 'diajukan_oleh_id');
+    }
+
+    public function divalidasiOleh(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'divalidasi_oleh_id');
+    }
+
+    /** Check-out yang memakai izin ini (kosong bila belum dipakai). */
+    public function kehadiran(): HasMany
+    {
+        return $this->hasMany(Kehadiran::class, 'izin_penjemputan_id');
     }
 
     public function scopeDisetujui(Builder $query): void

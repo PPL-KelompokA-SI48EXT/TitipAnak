@@ -21,10 +21,12 @@ use App\Livewire\OrangTua\PaketLayananIndex as PaketLayananIndexOrangTua;
 use App\Livewire\OrangTua\PendaftaranBuat;
 use App\Livewire\OrangTua\PendaftaranDetail;
 use App\Livewire\OrangTua\PendaftaranIndex;
+use App\Livewire\OrangTua\IzinPenjemputanIndex as IzinPenjemputanIndexOrangTua;
 use App\Livewire\OrangTua\PenjemputIndex;
 use App\Livewire\OrangTua\TagihanIndex as TagihanIndexOrangTua;
 use App\Livewire\Pengasuh\JadwalKegiatanHarian;
 use App\Livewire\Pengasuh\JadwalSaya;
+use App\Livewire\Pengasuh\IzinPenjemputanIndex as IzinPenjemputanIndexPengasuh;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use App\Livewire\Pengasuh\Presensi;
 use Illuminate\Support\Facades\Route;
@@ -81,6 +83,7 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('pengasuh.')
         ->group(function () {
             Route::get('penjemput', PenjemputIndexPengasuh::class)->name('penjemput.index');
+            Route::get('izin-penjemputan', IzinPenjemputanIndexPengasuh::class)->name('izin-penjemputan.index');
         });
 
     Route::middleware('permission:kelola pendaftaran sendiri')
@@ -98,6 +101,13 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('orang-tua.')
         ->group(function () {
             Route::get('penjemput', PenjemputIndex::class)->name('penjemput.index');
+        });
+
+    Route::middleware('permission:ajukan izin penjemputan')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('izin-penjemputan', IzinPenjemputanIndexOrangTua::class)->name('izin-penjemputan.index');
         });
 
     Route::middleware('permission:bayar tagihan')

@@ -93,7 +93,7 @@
     </section>
 
     @if ($viewingFotoId !== null)
-        <div class="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-ink/60 p-4" wire:key="foto-izin-{{ $viewingFotoId }}" wire:keydown.escape="tutupFoto">
+        <div class="fixed inset-0 z-50 flex min-h-full items-center justify-center overflow-y-auto bg-ink/60 p-4" wire:key="foto-izin-{{ $viewingFotoId }}" x-data @keydown.escape.window="$wire.tutupFoto()">
             <dialog open role="dialog" aria-modal="true" class="relative m-0 mx-auto my-auto w-full max-w-md rounded-ta border-[1.5px] border-ink bg-paper p-0 text-ink shadow-xl">
                 <div class="grid gap-4 p-6">
                     <div class="flex items-start justify-between gap-4 border-b border-ink/20 pb-3">

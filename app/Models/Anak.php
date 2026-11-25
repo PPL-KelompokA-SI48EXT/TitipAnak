@@ -57,4 +57,8 @@ class Anak extends Model
     {
         return $this->belongsTo(KelompokUsia::class);
     }
+    public function laporanHarian(): HasMany
+    {
+        return $this->hasMany(LaporanHarian::class);
+    }
 }

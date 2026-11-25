@@ -29,6 +29,7 @@ use App\Livewire\Pengasuh\JadwalSaya;
 use App\Livewire\Pengasuh\IzinPenjemputanIndex as IzinPenjemputanIndexPengasuh;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use App\Livewire\Pengasuh\Presensi;
+use App\Livewire\Pengasuh\LaporanHarianIndex;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -149,5 +150,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->group(function () {
             Route::get('kelompok-usia', KelompokUsiaIndex::class)->name('kelompok-usia.index');
             Route::get('kelompok-usia/buat', KelompokUsiaBuat::class)->name('kelompok-usia.buat');
+        });
+    Route::middleware('permission:buat laporan harian')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('laporan-harian', LaporanHarianIndex::class)->name('laporan-harian.index');
         });
 });

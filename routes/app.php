@@ -30,6 +30,7 @@ use App\Livewire\Pengasuh\IzinPenjemputanIndex as IzinPenjemputanIndexPengasuh;
 use App\Livewire\Pengasuh\PenjemputIndex as PenjemputIndexPengasuh;
 use App\Livewire\Pengasuh\Presensi;
 use App\Livewire\Pengasuh\LaporanHarianIndex;
+use App\Livewire\OrangTua\LaporanAnakIndex;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -156,5 +157,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('pengasuh.')
         ->group(function () {
             Route::get('laporan-harian', LaporanHarianIndex::class)->name('laporan-harian.index');
+        });
+    Route::middleware('permission:lihat laporan anak')
+        ->prefix('orang-tua')
+        ->name('orang-tua.')
+        ->group(function () {
+            Route::get('laporan-anak', LaporanAnakIndex::class)->name('laporan-anak.index');
         });
 });

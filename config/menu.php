@@ -87,7 +87,7 @@ return [
             ['label' => 'Tagihan', 'icon' => '💳', 'route' => 'orang-tua.tagihan.index', 'permission' => 'bayar tagihan'],
             ['label' => 'Penjemput', 'icon' => '🚸', 'route' => 'orang-tua.penjemput.index', 'permission' => 'kelola penjemput'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => 'orang-tua.izin-penjemputan.index', 'permission' => 'ajukan izin penjemputan'],
-            ['label' => 'Laporan Anak', 'icon' => '📒', 'route' => null, 'permission' => 'lihat laporan anak'],
+            ['label' => 'Laporan Anak', 'icon' => '📒', 'route' => 'orang-tua.laporan-anak.index', 'permission' => 'lihat laporan anak'],
         ],
     ],
 ];

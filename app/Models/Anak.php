@@ -65,4 +65,8 @@ class Anak extends Model
     {
         return $this->hasMany(LaporanInsiden::class);
     }
+    public function laporanPerkembangan(): HasMany
+    {
+        return $this->hasMany(LaporanPerkembangan::class);
+    }
 }

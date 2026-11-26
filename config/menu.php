@@ -61,6 +61,7 @@ return [
                 ],
             ],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => 'admin.laporan-insiden.index', 'permission' => 'lihat semua laporan'],
+            ['label' => 'Laporan Perkembangan', 'icon' => '📈', 'route' => 'admin.laporan-perkembangan.index', 'permission' => 'lihat semua laporan'],
             ['label' => 'Pengumuman', 'icon' => '📣', 'route' => null, 'permission' => 'kelola pengumuman'],
         ],
     ],

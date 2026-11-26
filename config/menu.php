@@ -72,7 +72,7 @@ return [
             ['label' => 'Presensi', 'icon' => '✅', 'route' => 'pengasuh.presensi', 'permission' => 'presensi anak'],
             ['label' => 'Laporan Harian', 'icon' => '📒', 'route' => 'pengasuh.laporan-harian.index', 'permission' => 'buat laporan harian'],
             ['label' => 'Laporan Insiden', 'icon' => '🚑', 'route' => 'pengasuh.laporan-insiden.index', 'permission' => 'buat laporan insiden'],
-            ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => null, 'permission' => 'buat penilaian bulanan'],
+            ['label' => 'Penilaian Bulanan', 'icon' => '📈', 'route' => 'pengasuh.penilaian-bulanan.index', 'permission' => 'buat penilaian bulanan'],
             ['label' => 'Penjemput Terdaftar', 'icon' => '🚸', 'route' => 'pengasuh.penjemput.index', 'permission' => 'validasi izin penjemputan'],
             ['label' => 'Izin Penjemputan', 'icon' => '🪪', 'route' => 'pengasuh.izin-penjemputan.index', 'permission' => 'validasi izin penjemputan'],
         ],

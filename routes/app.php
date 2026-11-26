@@ -33,6 +33,7 @@ use App\Livewire\Pengasuh\LaporanHarianIndex;
 use App\Livewire\OrangTua\LaporanAnakIndex;
 use App\Livewire\Pengasuh\LaporanInsidenIndex;
 use App\Livewire\Admin\LaporanInsidenIndex as AdminLaporanInsidenIndex;
+use App\Livewire\Pengasuh\PenilaianBulananIndex;
 use Illuminate\Support\Facades\Route;
 
 // Halaman aplikasi yang membutuhkan login. Tambahkan route PBI baru di grup yang sesuai.
@@ -177,5 +178,11 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('laporan-insiden', AdminLaporanInsidenIndex::class)->name('laporan-insiden.index');
+        });
+    Route::middleware('permission:buat penilaian bulanan')
+        ->prefix('pengasuh')
+        ->name('pengasuh.')
+        ->group(function () {
+            Route::get('penilaian-bulanan', PenilaianBulananIndex::class)->name('penilaian-bulanan.index');
         });
 });
